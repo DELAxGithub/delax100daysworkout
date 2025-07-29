@@ -1,0 +1,103 @@
+{
+  "auto_fix_config": {
+    "max_files_per_fix": 3,
+    "max_lines_per_fix": 100,
+    "max_file_size_kb": 50,
+    "timeout_seconds": 300
+  },
+  "allowed_file_extensions": [
+    ".swift",
+    ".json",
+    ".yml",
+    ".yaml",
+    ".md",
+    ".plist",
+    ".storyboard",
+    ".xib"
+  ],
+  "forbidden_file_patterns": [
+    ".*\\.lock$",
+    ".*\\.pbxproj$",
+    ".*Secrets.*",
+    ".*Config.*",
+    ".*\\.env.*"
+  ],
+  "forbidden_code_patterns": [
+    {
+      "pattern": "password|secret|token|api_key",
+      "case_sensitive": false,
+      "description": "認証情報の変更を防ぐ"
+    },
+    {
+      "pattern": "rm\\s+-rf|sudo|chmod\\s+777",
+      "case_sensitive": false,
+      "description": "危険なシステムコマンドを防ぐ"
+    },
+    {
+      "pattern": "DROP\\s+TABLE|DELETE\\s+FROM|TRUNCATE",
+      "case_sensitive": false,
+      "description": "破壊的なDBクエリを防ぐ"
+    }
+  ],
+  "auto_fixable_categories": [
+    {
+      "category": "button_not_working",
+      "confidence_threshold": 80,
+      "allowed_fixes": [
+        "nil_check",
+        "binding_fix",
+        "selector_fix"
+      ]
+    },
+    {
+      "category": "display_issue",
+      "confidence_threshold": 75,
+      "allowed_fixes": [
+        "layout_constraint",
+        "color_fix",
+        "font_fix",
+        "visibility_fix"
+      ]
+    },
+    {
+      "category": "nil_reference",
+      "confidence_threshold": 90,
+      "allowed_fixes": [
+        "optional_binding",
+        "guard_statement",
+        "default_value"
+      ]
+    }
+  ],
+  "code_style_rules": {
+    "preserve_indentation": true,
+    "preserve_comments": true,
+    "max_line_length": 120,
+    "use_spaces": true,
+    "indent_size": 4
+  },
+  "review_requirements": {
+    "require_human_review": true,
+    "auto_merge_enabled": false,
+    "required_approvals": 1,
+    "block_on_test_failure": true
+  },
+  "risk_levels": {
+    "low": {
+      "max_files": 1,
+      "max_lines": 20,
+      "auto_approve": false
+    },
+    "medium": {
+      "max_files": 2,
+      "max_lines": 50,
+      "auto_approve": false
+    },
+    "high": {
+      "max_files": 3,
+      "max_lines": 100,
+      "auto_approve": false,
+      "require_senior_review": true
+    }
+  }
+}

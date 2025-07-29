@@ -1,0 +1,86 @@
+name: バグ報告
+description: アプリの不具合を報告する
+title: "[バグ] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグ報告ありがとうございます。以下の情報を記入してください。
+        
+  - type: dropdown
+    id: category
+    attributes:
+      label: カテゴリ
+      description: どのような問題ですか？
+      options:
+        - ボタンが効かない
+        - 表示がおかしい
+        - アプリが固まる
+        - データが保存されない
+        - その他
+    validations:
+      required: true
+      
+  - type: input
+    id: current_view
+    attributes:
+      label: 現在の画面
+      description: 問題が発生した画面名
+      placeholder: 例：TodayView, TaskCardView
+    validations:
+      required: true
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: 問題の説明
+      description: 何が起きているか詳しく教えてください
+      placeholder: 具体的な症状を記入してください
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 再現手順
+      description: 問題を再現する手順
+      placeholder: |
+        1. アプリを起動
+        2. 〇〇画面を開く
+        3. △△ボタンをタップ
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される動作
+      description: 本来どうなるべきか
+      
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+      description: 実際に何が起きたか
+      
+  - type: textarea
+    id: logs
+    attributes:
+      label: エラーログ
+      description: エラーメッセージやログがあれば貼り付けてください
+      render: shell
+      
+  - type: input
+    id: device
+    attributes:
+      label: デバイス情報
+      description: 使用しているデバイス
+      placeholder: 例：iPhone 14, iOS 17.5
+      
+  - type: checkboxes
+    id: auto_fix
+    attributes:
+      label: 自動修正の許可
+      description: このバグを自動的に修正することを許可しますか？
+      options:
+        - label: はい、自動修正を許可します
+          required: false
