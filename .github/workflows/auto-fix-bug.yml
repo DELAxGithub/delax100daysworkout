@@ -93,25 +93,28 @@ jobs:
         run: |
           gh pr create \
             --title "Auto-fix: ${{ github.event.issue.title }}" \
-            --body "## 自動修正
-
-このPRは Issue #${{ github.event.issue.number }} を自動的に修正します。
-
-### 修正内容
-${{ steps.generate.outputs.fix_summary }}
-
-### 安全性チェック
-- 変更ファイル数: ${{ steps.generate.outputs.changed_files_count }}
-- 変更行数: ${{ steps.generate.outputs.changed_lines_count }}
-- リスクレベル: ${{ steps.generate.outputs.risk_level }}
-
-### テスト結果
-- [ ] ビルド成功
-- [ ] 既存テストパス
-- [ ] 新規テスト追加（必要な場合）
-
----
-🤖 このPRは自動生成されました。レビューをお願いします。" \
+            --body "$(cat <<'EOF'
+          ## 自動修正
+          
+          このPRは Issue #${{ github.event.issue.number }} を自動的に修正します。
+          
+          ### 修正内容
+          ${{ steps.generate.outputs.fix_summary }}
+          
+          ### 安全性チェック
+          - 変更ファイル数: ${{ steps.generate.outputs.changed_files_count }}
+          - 変更行数: ${{ steps.generate.outputs.changed_lines_count }}
+          - リスクレベル: ${{ steps.generate.outputs.risk_level }}
+          
+          ### テスト結果
+          - [ ] ビルド成功
+          - [ ] 既存テストパス
+          - [ ] 新規テスト追加（必要な場合）
+          
+          ---
+          🤖 このPRは自動生成されました。レビューをお願いします。
+          EOF
+          )" \
             --label "auto-generated" \
             --assignee ${{ github.event.issue.user.login }}
             
