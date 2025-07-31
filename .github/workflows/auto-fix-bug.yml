@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Step 1: Cost estimation (only when auto-fix-candidate label is added)
+  # Cost estimation when auto-fix-candidate label is added
   estimate-cost:
     if: |
       github.event_name == 'issues' && 
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check for existing workflow and prevent duplicates
+      - name: Check for existing workflow
         id: check-duplicate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,18 +33,9 @@ jobs:
             repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("自動修正のコスト見積もり")))] | length')
           
-          # Also check if there are any running workflows for this issue
-          RUNNING_WORKFLOWS=$(gh api \
-            repos/${{ github.repository }}/actions/runs \
-            --jq '.workflow_runs[] | select(.status == "in_progress" or .status == "queued") | select(.head_commit.message | contains("#${{ github.event.issue.number }}")) | length')
-          
           if [ "$EXISTING_COMMENT" -gt 0 ]; then
             echo "duplicate=true" >> $GITHUB_OUTPUT
-            echo "既に処理済みです（コメント存在）"
-            exit 0
-          elif [ "$RUNNING_WORKFLOWS" -gt 1 ]; then
-            echo "duplicate=true" >> $GITHUB_OUTPUT  
-            echo "既に実行中のワークフローが存在します"
+            echo "既に処理済みです"
             exit 0
           else
             echo "duplicate=false" >> $GITHUB_OUTPUT
@@ -76,5 +67,3 @@ jobs:
             --issue-number ${{ github.event.issue.number }} \
             --repo ${{ github.repository }} \
             --model claude-opus-4-20250514
-
-
