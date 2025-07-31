@@ -2,7 +2,7 @@ name: Auto Fix Bug with Approval
 
 on:
   issues:
-    types: [opened]
+    types: [labeled]
 
 permissions:
   contents: write
@@ -14,12 +14,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Step 1: Cost estimation (only on issue opened, not labeled)
+  # Step 1: Cost estimation (only when auto-fix-candidate label is added)
   estimate-cost:
     if: |
       github.event_name == 'issues' && 
-      github.event.action == 'opened' && 
-      contains(github.event.issue.labels.*.name, 'auto-fix-candidate')
+      github.event.action == 'labeled' && 
+      github.event.label.name == 'auto-fix-candidate'
     runs-on: ubuntu-latest
     
     steps:

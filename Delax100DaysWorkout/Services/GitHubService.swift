@@ -27,10 +27,12 @@ struct GitHubService {
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Step 1: Create issue with base labels only (no auto-fix-candidate)
+        let baseLabels = generateBaseLabels(for: bugReport)
         let issueBody = IssueBody(
             title: generateTitle(for: bugReport),
             body: generateBody(for: bugReport),
-            labels: generateLabels(for: bugReport)
+            labels: baseLabels
         )
         
         let encoder = JSONEncoder()
@@ -68,7 +70,12 @@ struct GitHubService {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let issue = try decoder.decode(GitHubIssue.self, from: data)
         
-        // スクリーンショットがある場合は、コメントとして追加
+        // Step 2: Add auto-fix-candidate label separately if needed
+        if shouldAutoFix(bugReport.category) {
+            try await addAutoFixLabel(to: issue.number)
+        }
+        
+        // Step 3: Add screenshot if present
         if let screenshot = bugReport.screenshot {
             try await addScreenshot(screenshot, to: issue.number)
         }
@@ -76,35 +83,74 @@ struct GitHubService {
         return issue
     }
     
-    // MARK: - Screenshot Upload
+    // MARK: - Label Management
     
-    private func addScreenshot(_ imageData: Data, to issueNumber: Int) async throws {
-        // GitHubは画像の直接アップロードをサポートしていないため、
-        // 実際の実装では、画像をBase64エンコードしてコメントに含めるか、
-        // 外部の画像ホスティングサービスを使用する必要があります
+    private func addAutoFixLabel(to issueNumber: Int) async throws {
+        guard let token = token else { return }
         
-        let base64Image = imageData.base64EncodedString()
-        let imageMarkdown = "![Screenshot](data:image/jpeg;base64,\(base64Image))"
-        
-        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/comments")!
+        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/labels")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(token!)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let comment = ["body": "## スクリーンショット\n\(imageMarkdown)"]
-        request.httpBody = try JSONSerialization.data(withJSONObject: comment)
+        let labels = ["auto-fix-candidate"]
+        request.httpBody = try JSONSerialization.data(withJSONObject: labels)
         
         let (_, response) = try await URLSession.shared.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 201 else {
-            // スクリーンショットのアップロードに失敗しても、Issueは作成済みなので続行
-            print("Failed to upload screenshot")
-            return
+        if let httpResponse = response as? HTTPURLResponse,
+           httpResponse.statusCode == 200 {
+            print("Successfully added auto-fix-candidate label to issue #\(issueNumber)")
+        } else {
+            print("Failed to add auto-fix-candidate label to issue #\(issueNumber)")
         }
-        // 正常に完了
+    }
+    
+    private func shouldAutoFix(_ category: BugCategory) -> Bool {
+        switch category {
+        case .buttonNotWorking, .displayIssue:
+            return true
+        case .appFreeze, .dataNotSaved, .other:
+            return false
+        }
+    }
+    
+    // MARK: - Screenshot Upload
+    
+    private func addScreenshot(_ imageData: Data, to issueNumber: Int) async throws {
+        do {
+            // ImageUploadServiceを使用して画像をアップロード
+            let imageUploadService = ImageUploadService()
+            let imageUrl = try await imageUploadService.uploadImage(imageData)
+            
+            // GitHub IssueにコメントとしてMarkdown画像を追加
+            let imageMarkdown = "![Screenshot](\(imageUrl))"
+            
+            let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/comments")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("Bearer \(token!)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let comment = ["body": "## スクリーンショット\n\(imageMarkdown)"]
+            request.httpBody = try JSONSerialization.data(withJSONObject: comment)
+            
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 201 else {
+                throw GitHubError.failedToUploadScreenshot
+            }
+            
+            print("Screenshot uploaded successfully to: \(imageUrl)")
+        } catch {
+            // スクリーンショットのアップロードに失敗しても、Issueは作成済みなので続行
+            print("Failed to upload screenshot: \(error.localizedDescription)")
+            // エラーを投げずに処理を続行
+        }
     }
     
     // MARK: - Helper Methods
@@ -201,7 +247,7 @@ struct GitHubService {
         return body
     }
     
-    private func generateLabels(for bugReport: BugReport) -> [String] {
+    private func generateBaseLabels(for bugReport: BugReport) -> [String] {
         var labels = ["bug", "auto-generated"]
         
         // カテゴリに基づくラベル
@@ -214,7 +260,14 @@ struct GitHubService {
             break
         }
         
-        // 自動修正候補の判定
+        // auto-fix-candidate は後で個別に追加するため、ここでは追加しない
+        return labels
+    }
+    
+    private func generateLabels(for bugReport: BugReport) -> [String] {
+        var labels = generateBaseLabels(for: bugReport)
+        
+        // 自動修正候補の判定（後方互換性のため残しておく）
         switch bugReport.category {
         case .buttonNotWorking:
             labels.append("auto-fix-candidate")
@@ -270,6 +323,7 @@ enum GitHubError: LocalizedError {
     case unauthorized
     case repositoryNotFound
     case validationFailed
+    case failedToUploadScreenshot
     
     var errorDescription: String? {
         switch self {
@@ -285,6 +339,8 @@ enum GitHubError: LocalizedError {
             return "リポジトリが見つかりません。オーナー名とリポジトリ名を確認してください"
         case .validationFailed:
             return "Issueのデータ検証に失敗しました"
+        case .failedToUploadScreenshot:
+            return "スクリーンショットのアップロードに失敗しました"
         }
     }
 }
