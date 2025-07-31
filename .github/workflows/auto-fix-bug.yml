@@ -11,8 +11,12 @@ permissions:
   issues: write
   pull-requests: write
 
+concurrency:
+  group: auto-fix-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
-  # Step 1: Cost estimation (only on issue opened)
+  # Step 1: Cost estimation (only on issue opened, not labeled)
   estimate-cost:
     if: |
       github.event_name == 'issues' && 
@@ -21,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check for existing workflow
+      - name: Check for existing workflow and prevent duplicates
         id: check-duplicate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,12 +35,22 @@ jobs:
             repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("自動修正のコスト見積もり")))] | length')
           
+          # Also check if there are any running workflows for this issue
+          RUNNING_WORKFLOWS=$(gh api \
+            repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[] | select(.status == "in_progress" or .status == "queued") | select(.head_commit.message | contains("#${{ github.event.issue.number }}")) | length')
+          
           if [ "$EXISTING_COMMENT" -gt 0 ]; then
             echo "duplicate=true" >> $GITHUB_OUTPUT
-            echo "既に処理中のワークフローが存在します"
+            echo "既に処理済みです（コメント存在）"
+            exit 0
+          elif [ "$RUNNING_WORKFLOWS" -gt 1 ]; then
+            echo "duplicate=true" >> $GITHUB_OUTPUT  
+            echo "既に実行中のワークフローが存在します"
             exit 0
           else
             echo "duplicate=false" >> $GITHUB_OUTPUT
+            echo "新規処理を開始します"
           fi
           
       - name: Checkout repository
