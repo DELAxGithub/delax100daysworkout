@@ -19,10 +19,21 @@ jobs:
     if: |
       github.event_name == 'issues' && 
       github.event.action == 'labeled' && 
-      github.event.label.name == 'auto-fix-candidate'
+      github.event.label.name == 'auto-fix-candidate' &&
+      !contains(github.event.issue.labels.*.name, 'processing-auto-fix')
     runs-on: ubuntu-latest
     
     steps:
+      - name: Add processing label to prevent duplicates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add processing label to prevent duplicate runs
+          gh api \
+            --method POST \
+            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
+            --field labels='["processing-auto-fix"]' || echo "Label already exists"
+          
       - name: Check for existing workflow
         id: check-duplicate
         env:
@@ -36,7 +47,6 @@ jobs:
           if [ "$EXISTING_COMMENT" -gt 0 ]; then
             echo "duplicate=true" >> $GITHUB_OUTPUT
             echo "既に処理済みです"
-            exit 0
           else
             echo "duplicate=false" >> $GITHUB_OUTPUT
             echo "新規処理を開始します"
@@ -67,3 +77,13 @@ jobs:
             --issue-number ${{ github.event.issue.number }} \
             --repo ${{ github.repository }} \
             --model claude-opus-4-20250514
+            
+      - name: Remove processing label
+        if: always() && steps.check-duplicate.outputs.duplicate == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Remove processing label after completion
+          gh api \
+            --method DELETE \
+            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/processing-auto-fix || echo "Label not found"
