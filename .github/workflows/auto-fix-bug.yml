@@ -3,6 +3,8 @@ name: Auto Fix Bug with Approval
 on:
   issues:
     types: [opened]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -10,9 +12,12 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Step 1: Cost estimation with duplicate prevention
+  # Step 1: Cost estimation (only on issue opened)
   estimate-cost:
-    if: contains(github.event.issue.labels.*.name, 'auto-fix-candidate')
+    if: |
+      github.event_name == 'issues' && 
+      github.event.action == 'opened' && 
+      contains(github.event.issue.labels.*.name, 'auto-fix-candidate')
     runs-on: ubuntu-latest
     
     steps:
@@ -60,48 +65,34 @@ jobs:
             --repo ${{ github.repository }} \
             --model claude-opus-4-20250514
 
-  # Step 2: Wait for approval and execute fix
+  # Step 2: Execute fix after approval (triggered by approved comment)
   analyze-and-fix:
-    needs: estimate-cost
+    if: |
+      github.event_name == 'issue_comment' &&
+      contains(github.event.issue.labels.*.name, 'auto-fix-candidate') &&
+      github.event.comment.user.login == 'github-actions[bot]' &&
+      contains(github.event.comment.body, '自動修正のコスト見積もり')
     runs-on: ubuntu-latest
     
     steps:
-      - name: Wait for approval
+      - name: Check for approval
         id: check-approval
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Wait up to 24 hours for approval on cost estimate comment
-          MAX_WAIT=86400  # 24 hours in seconds
-          WAIT_INTERVAL=300  # Check every 5 minutes
-          ELAPSED=0
+          # Check for thumbs up reactions on the cost estimate comment
+          REACTIONS=$(gh api \
+            repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            --jq '[.[] | select(.content == "+1")] | length')
           
-          while [ $ELAPSED -lt $MAX_WAIT ]; do
-            # Find the cost estimate comment
-            COMMENT_ID=$(gh api \
-              repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
-              --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("自動修正のコスト見積もり"))) | .id' | head -1)
-            
-            if [ -n "$COMMENT_ID" ]; then
-              # Check for thumbs up reactions
-              REACTIONS=$(gh api \
-                repos/${{ github.repository }}/issues/comments/$COMMENT_ID/reactions \
-                --jq '[.[] | select(.content == "+1")] | length')
-              
-              if [ "$REACTIONS" -gt 0 ]; then
-                echo "approved=true" >> $GITHUB_OUTPUT
-                echo "承認されました！自動修正を開始します"
-                exit 0
-              fi
-            fi
-            
-            echo "承認待機中... ($((ELAPSED/60))分経過)"
-            sleep $WAIT_INTERVAL
-            ELAPSED=$((ELAPSED + WAIT_INTERVAL))
-          done
-          
-          echo "approved=false" >> $GITHUB_OUTPUT
-          echo "承認タイムアウト（24時間）"
+          if [ "$REACTIONS" -gt 0 ]; then
+            echo "approved=true" >> $GITHUB_OUTPUT
+            echo "承認されました！自動修正を開始します"
+          else
+            echo "approved=false" >> $GITHUB_OUTPUT
+            echo "承認が必要です。コメントに👍リアクションを追加してください"
+            exit 0
+          fi
           
       - name: Checkout repository
         if: steps.check-approval.outputs.approved == 'true'
