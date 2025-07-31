@@ -11,10 +11,6 @@ permissions:
   issues: write
   pull-requests: write
 
-concurrency:
-  group: auto-fix-${{ github.repository }}-issue-${{ github.event.issue.number }}
-  cancel-in-progress: true
-
 jobs:
   # Cost estimation when auto-fix-candidate label is added
   estimate-cost:
@@ -25,6 +21,9 @@ jobs:
       !contains(github.event.issue.labels.*.name, 'processing-auto-fix') &&
       !contains(github.event.issue.labels.*.name, 'cost-estimated')
     runs-on: ubuntu-latest
+    concurrency:
+      group: estimate-cost-${{ github.repository }}-issue-${{ github.event.issue.number }}
+      cancel-in-progress: false
     
     steps:
       - name: Add processing label to prevent duplicates
@@ -121,6 +120,9 @@ jobs:
       contains(github.event.issue.labels.*.name, 'auto-fix-candidate')
     
     runs-on: ubuntu-latest
+    concurrency:
+      group: analyze-and-fix-${{ github.repository }}-issue-${{ github.event.issue.number }}
+      cancel-in-progress: true
     
     steps:
       - name: Check for approval

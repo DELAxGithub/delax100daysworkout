@@ -82,6 +82,41 @@ class BugReportManager: ObservableObject {
         )
     }
     
+    func createBugReport(
+        category: BugCategory,
+        description: String? = nil,
+        reproductionSteps: String? = nil,
+        expectedBehavior: String? = nil,
+        actualBehavior: String? = nil,
+        currentView: String,
+        screenshot: Data?
+    ) -> BugReport {
+        // スクリーンショット情報をログ出力
+        if let screenshot = screenshot {
+            log(.info, "Screenshot captured: \(screenshot.count) bytes", source: "BugReportManager")
+        } else {
+            log(.warning, "No screenshot provided", source: "BugReportManager")
+        }
+        
+        // Get recent actions and logs
+        let recentActions = Array(userActions.suffix(10))
+        let recentLogs = logs.filter { log in
+            log.level == .warning || log.level == .error
+        }.suffix(20)
+        
+        return BugReport(
+            category: category,
+            description: description,
+            reproductionSteps: reproductionSteps,
+            expectedBehavior: expectedBehavior,
+            actualBehavior: actualBehavior,
+            screenshot: screenshot,
+            currentView: currentView,
+            userActions: recentActions,
+            logs: Array(recentLogs)
+        )
+    }
+    
     // MARK: - Screenshot Capture
     
     private func captureScreenshot() -> Data? {

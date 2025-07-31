@@ -25,16 +25,39 @@ extension Notification.Name {
 
 struct ShakeDetector: ViewModifier {
     @State private var showBugReport = false
+    @State private var capturedScreenshot: Data?
     let currentView: String
     
     func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
+                print("[ShakeDetector] Shake detected for view: \(currentView)")
+                // シェイク検出時に即座にスクリーンショットを取得
+                capturedScreenshot = captureScreenshot()
+                print("[ShakeDetector] Screenshot captured, size: \(capturedScreenshot?.count ?? 0) bytes")
                 showBugReport = true
             }
             .sheet(isPresented: $showBugReport) {
-                BugReportView(currentView: currentView)
+                BugReportView(currentView: currentView, preCapuredScreenshot: capturedScreenshot)
             }
+    }
+    
+    private func captureScreenshot() -> Data? {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else { 
+            print("[ShakeDetector] Failed to get window scene")
+            return nil 
+        }
+        
+        let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
+        let image = renderer.image { context in
+            window.layer.render(in: context.cgContext)
+        }
+        
+        let imageData = image.jpegData(compressionQuality: 0.8)
+        print("[ShakeDetector] Screenshot captured: \(imageData?.count ?? 0) bytes")
+        
+        return imageData
     }
 }
 

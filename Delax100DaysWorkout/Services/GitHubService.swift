@@ -125,9 +125,7 @@ struct GitHubService {
             let imageUploadService = ImageUploadService()
             let imageUrl = try await imageUploadService.uploadImage(imageData)
             
-            // GitHub IssueにコメントとしてMarkdown画像を追加
-            let imageMarkdown = "![Screenshot](\(imageUrl))"
-            
+            // GitHub Issueにコメントとしてスクリーンショット情報を追加
             let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/comments")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
@@ -135,7 +133,7 @@ struct GitHubService {
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             
-            let comment = ["body": "## スクリーンショット\n\(imageMarkdown)"]
+            let comment = ["body": "## スクリーンショット\n\(imageUrl)"]
             request.httpBody = try JSONSerialization.data(withJSONObject: comment)
             
             let (_, response) = try await URLSession.shared.data(for: request)
@@ -145,10 +143,10 @@ struct GitHubService {
                 throw GitHubError.failedToUploadScreenshot
             }
             
-            print("Screenshot uploaded successfully to: \(imageUrl)")
+            print("Screenshot information added successfully")
         } catch {
-            // スクリーンショットのアップロードに失敗しても、Issueは作成済みなので続行
-            print("Failed to upload screenshot: \(error.localizedDescription)")
+            // スクリーンショットの処理に失敗しても、Issueは作成済みなので続行
+            print("Failed to add screenshot information: \(error.localizedDescription)")
             // エラーを投げずに処理を続行
         }
     }

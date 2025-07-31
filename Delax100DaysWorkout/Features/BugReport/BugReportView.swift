@@ -14,8 +14,10 @@ struct BugReportView: View {
     @State private var showSuccessAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var showImagePicker = false
     
     let currentView: String
+    let preCapuredScreenshot: Data?
     
     var body: some View {
         NavigationView {
@@ -82,9 +84,29 @@ struct BugReportView: View {
                                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                             )
                     } else {
-                        Text("スクリーンショットは自動で取得されました")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        VStack(spacing: 12) {
+                            Text("スクリーンショットが取得できませんでした")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Button {
+                                showImagePicker = true
+                            } label: {
+                                Label("写真から選択", systemImage: "photo")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    
+                    if screenshotData != nil {
+                        Button {
+                            showImagePicker = true
+                        } label: {
+                            Label("別の写真を選択", systemImage: "photo.badge.plus")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
                 
@@ -137,18 +159,13 @@ struct BugReportView: View {
                 Text(errorMessage)
             }
         }
-        .onAppear {
-            captureInitialScreenshot()
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(imageData: $screenshotData)
         }
-    }
-    
-    private func captureInitialScreenshot() {
-        // BugReportManagerが既にスクリーンショットを持っている場合
-        // ここでは表示のためにダミーデータを設定
-        screenshotData = bugReportManager.captureBugReport(
-            category: .other,
-            currentView: currentView
-        ).screenshot
+        .onAppear {
+            // 事前取得されたスクリーンショットを使用
+            screenshotData = preCapuredScreenshot
+        }
     }
     
     private func submitReport() {
@@ -156,13 +173,15 @@ struct BugReportView: View {
         
         Task {
             do {
-                let report = bugReportManager.captureBugReport(
+                // 現在のスクリーンショットデータを使用してBugReportを作成
+                let report = bugReportManager.createBugReport(
                     category: category,
                     description: description,
                     reproductionSteps: reproductionSteps.isEmpty ? nil : reproductionSteps,
                     expectedBehavior: expectedBehavior.isEmpty ? nil : expectedBehavior,
                     actualBehavior: actualBehavior.isEmpty ? nil : actualBehavior,
-                    currentView: currentView
+                    currentView: currentView,
+                    screenshot: screenshotData
                 )
                 
                 try await bugReportManager.submitBugReport(report)
@@ -182,6 +201,45 @@ struct BugReportView: View {
     }
 }
 
+// MARK: - Image Picker
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var imageData: Data?
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.imageData = image.jpegData(compressionQuality: 0.8)
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
+
 #Preview {
-    BugReportView(currentView: "Preview")
+    BugReportView(currentView: "Preview", preCapuredScreenshot: nil)
 }

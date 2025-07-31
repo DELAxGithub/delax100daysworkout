@@ -7,9 +7,9 @@ struct ImageUploadService {
     // MARK: - Public Methods
     
     func uploadImage(_ imageData: Data) async throws -> String {
-        // 本格運用時はimgur APIを使用
-        // 現在はGitHub Gistを使用した代替実装
-        return try await uploadToGitHubGist(imageData)
+        // 現在はローカル保存とbase64の短縮版を使用（テスト目的）
+        // 将来的にImgur APIを実装予定
+        return try await createLocalImageReference(imageData)
     }
     
     func optimizeImage(_ originalData: Data, maxSizeKB: Int = 500) -> Data? {
@@ -42,54 +42,35 @@ struct ImageUploadService {
         return compressedData
     }
     
-    // MARK: - Private Methods - GitHub Gist Upload
+    // MARK: - Private Methods - Local Image Storage
     
-    private func uploadToGitHubGist(_ imageData: Data) async throws -> String {
-        guard let token = EnvironmentConfig.githubToken else {
-            throw ImageUploadError.missingToken
-        }
+    private func createLocalImageReference(_ imageData: Data) async throws -> String {
+        // 画像を最適化して小さくする
+        let optimizedData = optimizeImage(imageData, maxSizeKB: 100) ?? imageData
         
-        // 画像を最適化
-        let optimizedData = optimizeImage(imageData) ?? imageData
-        let base64String = optimizedData.base64EncodedString()
+        // 一意のファイル名を生成
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let filename = "screenshot_\(timestamp).jpg"
         
-        // Gistの作成
-        let gistData = GistCreateRequest(
-            description: "Bug report screenshot - \(Date().formatted())",
-            public: false,
-            files: [
-                "screenshot.txt": GistFile(content: base64String)
-            ]
-        )
+        // ローカルファイルとして保存
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = documentsPath.appendingPathComponent(filename)
         
-        let url = URL(string: "https://api.github.com/gists")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        try optimizedData.write(to: fileURL)
+        print("[ImageUploadService] Image saved locally: \(fileURL.path)")
         
-        let encoder = JSONEncoder()
-        request.httpBody = try encoder.encode(gistData)
+        // GitHub Issue用の情報を含む説明テキストを返す
+        let imageInfo = """
+        **スクリーンショット情報**
+        - ファイル名: \(filename)
+        - サイズ: \(optimizedData.count) bytes
+        - 保存時刻: \(Date().formatted())
+        - ローカルパス: \(fileURL.path)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        ℹ️ スクリーンショットはローカルに保存されました。
+        """
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 201 else {
-            throw ImageUploadError.uploadFailed
-        }
-        
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        let gist = try decoder.decode(GistResponse.self, from: data)
-        
-        // Raw URLを生成
-        guard let file = gist.files.values.first,
-              let rawUrl = file.rawUrl else {
-            throw ImageUploadError.invalidResponse
-        }
-        
-        return rawUrl
+        return imageInfo
     }
     
     // MARK: - Future Implementation - Imgur API

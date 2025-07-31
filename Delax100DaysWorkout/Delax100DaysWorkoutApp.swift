@@ -8,10 +8,6 @@ struct Delax100DaysWorkoutApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
-                .shakeDetector(currentView: "MainView")
-                .sheet(isPresented: $bugReportManager.isReportingBug) {
-                    BugReportView(currentView: "MainView")
-                }
         }
         .modelContainer(for: [
             UserProfile.self,
