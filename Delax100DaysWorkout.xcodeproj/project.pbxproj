@@ -8,7 +8,6 @@
 
 /* Begin PBXFileReference section */
 		DE85A22B2E368E6700E742CF /* Delax100DaysWorkout.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Delax100DaysWorkout.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		27D07DE975604266B55F53D1 /* EnvironmentConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */

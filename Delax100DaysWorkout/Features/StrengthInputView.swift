@@ -60,19 +60,45 @@ struct StrengthInputView: View {
             
             Button("エクササイズを追加") {
                 let exerciseName = selectedExercise == .other ? customExercise : selectedExercise.rawValue
-                let detail = StrengthDetail(
-                    exercise: exerciseName,
-                    sets: sets,
-                    reps: reps,
-                    weight: weight,
-                    notes: notes.isEmpty ? nil : notes
-                )
+                
+                let detail: StrengthDetail
+                if selectedExercise == .pullUp {
+                    // プルアップの場合は専用イニシャライザを使用
+                    detail = StrengthDetail(
+                        pullUpVariant: .normal,
+                        sets: sets,
+                        reps: reps,
+                        isAssisted: false,
+                        assistWeight: 0.0,
+                        maxConsecutiveReps: 0,
+                        notes: notes.isEmpty ? nil : notes
+                    )
+                } else {
+                    detail = StrengthDetail(
+                        exercise: exerciseName,
+                        sets: sets,
+                        reps: reps,
+                        weight: weight,
+                        notes: notes.isEmpty ? nil : notes
+                    )
+                }
+                
                 strengthDetails.append(detail)
                 
                 customExercise = ""
                 notes = ""
             }
             .disabled(selectedExercise == .other && customExercise.isEmpty)
+            
+            // プルアップが選択された場合の追加情報
+            if selectedExercise == .pullUp {
+                NavigationLink("プルアップ詳細設定") {
+                    if let lastPullUp = strengthDetails.last(where: { $0.exercise == "プルアップ" }) {
+                        PullUpDetailSettingsView(strengthDetail: lastPullUp)
+                    }
+                }
+                .foregroundColor(.orange)
+            }
         }
     }
 }

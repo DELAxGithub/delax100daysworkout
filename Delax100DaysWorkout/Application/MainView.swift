@@ -10,6 +10,11 @@ struct MainView: View {
                     Label("今日", systemImage: "calendar.day.timeline.left")
                 }
             
+            WeeklyScheduleView()
+                .tabItem {
+                    Label("週間予定", systemImage: "calendar")
+                }
+            
             DashboardView(viewModel: DashboardViewModel(modelContext: modelContext))
                 .tabItem {
                     Label("ダッシュボード", systemImage: "house.fill")
