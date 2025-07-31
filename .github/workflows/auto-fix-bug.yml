@@ -21,8 +21,9 @@ jobs:
     if: |
       github.event_name == 'issues' && 
       github.event.action == 'labeled' && 
-      github.event.label.name == 'auto-fix-candidate' &&
-      !contains(github.event.issue.labels.*.name, 'processing-auto-fix')
+      contains(github.event.issue.labels.*.name, 'auto-fix-candidate') &&
+      !contains(github.event.issue.labels.*.name, 'processing-auto-fix') &&
+      !contains(github.event.issue.labels.*.name, 'cost-estimated')
     runs-on: ubuntu-latest
     
     steps:
@@ -91,6 +92,17 @@ jobs:
             --method POST \
             repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
             --field labels='["cost-limit-reached"]' || echo "Label already exists"
+            
+      - name: Mark cost estimation complete
+        if: steps.check-duplicate.outputs.duplicate == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add cost-estimated label to prevent duplicate estimates
+          gh api \
+            --method POST \
+            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
+            --field labels='["cost-estimated"]' || echo "Label already exists"
             
       - name: Remove processing label
         if: always() && steps.check-duplicate.outputs.duplicate == 'false'
