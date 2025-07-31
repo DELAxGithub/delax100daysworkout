@@ -1,15 +1,23 @@
-name: Auto Fix Bug
+name: Auto Fix Bug with Approval
 
 on:
   issues:
     types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
-  analyze-and-fix:
-    # 'auto-fix-candidate' ラベルが付いたIssueのみ処理
+  # Step 1: Cost estimation
+  estimate-cost:
     if: |
-      (github.event.action == 'labeled' && github.event.label.name == 'auto-fix-candidate') ||
-      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'auto-fix-candidate'))
+      (github.event_name == 'issues' && 
+       ((github.event.action == 'labeled' && github.event.label.name == 'auto-fix-candidate') ||
+        (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'auto-fix-candidate'))))
     
     runs-on: ubuntu-latest
     
@@ -24,13 +32,74 @@ jobs:
           
       - name: Install dependencies
         run: |
+          pip install pygithub
+          pip install tiktoken
+          
+      - name: Estimate cost
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/estimate_cost.py \
+            --issue-number ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --model claude-opus-4-20250514
+
+  # Step 2: Wait for approval and execute fix
+  analyze-and-fix:
+    if: |
+      github.event_name == 'issue_comment' && 
+      github.event.issue.labels.*.name contains 'auto-fix-candidate' &&
+      github.event.comment.user.login == 'github-actions[bot]' &&
+      contains(github.event.comment.body, '自動修正のコスト見積もり')
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check for approval
+        id: check-approval
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get reactions on the cost estimate comment
+          REACTIONS=$(gh api \
+            repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            --jq '[.[] | select(.content == "+1")] | length')
+          
+          if [ "$REACTIONS" -gt 0 ]; then
+            echo "approved=true" >> $GITHUB_OUTPUT
+          else
+            echo "approved=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Checkout repository
+        if: steps.check-approval.outputs.approved == 'true'
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        if: steps.check-approval.outputs.approved == 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        if: steps.check-approval.outputs.approved == 'true'
+        run: |
           pip install anthropic
           pip install pygithub
           pip install pillow
           pip install requests
           
+      - name: Update comment with processing status
+        if: steps.check-approval.outputs.approved == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "🔄 承認を確認しました。自動修正を開始します..."
+            
       - name: Analyze issue
         id: analyze
+        if: steps.check-approval.outputs.approved == 'true'
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +110,7 @@ jobs:
             
       - name: Generate fix
         id: generate
-        if: steps.analyze.outputs.can_auto_fix == 'true'
+        if: steps.check-approval.outputs.approved == 'true' && steps.analyze.outputs.can_auto_fix == 'true'
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -87,11 +156,12 @@ jobs:
           git push origin fix/issue-${{ github.event.issue.number }}
             
       - name: Create PR
+        id: create-pr
         if: steps.generate.outputs.has_fix == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
+          PR_URL=$(gh pr create \
             --title "Auto-fix: ${{ github.event.issue.title }}" \
             --body "$(cat <<'EOF'
           ## 自動修正
@@ -116,16 +186,22 @@ jobs:
           EOF
           )" \
             --label "auto-generated" \
-            --assignee ${{ github.event.issue.user.login }}
+            --assignee ${{ github.event.issue.user.login }})
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             
       - name: Comment on issue
-        if: always()
+        if: always() && steps.check-approval.outputs.approved == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ steps.generate.outputs.has_fix }}" == "true" ]; then
+            # Calculate actual cost (placeholder - would need to track actual token usage)
             gh issue comment ${{ github.event.issue.number }} \
-              --body "🤖 自動修正を試みました。PR #${{ steps.create-pr.outputs.pr_number }} をご確認ください。"
+              --body "🤖 自動修正を完了しました。[PR #${{ steps.create-pr.outputs.pr_number }}](${{ steps.create-pr.outputs.pr_url }}) をご確認ください。
+              
+              実際のコスト: 計測中..."
           elif [ "${{ steps.analyze.outputs.can_auto_fix }}" == "false" ]; then
             gh issue comment ${{ github.event.issue.number }} \
               --body "🤖 このIssueは自動修正の対象外です。理由: ${{ steps.analyze.outputs.reason }}"
@@ -133,3 +209,17 @@ jobs:
             gh issue comment ${{ github.event.issue.number }} \
               --body "🤖 自動修正の処理中にエラーが発生しました。開発者による対応が必要です。"
           fi
+
+  # Step 3: Check for expired approvals (daily cleanup)
+  cleanup-expired:
+    if: github.event.schedule == '0 0 * * *'  # Daily at midnight
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check expired estimates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # This would check for cost estimate comments older than 24 hours
+          # and close them with an "expired" message
+          echo "Cleanup job would run here"

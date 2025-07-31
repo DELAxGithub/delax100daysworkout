@@ -179,7 +179,7 @@ class IssueAnalyzer:
         
         try:
             message = self.claude.messages.create(
-                model="claude-3-opus-20240229",
+                model="claude-opus-4-20250514",
                 max_tokens=1000,
                 messages=[
                     {"role": "user", "content": prompt}
@@ -228,22 +228,33 @@ def main():
     try:
         analysis = analyzer.analyze_issue(args.repo, args.issue_number)
         
-        # GitHub Actionsの出力として設定
-        print(f"::set-output name=can_auto_fix::{str(analysis.get('can_auto_fix', False)).lower()}")
-        print(f"::set-output name=confidence::{analysis.get('confidence', 0)}")
-        print(f"::set-output name=risk_level::{analysis.get('risk_level', 'high')}")
-        print(f"::set-output name=reason::{analysis.get('reason', '')}")
+        # GitHub Actionsの出力として設定（新しい形式）
+        github_output = os.environ.get('GITHUB_OUTPUT')
+        if github_output:
+            with open(github_output, 'a') as f:
+                f.write(f"can_auto_fix={str(analysis.get('can_auto_fix', False)).lower()}\n")
+                f.write(f"confidence={analysis.get('confidence', 0)}\n")
+                f.write(f"risk_level={analysis.get('risk_level', 'high')}\n")
+                f.write(f"reason={analysis.get('reason', '')}\n")
+                f.write(f"analysis={json.dumps(analysis)}\n")
+        else:
+            # フォールバック（ローカルテスト用）
+            print(f"can_auto_fix={str(analysis.get('can_auto_fix', False)).lower()}")
+            print(f"confidence={analysis.get('confidence', 0)}")
+            print(f"risk_level={analysis.get('risk_level', 'high')}")
+            print(f"reason={analysis.get('reason', '')}")
         
         # 分析結果を保存
         with open('analysis_result.json', 'w', encoding='utf-8') as f:
             json.dump(analysis, f, ensure_ascii=False, indent=2)
-            
-        print(f"::set-output name=analysis::{json.dumps(analysis)}")
         
     except Exception as e:
         print(f"Error: {e}")
-        print("::set-output name=can_auto_fix::false")
-        print(f"::set-output name=reason::分析中にエラーが発生: {str(e)}")
+        github_output = os.environ.get('GITHUB_OUTPUT')
+        if github_output:
+            with open(github_output, 'a') as f:
+                f.write("can_auto_fix=false\n")
+                f.write(f"reason=分析中にエラーが発生: {str(e)}\n")
         sys.exit(1)
 
 if __name__ == "__main__":

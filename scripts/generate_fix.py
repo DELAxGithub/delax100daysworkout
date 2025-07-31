@@ -132,7 +132,7 @@ class FixGenerator:
         
         try:
             message = self.claude.messages.create(
-                model="claude-3-opus-20240229",
+                model="claude-opus-4-20250514",
                 max_tokens=2000,
                 messages=[
                     {"role": "user", "content": prompt}
@@ -243,29 +243,44 @@ def main():
         fix_data = generator.generate_fix(args.repo, args.issue_number, analysis)
         
         if fix_data and fix_data.get('changes'):
-            # GitHub Actionsの出力として設定
-            print("::set-output name=has_fix::true")
-            print(f"::set-output name=fix_summary::{fix_data.get('summary', '')}")
-            print(f"::set-output name=changed_files_count::{len(set(c['file'] for c in fix_data['changes']))}")
-            
+            # GitHub Actionsの出力として設定（新しい形式）
+            github_output = os.environ.get('GITHUB_OUTPUT')
+            changed_files_count = len(set(c['file'] for c in fix_data['changes']))
             total_lines = sum(
                 len(c['fixed'].split('\n')) - len(c['original'].split('\n'))
                 for c in fix_data['changes']
             )
-            print(f"::set-output name=changed_lines_count::{abs(total_lines)}")
+            
+            if github_output:
+                with open(github_output, 'a') as f:
+                    f.write("has_fix=true\n")
+                    f.write(f"fix_summary={fix_data.get('summary', '')}\n")
+                    f.write(f"changed_files_count={changed_files_count}\n")
+                    f.write(f"changed_lines_count={abs(total_lines)}\n")
+                    f.write(f"risk_level={analysis.get('risk_level', 'medium')}\n")
+            else:
+                # フォールバック（ローカルテスト用）
+                print("has_fix=true")
+                print(f"fix_summary={fix_data.get('summary', '')}")
+                print(f"changed_files_count={changed_files_count}")
+                print(f"changed_lines_count={abs(total_lines)}")
             
             # 修正データを保存
             with open('fix_data.json', 'w', encoding='utf-8') as f:
                 json.dump(fix_data, f, ensure_ascii=False, indent=2)
-                
-            print(f"::set-output name=fix_data::{json.dumps(fix_data)}")
         else:
-            print("::set-output name=has_fix::false")
-            print("::set-output name=fix_summary::修正コードの生成に失敗しました")
+            github_output = os.environ.get('GITHUB_OUTPUT')
+            if github_output:
+                with open(github_output, 'a') as f:
+                    f.write("has_fix=false\n")
+                    f.write("fix_summary=修正コードの生成に失敗しました\n")
             
     except Exception as e:
         print(f"Error: {e}")
-        print("::set-output name=has_fix::false")
+        github_output = os.environ.get('GITHUB_OUTPUT')
+        if github_output:
+            with open(github_output, 'a') as f:
+                f.write("has_fix=false\n")
         sys.exit(1)
 
 if __name__ == "__main__":
