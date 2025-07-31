@@ -2,9 +2,7 @@ name: Auto Fix Bug with Approval
 
 on:
   issues:
-    types: [opened, labeled]
-  issue_comment:
-    types: [created]
+    types: [opened]
 
 permissions:
   contents: write
@@ -12,30 +10,48 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Step 1: Cost estimation
+  # Step 1: Cost estimation with duplicate prevention
   estimate-cost:
-    if: |
-      (github.event_name == 'issues' && 
-       ((github.event.action == 'labeled' && github.event.label.name == 'auto-fix-candidate') ||
-        (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'auto-fix-candidate'))))
-    
+    if: contains(github.event.issue.labels.*.name, 'auto-fix-candidate')
     runs-on: ubuntu-latest
     
     steps:
+      - name: Check for existing workflow
+        id: check-duplicate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if there's already a cost estimate comment
+          EXISTING_COMMENT=$(gh api \
+            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+            --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("自動修正のコスト見積もり")))] | length')
+          
+          if [ "$EXISTING_COMMENT" -gt 0 ]; then
+            echo "duplicate=true" >> $GITHUB_OUTPUT
+            echo "既に処理中のワークフローが存在します"
+            exit 0
+          else
+            echo "duplicate=false" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Checkout repository
+        if: steps.check-duplicate.outputs.duplicate == 'false'
         uses: actions/checkout@v4
         
       - name: Setup Python
+        if: steps.check-duplicate.outputs.duplicate == 'false'
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
       - name: Install dependencies
+        if: steps.check-duplicate.outputs.duplicate == 'false'
         run: |
           pip install pygithub
           pip install tiktoken
           
       - name: Estimate cost
+        if: steps.check-duplicate.outputs.duplicate == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -46,30 +62,46 @@ jobs:
 
   # Step 2: Wait for approval and execute fix
   analyze-and-fix:
-    if: |
-      github.event_name == 'issue_comment' && 
-      github.event.issue.labels.*.name contains 'auto-fix-candidate' &&
-      github.event.comment.user.login == 'github-actions[bot]' &&
-      contains(github.event.comment.body, '自動修正のコスト見積もり')
-    
+    needs: estimate-cost
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check for approval
+      - name: Wait for approval
         id: check-approval
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get reactions on the cost estimate comment
-          REACTIONS=$(gh api \
-            repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
-            --jq '[.[] | select(.content == "+1")] | length')
+          # Wait up to 24 hours for approval on cost estimate comment
+          MAX_WAIT=86400  # 24 hours in seconds
+          WAIT_INTERVAL=300  # Check every 5 minutes
+          ELAPSED=0
           
-          if [ "$REACTIONS" -gt 0 ]; then
-            echo "approved=true" >> $GITHUB_OUTPUT
-          else
-            echo "approved=false" >> $GITHUB_OUTPUT
-          fi
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            # Find the cost estimate comment
+            COMMENT_ID=$(gh api \
+              repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+              --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("自動修正のコスト見積もり"))) | .id' | head -1)
+            
+            if [ -n "$COMMENT_ID" ]; then
+              # Check for thumbs up reactions
+              REACTIONS=$(gh api \
+                repos/${{ github.repository }}/issues/comments/$COMMENT_ID/reactions \
+                --jq '[.[] | select(.content == "+1")] | length')
+              
+              if [ "$REACTIONS" -gt 0 ]; then
+                echo "approved=true" >> $GITHUB_OUTPUT
+                echo "承認されました！自動修正を開始します"
+                exit 0
+              fi
+            fi
+            
+            echo "承認待機中... ($((ELAPSED/60))分経過)"
+            sleep $WAIT_INTERVAL
+            ELAPSED=$((ELAPSED + WAIT_INTERVAL))
+          done
+          
+          echo "approved=false" >> $GITHUB_OUTPUT
+          echo "承認タイムアウト（24時間）"
           
       - name: Checkout repository
         if: steps.check-approval.outputs.approved == 'true'
@@ -192,11 +224,14 @@ jobs:
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             
       - name: Comment on issue
-        if: always() && steps.check-approval.outputs.approved == 'true'
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.generate.outputs.has_fix }}" == "true" ]; then
+          if [ "${{ steps.check-approval.outputs.approved }}" == "false" ]; then
+            gh issue comment ${{ github.event.issue.number }} \
+              --body "⏰ 自動修正の承認がタイムアウトしました（24時間）。再度実行するには新しいIssueを作成してください。"
+          elif [ "${{ steps.generate.outputs.has_fix }}" == "true" ]; then
             # Calculate actual cost (placeholder - would need to track actual token usage)
             gh issue comment ${{ github.event.issue.number }} \
               --body "🤖 自動修正を完了しました。[PR #${{ steps.create-pr.outputs.pr_number }}](${{ steps.create-pr.outputs.pr_url }}) をご確認ください。
@@ -210,16 +245,3 @@ jobs:
               --body "🤖 自動修正の処理中にエラーが発生しました。開発者による対応が必要です。"
           fi
 
-  # Step 3: Check for expired approvals (daily cleanup)
-  cleanup-expired:
-    if: github.event.schedule == '0 0 * * *'  # Daily at midnight
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Check expired estimates
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # This would check for cost estimate comments older than 24 hours
-          # and close them with an "expired" message
-          echo "Cleanup job would run here"
