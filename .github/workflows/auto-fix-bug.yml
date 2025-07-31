@@ -35,7 +35,7 @@ jobs:
           gh api \
             --method POST \
             repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
-            --field labels='["processing-auto-fix"]' || echo "Label already exists"
+            --raw-field labels='["processing-auto-fix"]' || echo "Label already exists"
           
       - name: Check for existing workflow
         id: check-duplicate
@@ -91,7 +91,7 @@ jobs:
           gh api \
             --method POST \
             repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
-            --field labels='["cost-limit-reached"]' || echo "Label already exists"
+            --raw-field labels='["cost-limit-reached"]' || echo "Label already exists"
             
       - name: Mark cost estimation complete
         if: steps.check-duplicate.outputs.duplicate == 'false'
@@ -102,7 +102,7 @@ jobs:
           gh api \
             --method POST \
             repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
-            --field labels='["cost-estimated"]' || echo "Label already exists"
+            --raw-field labels='["cost-estimated"]' || echo "Label already exists"
             
       - name: Remove processing label
         if: always() && steps.check-duplicate.outputs.duplicate == 'false'

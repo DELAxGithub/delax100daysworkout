@@ -241,7 +241,11 @@ def main():
         if github_output:
             with open(github_output, 'a') as f:
                 f.write(f"is_duplicate={str(estimate.get('is_duplicate', False)).lower()}\n")
-                f.write(f"estimated_cost={estimate.get('estimated_cost', {}).get('total', 0)}\n")
+                estimated_cost = estimate.get('estimated_cost', {})
+                if isinstance(estimated_cost, dict):
+                    f.write(f"estimated_cost={estimated_cost.get('total', 0)}\n")
+                else:
+                    f.write(f"estimated_cost={estimated_cost}\n")
                 f.write(f"comment_id={comment_id}\n")
                 f.write(f"estimate_json={json.dumps(estimate)}\n")
                 if cost_check:
@@ -253,7 +257,11 @@ def main():
         else:
             # ローカルテスト用
             print(f"is_duplicate={str(estimate.get('is_duplicate', False)).lower()}")
-            print(f"estimated_cost={estimate.get('estimated_cost', {}).get('total', 0)}")
+            estimated_cost = estimate.get('estimated_cost', {})
+            if isinstance(estimated_cost, dict):
+                print(f"estimated_cost={estimated_cost.get('total', 0)}")
+            else:
+                print(f"estimated_cost={estimated_cost}")
             print(f"comment_id={comment_id}")
             
     except Exception as e:
