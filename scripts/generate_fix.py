@@ -6,6 +6,7 @@ import os
 import sys
 from github import Github
 import anthropic
+from cost_tracker import CostTracker
 
 class FixGenerator:
     def __init__(self, github_token, claude_api_key):
@@ -238,9 +239,27 @@ def main():
             analysis = json.load(f)
     
     generator = FixGenerator(github_token, claude_api_key)
+    cost_tracker = CostTracker(github_token, args.repo)
     
     try:
+        # 事前にコスト制限をチェック
+        estimated_cost = 0.15  # 修正生成のおおよそのコスト
+        cost_check = cost_tracker.can_afford(estimated_cost)
+        
+        if not cost_check['can_afford']:
+            print(f"Error: 月間コスト制限を超過します (現在: ${cost_check['current_usage']:.3f})")
+            github_output = os.environ.get('GITHUB_OUTPUT')
+            if github_output:
+                with open(github_output, 'a') as f:
+                    f.write("has_fix=false\n")
+                    f.write(f"error=月間コスト制限を超過 (${cost_check['current_usage']:.3f}/$5.00)\n")
+            sys.exit(1)
+        
         fix_data = generator.generate_fix(args.repo, args.issue_number, analysis)
+        
+        # 実際のコストを記録
+        actual_cost = estimated_cost  # 実際の使用量に基づいて調整可能
+        cost_tracker.add_cost_entry(args.issue_number, "修正生成", estimated_cost, actual_cost)
         
         if fix_data and fix_data.get('changes'):
             # GitHub Actionsの出力として設定（新しい形式）

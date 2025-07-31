@@ -9,6 +9,7 @@ from github import Github
 import anthropic
 from PIL import Image
 import io
+from cost_tracker import CostTracker
 
 class IssueAnalyzer:
     def __init__(self, github_token, claude_api_key):
@@ -224,9 +225,27 @@ def main():
         sys.exit(1)
         
     analyzer = IssueAnalyzer(github_token, claude_api_key)
+    cost_tracker = CostTracker(github_token, args.repo)
     
     try:
+        # 事前にコスト制限をチェック
+        estimated_cost = 0.05  # 分析のおおよそのコスト
+        cost_check = cost_tracker.can_afford(estimated_cost)
+        
+        if not cost_check['can_afford']:
+            print(f"Error: 月間コスト制限を超過します (現在: ${cost_check['current_usage']:.3f})")
+            github_output = os.environ.get('GITHUB_OUTPUT')
+            if github_output:
+                with open(github_output, 'a') as f:
+                    f.write("can_auto_fix=false\n")
+                    f.write(f"reason=月間コスト制限を超過 (${cost_check['current_usage']:.3f}/$5.00)\n")
+            sys.exit(1)
+        
         analysis = analyzer.analyze_issue(args.repo, args.issue_number)
+        
+        # 実際のコストを記録（簡易計算）
+        actual_cost = estimated_cost  # 実際の使用量に基づいて調整可能
+        cost_tracker.add_cost_entry(args.issue_number, "分析", estimated_cost, actual_cost)
         
         # GitHub Actionsの出力として設定（新しい形式）
         github_output = os.environ.get('GITHUB_OUTPUT')

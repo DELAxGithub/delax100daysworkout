@@ -6,6 +6,7 @@ import os
 import sys
 from github import Github
 import tiktoken
+from cost_tracker import CostTracker
 
 class CostEstimator:
     def __init__(self, github_token):
@@ -133,7 +134,7 @@ class CostEstimator:
 """
         return prompt
         
-    def post_estimate_comment(self, repo_name, issue_number, estimate, model="claude-opus-4-20250514"):
+    def post_estimate_comment(self, repo_name, issue_number, estimate, model="claude-opus-4-20250514", cost_check=None):
         """Post cost estimate as issue comment"""
         repo = self.github.get_repo(repo_name)
         issue = repo.get_issue(issue_number)
@@ -143,8 +144,41 @@ class CostEstimator:
 
 このIssueは #{estimate['original_issue']} と重複しています。
 自動修正をスキップします。"""
+        elif cost_check and not cost_check['can_afford']:
+            # Cost limit exceeded
+            comment = f"""🤖 **⚠️ 月間コスト制限に達しています**
+
+**推定コスト**: ${estimate['estimated_cost']['total']:.3f}
+**現在の使用量**: ${cost_check['current_usage']:.3f} / $5.00 ({cost_check['usage_percentage']:.1f}%)
+**予想合計**: ${cost_check['projected_total']:.3f}
+
+🔴 **自動修正を停止しました**: 月間$5制限を超過するため、このIssueの自動修正は実行できません。
+
+**対処法**:
+- 月初まで待つ（自動リセット）
+- 手動で修正を行う
+- 緊急時は開発者にお問い合わせください
+
+**コスト詳細**:
+  - 入力コスト: ${estimate['estimated_cost']['input']:.3f}
+  - 出力コスト: ${estimate['estimated_cost']['output']:.3f}
+  - 残額: ${cost_check['remaining']:.3f}"""
         else:
             model_name = "Claude Opus 4" if "opus" in model else "Claude Sonnet 4"
+            
+            # Add cost status
+            cost_status = ""
+            if cost_check:
+                status_emoji = "🟡" if not cost_check['within_warning'] else "🟢"
+                cost_status = f"""
+**💰 月間コスト制限**: ${cost_check['current_usage']:.3f} / $5.00 ({cost_check['usage_percentage']:.1f}%)
+{status_emoji} **予想合計**: ${cost_check['projected_total']:.3f} (残額: ${cost_check['remaining']:.3f})
+"""
+            
+            warning_text = ""
+            if cost_check and not cost_check['within_warning']:
+                warning_text = "\n⚠️ **警告**: この実行により$4制限に近づきます。"
+            
             comment = f"""🤖 **自動修正のコスト見積もり**
 
 **モデル**: {model_name}
@@ -159,6 +193,7 @@ class CostEstimator:
 **処理内訳**:
   - バグ分析: ${estimate['cost_breakdown']['analysis']:.3f}
   - 修正生成: ${estimate['cost_breakdown']['fix_generation']:.3f}
+{cost_status}{warning_text}
 
 ---
 
@@ -187,13 +222,19 @@ def main():
         sys.exit(1)
         
     estimator = CostEstimator(github_token)
+    cost_tracker = CostTracker(github_token, args.repo)
     
     try:
         # コスト見積もり
         estimate = estimator.estimate_issue_cost(args.repo, args.issue_number, args.model)
         
+        # コスト制限チェック
+        cost_check = None
+        if not estimate.get("is_duplicate", False):
+            cost_check = cost_tracker.can_afford(estimate['estimated_cost']['total'])
+        
         # コメント投稿
-        comment_id = estimator.post_estimate_comment(args.repo, args.issue_number, estimate, args.model)
+        comment_id = estimator.post_estimate_comment(args.repo, args.issue_number, estimate, args.model, cost_check)
         
         # GitHub Actionsの出力として設定
         github_output = os.environ.get('GITHUB_OUTPUT')
@@ -203,6 +244,12 @@ def main():
                 f.write(f"estimated_cost={estimate.get('estimated_cost', {}).get('total', 0)}\n")
                 f.write(f"comment_id={comment_id}\n")
                 f.write(f"estimate_json={json.dumps(estimate)}\n")
+                if cost_check:
+                    f.write(f"can_afford={str(cost_check['can_afford']).lower()}\n")
+                    f.write(f"current_usage={cost_check['current_usage']:.3f}\n")
+                    f.write(f"within_warning={str(cost_check['within_warning']).lower()}\n")
+                else:
+                    f.write("can_afford=true\n")
         else:
             # ローカルテスト用
             print(f"is_duplicate={str(estimate.get('is_duplicate', False)).lower()}")

@@ -71,6 +71,7 @@ jobs:
           pip install tiktoken
           
       - name: Estimate cost
+        id: estimate
         if: steps.check-duplicate.outputs.duplicate == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,6 +80,17 @@ jobs:
             --issue-number ${{ github.event.issue.number }} \
             --repo ${{ github.repository }} \
             --model claude-opus-4-20250514
+            
+      - name: Add cost limitation label if needed
+        if: steps.estimate.outputs.can_afford == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add cost-limit-reached label
+          gh api \
+            --method POST \
+            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
+            --field labels='["cost-limit-reached"]' || echo "Label already exists"
             
       - name: Remove processing label
         if: always() && steps.check-duplicate.outputs.duplicate == 'false'
@@ -153,6 +165,16 @@ jobs:
         run: |
           gh issue comment ${{ github.event.issue.number }} \
             --body "🔄 承認を確認しました。自動修正を開始します..."
+            
+      - name: Check cost limit before analysis
+        id: cost-check
+        if: steps.check-approval.outputs.approved == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/cost_tracker.py \
+            --repo ${{ github.repository }} \
+            --action summary
             
       - name: Analyze issue
         id: analyze
