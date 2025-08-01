@@ -91,7 +91,29 @@ xcrun simctl list devices
 - **Swift** - Swift 言語サポート
 - **SwiftLint** - コード品質チェック
 
+## 🤖 自動化ワークフロー
+
+### PR同期・自動ビルド
+```bash
+# PR番号を指定してローカル同期・ビルド・マージ
+./scripts/sync-pr.sh <PR番号>
+
+# 例: PR #30 を同期してビルド
+./scripts/sync-pr.sh 30
+```
+
+### 通知システム
+```bash
+# 通知テスト
+./scripts/notify.sh pr-created 30
+./scripts/notify.sh build-success 30
+```
+
+詳細は `docs/AUTOMATED_WORKFLOW_GUIDE.md` を参照してください。
+
 ## 注意事項
 
 - 新しい Swift ファイルを追加した場合は、必ず Xcode でターゲットメンバーシップを設定してください
 - ビルドエラーが発生した場合は、`error/` フォルダ内のログファイルを確認してください
+- **Issue作成時**: Claude が自動でコード修正・PR作成を行います
+- **PR作成時**: GitHub Actions で自動ビルド・テストが実行されます
