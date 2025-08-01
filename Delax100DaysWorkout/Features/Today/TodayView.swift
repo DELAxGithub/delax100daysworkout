@@ -13,6 +13,7 @@ struct TodayView: View {
     @State private var taskToDelete: DailyTask?
     @State private var weeklyPlanManager: WeeklyPlanManager?
     @State private var isAnalyzing = false
+    @State private var lastCompletedTask: DailyTask?
     
     private let bugReportManager = BugReportManager.shared
     
@@ -151,6 +152,7 @@ struct TodayView: View {
                                             quickRecordTask = task
                                             quickRecordWorkout = record
                                             showingQuickRecord = true
+                                            lastCompletedTask = task
                                         }
                                     },
                                     onDetailTap: {
@@ -210,10 +212,21 @@ struct TodayView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        viewModel?.refreshTasks()
+                        // Undo the last completed task
+                        if let task = lastCompletedTask,
+                           let vm = viewModel,
+                           vm.completedTasks.contains(task.id) {
+                            vm.deleteCompletedTask(task)
+                            lastCompletedTask = nil
+                            
+                            // Haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                        }
                     }) {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemName: "arrow.uturn.backward")
                     }
+                    .disabled(lastCompletedTask == nil || !(viewModel?.completedTasks.contains(lastCompletedTask!.id) ?? false))
                 }
             }
             .onAppear {
