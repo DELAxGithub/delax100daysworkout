@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class WeeklyTemplate {
+final class WeeklyTemplate: @unchecked Sendable {
     var name: String
     var isActive: Bool = false
     var createdAt: Date

@@ -72,7 +72,7 @@ struct WorkoutEditSheet: View {
     var body: some View {
         NavigationView {
             Form {
-                Section("基本情報") {
+                SwiftUI.Section("基本情報") {
                     Picker("種目", selection: $workoutType) {
                         ForEach(WorkoutType.allCases, id: \.self) { type in
                             HStack {
@@ -126,7 +126,7 @@ struct WorkoutEditSheet: View {
     }
     
     private var cyclingDetailsSection: some View {
-        Section("サイクリング詳細") {
+        SwiftUI.Section("サイクリング詳細") {
             HStack {
                 Text("距離")
                 Spacer()
@@ -166,7 +166,7 @@ struct WorkoutEditSheet: View {
     }
     
     private var strengthDetailsSection: some View {
-        Section("筋トレ詳細") {
+        SwiftUI.Section("筋トレ詳細") {
             ForEach(strengthDetails.indices, id: \.self) { index in
                 VStack(alignment: .leading, spacing: 8) {
                     TextField("エクササイズ名", text: $strengthDetails[index].exerciseName)
@@ -209,7 +209,7 @@ struct WorkoutEditSheet: View {
     }
     
     private var flexibilityDetailsSection: some View {
-        Section("柔軟性詳細") {
+        SwiftUI.Section("柔軟性詳細") {
             HStack {
                 Text("前屈")
                 Spacer()

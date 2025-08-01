@@ -1,13 +1,26 @@
 import Foundation
 import SwiftData
 
-enum PlanUpdateStatus {
+enum PlanUpdateStatus: Equatable {
     case idle
     case analyzing
     case awaitingApproval
     case applying
     case completed
     case failed(Error)
+    
+    static func == (lhs: PlanUpdateStatus, rhs: PlanUpdateStatus) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.analyzing, .analyzing), 
+             (.awaitingApproval, .awaitingApproval),
+             (.applying, .applying), (.completed, .completed):
+            return true
+        case (.failed, .failed):
+            return true // エラーの詳細比較は省略
+        default:
+            return false
+        }
+    }
 }
 
 struct PlanUpdateSession {

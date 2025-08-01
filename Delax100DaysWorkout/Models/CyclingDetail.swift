@@ -24,9 +24,6 @@ enum CyclingIntensity: String, Codable, CaseIterable {
         }
     }
     
-    var displayName: String {
-        return description
-    }
 }
 
 @Model
