@@ -382,7 +382,7 @@ class ProgressAnalyzer {
             powerTrend: calculateTrend(values: powers),
             distanceTrend: calculateTrend(values: distances.map { Double($0) }),
             consistencyScore: calculateConsistencyScore(values: powers),
-            recommendations: generateCyclingRecommendations(powers: powers, distances: distances)
+            recommendations: generateCyclingRecommendations(powers: powers, distances: distances.map { Int($0) })
         )
     }
     

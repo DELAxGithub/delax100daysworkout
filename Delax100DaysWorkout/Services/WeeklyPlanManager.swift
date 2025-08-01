@@ -1,19 +1,16 @@
 import Foundation
 import SwiftData
+import Combine
 
 enum PlanUpdateStatus: Equatable {
     case idle
     case analyzing
-    case awaitingApproval
-    case applying
     case completed
     case failed(Error)
     
     static func == (lhs: PlanUpdateStatus, rhs: PlanUpdateStatus) -> Bool {
         switch (lhs, rhs) {
-        case (.idle, .idle), (.analyzing, .analyzing), 
-             (.awaitingApproval, .awaitingApproval),
-             (.applying, .applying), (.completed, .completed):
+        case (.idle, .idle), (.analyzing, .analyzing), (.completed, .completed):
             return true
         case (.failed, .failed):
             return true // エラーの詳細比較は省略
@@ -23,43 +20,33 @@ enum PlanUpdateStatus: Equatable {
     }
 }
 
-struct PlanUpdateSession {
-    let id: UUID
-    let currentTemplate: WeeklyTemplate
-    let aiSuggestion: WeeklyPlanSuggestion
-    let estimatedCost: Double
-    let createdAt: Date
-    var status: PlanUpdateStatus
-    
-    init(currentTemplate: WeeklyTemplate, aiSuggestion: WeeklyPlanSuggestion, estimatedCost: Double) {
-        self.id = UUID()
-        self.currentTemplate = currentTemplate
-        self.aiSuggestion = aiSuggestion
-        self.estimatedCost = estimatedCost
-        self.createdAt = Date()
-        self.status = .awaitingApproval
-    }
-}
+// PlanUpdateHistoryはファイル末尾の@Modelクラスで定義されています
 
-@Observable
-class WeeklyPlanManager {
+class WeeklyPlanManager: ObservableObject {
     private let modelContext: ModelContext
     private let progressAnalyzer: ProgressAnalyzer
     private let aiService: WeeklyPlanAIService
     
-    var currentSession: PlanUpdateSession?
-    var updateStatus: PlanUpdateStatus = .idle
-    var lastUpdateDate: Date?
+    @Published var updateStatus: PlanUpdateStatus = .idle
+    @Published var lastUpdateDate: Date?
+    @Published var lastUpdateHistory: PlanUpdateHistoryInfo?
+    
+    // 分析統計情報
+    @Published var analysisCount: Int = 0
+    @Published var lastAnalysisResult: String?
+    @Published var lastAnalysisDataCount: Int = 0
+    @Published var monthlyAnalysisCount: Int = 0
     
     // 設定
-    var autoUpdateEnabled: Bool = true
-    var maxCostPerUpdate: Double = 0.10 // $0.10 per update
-    var updateFrequency: TimeInterval = 7 * 24 * 60 * 60 // 1週間
+    @Published var autoUpdateEnabled: Bool = true
+    @Published var maxCostPerUpdate: Double = 1.00 // $1.00 per update (実際は$0.01-0.02)
+    @Published var updateFrequency: TimeInterval = 7 * 24 * 60 * 60 // 1週間
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.progressAnalyzer = ProgressAnalyzer(modelContext: modelContext)
         self.aiService = WeeklyPlanAIService()
+        loadAnalysisStatistics()
     }
     
     // メイン機能：週次プラン更新の開始
@@ -75,6 +62,9 @@ class WeeklyPlanManager {
         do {
             // 現在のデータを取得
             let (records, activeTemplate) = try await fetchCurrentData()
+            
+            // 分析対象データ件数を記録
+            lastAnalysisDataCount = records.count
             
             // AI分析リクエストを作成
             let analysisRequest = progressAnalyzer.generateAIAnalysisData(
@@ -95,16 +85,35 @@ class WeeklyPlanManager {
             // AI分析を実行
             let aiSuggestion = try await aiService.analyzeAndSuggestWeeklyPlan(request: analysisRequest)
             
-            // セッションを作成
-            currentSession = PlanUpdateSession(
-                currentTemplate: activeTemplate,
-                aiSuggestion: aiSuggestion,
-                estimatedCost: estimatedCost
+            // 即座にプランを適用
+            let newTemplate = try await createUpdatedTemplate(
+                baseTemplate: activeTemplate,
+                changes: aiSuggestion.recommendedChanges
             )
             
-            updateStatus = .awaitingApproval
+            // 現在のテンプレートを無効化
+            activeTemplate.deactivate()
             
-            print("週次プラン提案が完了しました。ユーザーの承認待ちです。")
+            // 新しいテンプレートをアクティブ化
+            newTemplate.activate()
+            modelContext.insert(newTemplate)
+            
+            // 履歴を保存
+            lastUpdateHistory = PlanUpdateHistoryInfo(
+                oldTemplate: activeTemplate,
+                newTemplate: newTemplate,
+                aiSuggestion: aiSuggestion
+            )
+            
+            try modelContext.save()
+            
+            updateStatus = .completed
+            lastUpdateDate = Date()
+            
+            // 分析統計を更新
+            updateAnalysisStatistics(aiSuggestion)
+            
+            print("週次プランが自動的に更新されました。")
             
         } catch {
             updateStatus = .failed(error)
@@ -112,59 +121,34 @@ class WeeklyPlanManager {
         }
     }
     
-    // ユーザーがAI提案を承認
+    // 最後の更新を元に戻す
     @MainActor
-    func approveAISuggestion() async {
-        guard let session = currentSession,
-              case .awaitingApproval = session.status else {
-            print("承認可能なセッションがありません")
+    func revertLastUpdate() async {
+        guard let history = lastUpdateHistory else {
+            print("戻す履歴がありません")
             return
         }
         
-        updateStatus = .applying
+        updateStatus = .analyzing
         
         do {
-            // 新しいテンプレートを作成
-            let newTemplate = try await createUpdatedTemplate(
-                baseTemplate: session.currentTemplate,
-                changes: session.aiSuggestion.recommendedChanges
-            )
-            
             // 現在のテンプレートを無効化
-            session.currentTemplate.deactivate()
+            history.newTemplate.deactivate()
             
-            // 新しいテンプレートをアクティブ化
-            newTemplate.activate()
-            modelContext.insert(newTemplate)
-            
-            // 更新履歴を保存
-            try await saveUpdateHistory(session: session, appliedTemplate: newTemplate)
+            // 古いテンプレートを再アクティブ化
+            history.oldTemplate.activate()
             
             try modelContext.save()
             
             updateStatus = .completed
-            lastUpdateDate = Date()
-            currentSession = nil
+            lastUpdateHistory = nil
             
-            print("週次プランが正常に更新されました")
+            print("プランを元に戻しました")
             
         } catch {
             updateStatus = .failed(error)
-            print("プラン適用でエラーが発生しました: \(error.localizedDescription)")
+            print("プランの復元でエラーが発生しました: \(error.localizedDescription)")
         }
-    }
-    
-    // AI提案を拒否
-    func rejectAISuggestion() {
-        guard let session = currentSession,
-              case .awaitingApproval = session.status else {
-            return
-        }
-        
-        currentSession = nil
-        updateStatus = .idle
-        
-        print("AI提案が拒否されました")
     }
     
     // 手動更新をトリガー
@@ -192,7 +176,7 @@ class WeeklyPlanManager {
     // MARK: - Private Methods
     
     private func canPerformUpdate() -> Bool {
-        return updateStatus == .idle && currentSession == nil
+        return updateStatus == .idle
     }
     
     private func fetchCurrentData() async throws -> ([WorkoutRecord], WeeklyTemplate) {
@@ -305,19 +289,102 @@ class WeeklyPlanManager {
         }
     }
     
-    private func saveUpdateHistory(session: PlanUpdateSession, appliedTemplate: WeeklyTemplate) async throws {
-        // 更新履歴を保存（必要に応じてPlanUpdateHistoryモデルを作成）
-        let history = PlanUpdateHistory(
-            sessionId: session.id,
-            oldTemplateName: session.currentTemplate.name,
-            newTemplateName: appliedTemplate.name,
-            aiReasoning: session.aiSuggestion.reasoning,
-            appliedChanges: session.aiSuggestion.recommendedChanges.count,
-            actualCost: session.estimatedCost,
-            appliedAt: Date()
-        )
+    // saveUpdateHistoryは不要になりました（履歴はlastUpdateHistoryプロパティで管理）
+    
+    // MARK: - Statistics Management
+    
+    private func loadAnalysisStatistics() {
+        // UserDefaultsから統計情報を読み込み
+        let defaults = UserDefaults.standard
+        analysisCount = defaults.integer(forKey: "analysisCount")
+        lastAnalysisResult = defaults.string(forKey: "lastAnalysisResult")
+        lastAnalysisDataCount = defaults.integer(forKey: "lastAnalysisDataCount")
         
-        modelContext.insert(history)
+        // 今月の分析回数を計算
+        updateMonthlyCount()
+    }
+    
+    private func updateAnalysisStatistics(_ suggestion: WeeklyPlanSuggestion) {
+        analysisCount += 1
+        monthlyAnalysisCount += 1
+        lastAnalysisResult = generateAnalysisResultSummary(suggestion)
+        lastUpdateDate = Date()
+        
+        // UserDefaultsに保存
+        let defaults = UserDefaults.standard
+        defaults.set(analysisCount, forKey: "analysisCount")
+        defaults.set(lastAnalysisResult, forKey: "lastAnalysisResult")
+        defaults.set(lastAnalysisDataCount, forKey: "lastAnalysisDataCount")
+        defaults.set(monthlyAnalysisCount, forKey: "monthlyAnalysisCount")
+        
+        updateMonthlyCount()
+    }
+    
+    private func updateMonthlyCount() {
+        // 簡易的に月次カウントを管理（UserDefaultsベース）
+        let calendar = Calendar.current
+        let now = Date()
+        let currentMonth = calendar.component(.month, from: now)
+        let currentYear = calendar.component(.year, from: now)
+        
+        let lastMonth = UserDefaults.standard.integer(forKey: "lastAnalysisMonth")
+        let lastYear = UserDefaults.standard.integer(forKey: "lastAnalysisYear")
+        
+        if currentMonth != lastMonth || currentYear != lastYear {
+            // 月が変わったらカウントリセット
+            monthlyAnalysisCount = 0
+            UserDefaults.standard.set(currentMonth, forKey: "lastAnalysisMonth")
+            UserDefaults.standard.set(currentYear, forKey: "lastAnalysisYear")
+        } else {
+            monthlyAnalysisCount = UserDefaults.standard.integer(forKey: "monthlyAnalysisCount")
+        }
+    }
+    
+    private func generateAnalysisResultSummary(_ suggestion: WeeklyPlanSuggestion) -> String {
+        let changeCount = suggestion.recommendedChanges.count
+        
+        if changeCount == 0 {
+            return "現在のプランは最適です"
+        } else {
+            let changeTypes = suggestion.recommendedChanges.map { $0.changeType }
+            let modifyCount = changeTypes.filter { $0 == .modify }.count
+            let addCount = changeTypes.filter { $0 == .add }.count
+            let removeCount = changeTypes.filter { $0 == .remove }.count
+            
+            var summary = "\(changeCount)つの改善提案"
+            if modifyCount > 0 { summary += "・調整\(modifyCount)件" }
+            if addCount > 0 { summary += "・追加\(addCount)件" }
+            if removeCount > 0 { summary += "・削除\(removeCount)件" }
+            
+            return summary
+        }
+    }
+    
+    // 分析情報のフォーマット用ヘルパー
+    var analysisDataDescription: String {
+        if lastAnalysisDataCount == 0 {
+            return "分析データなし"
+        } else {
+            return "過去4週間のワークアウト \(lastAnalysisDataCount)件を分析"
+        }
+    }
+    
+    var analysisResultDescription: String {
+        return lastAnalysisResult ?? "未分析"
+    }
+    
+    var monthlyUsageDescription: String {
+        return "今月 \(monthlyAnalysisCount)回分析実行"
+    }
+    
+    // 最後の更新内容を取得
+    var lastUpdateSuggestion: WeeklyPlanSuggestion? {
+        return lastUpdateHistory?.aiSuggestion
+    }
+    
+    // 元に戻すことが可能かどうか
+    var canRevert: Bool {
+        return lastUpdateHistory != nil && updateStatus == .completed
     }
 }
 
@@ -342,25 +409,19 @@ enum WeeklyPlanError: Error, LocalizedError {
     }
 }
 
-// 更新履歴モデル
-@Model
-final class PlanUpdateHistory {
-    var sessionId: UUID
-    var oldTemplateName: String
-    var newTemplateName: String
-    var aiReasoning: String
-    var appliedChanges: Int
-    var actualCost: Double
-    var appliedAt: Date
+// 更新履歴を表す簡単な構造体
+struct PlanUpdateHistoryInfo {
+    let id: UUID
+    let oldTemplate: WeeklyTemplate
+    let newTemplate: WeeklyTemplate
+    let aiSuggestion: WeeklyPlanSuggestion
+    let appliedAt: Date
     
-    init(sessionId: UUID, oldTemplateName: String, newTemplateName: String, 
-         aiReasoning: String, appliedChanges: Int, actualCost: Double, appliedAt: Date) {
-        self.sessionId = sessionId
-        self.oldTemplateName = oldTemplateName
-        self.newTemplateName = newTemplateName
-        self.aiReasoning = aiReasoning
-        self.appliedChanges = appliedChanges
-        self.actualCost = actualCost
-        self.appliedAt = appliedAt
+    init(oldTemplate: WeeklyTemplate, newTemplate: WeeklyTemplate, aiSuggestion: WeeklyPlanSuggestion) {
+        self.id = UUID()
+        self.oldTemplate = oldTemplate
+        self.newTemplate = newTemplate
+        self.aiSuggestion = aiSuggestion
+        self.appliedAt = Date()
     }
 }

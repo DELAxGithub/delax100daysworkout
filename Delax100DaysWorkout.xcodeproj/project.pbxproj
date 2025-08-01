@@ -8,8 +8,6 @@
 
 /* Begin PBXFileReference section */
 		DE85A22B2E368E6700E742CF /* Delax100DaysWorkout.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Delax100DaysWorkout.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		6F26B9DC50CF4815977CC34E /* EditableWorkoutCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableWorkoutCardView.swift; sourceTree = "<group>"; };
-		828F5B0AFEC8450E89EFC817 /* WorkoutEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutEditSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */

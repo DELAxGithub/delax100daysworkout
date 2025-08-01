@@ -1,8 +1,12 @@
 import SwiftUI
+import UIKit
 
 struct LogEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @State var viewModel: LogEntryViewModel
+    @State private var showingCancelAlert = false
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
 
     var body: some View {
         NavigationStack {
@@ -65,17 +69,69 @@ struct LogEntryView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        dismiss()
+                        if viewModel.hasChanges {
+                            showingCancelAlert = true
+                        } else {
+                            dismiss()
+                        }
                     }
+                    .disabled(viewModel.isSaving)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        viewModel.save()
-                        dismiss()
+                    Button(action: {
+                        Task {
+                            print("📱 Saveボタンが押されました")
+                            await viewModel.save()
+                            
+                            print("📱 保存処理完了。状態: \(viewModel.saveState)")
+                            
+                            // 保存成功時の処理
+                            if case .success = viewModel.saveState {
+                                print("🎉 保存成功 - ハプティックフィードバック実行")
+                                // ハプティックフィードバック
+                                await MainActor.run {
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                    impactFeedback.prepare()
+                                    impactFeedback.impactOccurred()
+                                }
+                                
+                                // 少し遅延してから画面を閉じる
+                                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒
+                                print("📱 画面を閉じます")
+                                dismiss()
+                            } else if case .error(let message) = viewModel.saveState {
+                                print("❌ 保存エラーが発生: \(message)")
+                                errorMessage = message
+                                showingErrorAlert = true
+                            }
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            if viewModel.isSaving {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            }
+                            Text(viewModel.isSaving ? "保存中..." : "Save")
+                        }
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.isSaving)
                     }
-                    .disabled(viewModel.isSaveDisabled)
+                    .disabled(viewModel.isSaveDisabled || viewModel.isSaving)
                 }
             }
+        }
+        .alert("変更を破棄しますか？", isPresented: $showingCancelAlert) {
+            Button("破棄", role: .destructive) {
+                dismiss()
+            }
+            Button("キャンセル", role: .cancel) { }
+        } message: {
+            Text("入力した内容が失われます。")
+        }
+        .alert("保存エラー", isPresented: $showingErrorAlert) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage)
         }
     }
 }

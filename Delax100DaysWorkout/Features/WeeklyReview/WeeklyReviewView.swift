@@ -6,7 +6,6 @@ struct WeeklyReviewView: View {
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var planManager: WeeklyPlanManager
-    @State private var showingApprovalSheet = false
     @State private var showingProgressDetails = false
     
     @Query private var workoutRecords: [WorkoutRecord]
@@ -35,7 +34,7 @@ struct WeeklyReviewView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
+            ScrollView(.vertical) {
                 VStack(spacing: 20) {
                     headerSection
                     
@@ -44,9 +43,8 @@ struct WeeklyReviewView: View {
                         
                         aiAnalysisSection
                         
-                        if let session = planManager.currentSession {
-                            aiSuggestionSection(session: session)
-                        }
+                        // AI分析の説明
+                        aiSuggestionPlaceholder()
                     } else {
                         noActiveTemplateSection
                     }
@@ -61,11 +59,6 @@ struct WeeklyReviewView: View {
                         dismiss()
                     }
                 }
-            }
-        }
-        .sheet(isPresented: $showingApprovalSheet) {
-            if let session = planManager.currentSession {
-                AIApprovalSheet(session: session, planManager: planManager)
             }
         }
         .sheet(isPresented: $showingProgressDetails) {
@@ -193,24 +186,35 @@ struct WeeklyReviewView: View {
                 }
             }
             
-            switch planManager.updateStatus {
-            case .idle:
-                aiIdleSection
-            case .analyzing:
-                aiAnalyzingSection
-            case .awaitingApproval:
-                aiAwaitingSection
-            case .applying:
-                aiApplyingSection
-            case .completed:
-                aiCompletedSection
-            case .failed(let error):
-                aiFailedSection(error: error)
+            Text("Dashboard画面の「今すぐ分析」ボタンでAI分析を実行できます。分析結果は自動的に適用されます。")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            HStack {
+                Text("状態:")
+                    .font(.caption)
+                Spacer()
+                Text(statusText)
+                    .font(.caption)
+                    .fontWeight(.medium)
             }
         }
         .padding()
         .background(Color.purple.opacity(0.1))
         .cornerRadius(12)
+    }
+    
+    private var statusText: String {
+        switch planManager.updateStatus {
+        case .idle:
+            return "分析可能"
+        case .analyzing:
+            return "分析中..."
+        case .completed:
+            return "最新プラン適用済み"
+        case .failed(_):
+            return "エラー"
+        }
     }
     
     private var aiIdleSection: some View {
@@ -247,23 +251,6 @@ struct WeeklyReviewView: View {
         }
     }
     
-    private var aiAwaitingSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("AI分析が完了しました！")
-                .font(.subheadline)
-                .fontWeight(.medium)
-            
-            Text("新しいトレーニングプランの提案をご確認ください。")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Button("提案を確認") {
-                showingApprovalSheet = true
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.green)
-        }
-    }
     
     private var aiApplyingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -320,20 +307,14 @@ struct WeeklyReviewView: View {
         }
     }
     
-    private func aiSuggestionSection(session: PlanUpdateSession) -> some View {
+    // AI提案セクションは新しい自動適用システムでは不要になりました
+    private func aiSuggestionPlaceholder() -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("AI提案プレビュー")
+            Text("AI分析結果")
                 .font(.headline)
             
-            Text(session.aiSuggestion.reasoning)
+            Text("Dashboard画面で「今すぐ分析」を実行すると、AIが最適なプランを提案して自動適用します。")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            Text("変更予定: \(session.aiSuggestion.recommendedChanges.count)件")
-                .font(.caption)
-            
-            Text("予想コスト: $\(String(format: "%.4f", session.estimatedCost))")
-                .font(.caption)
                 .foregroundColor(.secondary)
         }
         .padding()

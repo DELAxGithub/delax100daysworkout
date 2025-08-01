@@ -11,6 +11,8 @@ struct TodayView: View {
     @State private var quickRecordWorkout: WorkoutRecord?
     @State private var showDeleteAlert = false
     @State private var taskToDelete: DailyTask?
+    @State private var weeklyPlanManager: WeeklyPlanManager?
+    @State private var isAnalyzing = false
     
     private let bugReportManager = BugReportManager.shared
     
@@ -66,6 +68,59 @@ struct TodayView: View {
                         .padding()
                         .background(Color(UIColor.secondarySystemBackground))
                         .cornerRadius(12)
+                        
+                        // AI Advice Section
+                        if viewModel.progressPercentage > 0 {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Image(systemName: "brain.head.profile")
+                                        .foregroundColor(.purple)
+                                    Text("今日のパフォーマンス分析")
+                                        .font(.headline)
+                                    Spacer()
+                                    
+                                    if isAnalyzing {
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                    }
+                                }
+                                
+                                if let manager = weeklyPlanManager {
+                                    Text(getDailyAnalysisDescription(manager))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                } else {
+                                    Text("完了したワークアウトを基に、AIがアドバイスを提供します")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                HStack {
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        Task {
+                                            await runDailyAnalysis()
+                                        }
+                                    }) {
+                                        HStack {
+                                            if isAnalyzing {
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                    .scaleEffect(0.8)
+                                            }
+                                            Text(isAnalyzing ? "分析中..." : "AIアドバイス")
+                                        }
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.purple)
+                                    .disabled(isAnalyzing || viewModel.progressPercentage == 0)
+                                }
+                            }
+                            .padding()
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(12)
+                        }
                         
                         // タスクカード
                         if viewModel.todaysTasks.isEmpty {
@@ -165,6 +220,9 @@ struct TodayView: View {
                 if viewModel == nil {
                     viewModel = TodayViewModel(modelContext: modelContext)
                 }
+                if weeklyPlanManager == nil {
+                    weeklyPlanManager = WeeklyPlanManager(modelContext: modelContext)
+                }
             }
             .sheet(isPresented: $showingLogEntry) {
                 if selectedTask != nil {
@@ -191,6 +249,26 @@ struct TodayView: View {
             } message: {
                 Text("このタスクの完了記録が削除されます。")
             }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    @MainActor
+    private func runDailyAnalysis() async {
+        guard let manager = weeklyPlanManager else { return }
+        isAnalyzing = true
+        await manager.requestManualUpdate()
+        isAnalyzing = false
+    }
+    
+    private func getDailyAnalysisDescription(_ manager: WeeklyPlanManager) -> String {
+        if manager.updateStatus == .analyzing {
+            return "今日のパフォーマンスデータを分析中..."
+        } else if let result = manager.lastAnalysisResult {
+            return "前回の分析: \(result)"
+        } else {
+            return "完了したワークアウトを基に、AIがアドバイスを提供します"
         }
     }
 }

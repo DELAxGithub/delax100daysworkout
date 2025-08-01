@@ -1,6 +1,24 @@
 import Foundation
 import SwiftData
 
+enum SaveState: Equatable {
+    case idle
+    case saving
+    case success
+    case error(String)
+    
+    static func == (lhs: SaveState, rhs: SaveState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.saving, .saving), (.success, .success):
+            return true
+        case (.error(let lhsMessage), .error(let rhsMessage)):
+            return lhsMessage == rhsMessage
+        default:
+            return false
+        }
+    }
+}
+
 // This enum will drive the picker in the LogEntryView
 enum LogType: String, CaseIterable, Identifiable {
     case weight = "Weight"
@@ -15,6 +33,7 @@ enum LogType: String, CaseIterable, Identifiable {
 class LogEntryViewModel {
     var logType: LogType = .weight
     var date: Date = Date()
+    var saveState: SaveState = .idle
 
     // Properties for DailyLog (Weight)
     var weightKg: Double = 0.0
@@ -49,6 +68,22 @@ class LogEntryViewModel {
             return workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
+    
+    var hasChanges: Bool {
+        switch logType {
+        case .weight:
+            return weightKg > 0
+        case .cycling, .strength, .flexibility:
+            return !workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+    
+    var isSaving: Bool {
+        if case .saving = saveState {
+            return true
+        }
+        return false
+    }
 
     private var modelContext: ModelContext
 
@@ -56,47 +91,71 @@ class LogEntryViewModel {
         self.modelContext = modelContext
     }
 
-    func save() {
-        guard !isSaveDisabled else { return }
-
-        switch logType {
-        case .weight:
-            let newLog = DailyLog(date: date, weightKg: weightKg)
-            modelContext.insert(newLog)
-        case .cycling:
-            let newRecord = WorkoutRecord(date: date, workoutType: .cycling, summary: workoutSummary)
-            let cyclingDetail = CyclingDetail(
-                distance: cyclingDistance,
-                duration: cyclingDuration,
-                averagePower: cyclingAveragePower,
-                intensity: cyclingIntensity,
-                notes: cyclingNotes.isEmpty ? nil : cyclingNotes
-            )
-            newRecord.cyclingDetail = cyclingDetail
-            newRecord.markAsCompleted()
-            modelContext.insert(newRecord)
-            modelContext.insert(cyclingDetail)
-        case .strength:
-            let newRecord = WorkoutRecord(date: date, workoutType: .strength, summary: workoutSummary)
-            newRecord.strengthDetails = strengthDetails
-            newRecord.markAsCompleted()
-            modelContext.insert(newRecord)
-            for detail in strengthDetails {
-                modelContext.insert(detail)
+    @MainActor
+    func save() async {
+        guard !isSaveDisabled else { 
+            print("❌ 保存無効: 必要な入力が不足しています")
+            return 
+        }
+        
+        print("🔄 保存開始...")
+        saveState = .saving
+        
+        // UI更新を確実にするため少し待機
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒
+        
+        do {
+            switch logType {
+            case .weight:
+                let newLog = DailyLog(date: date, weightKg: weightKg)
+                modelContext.insert(newLog)
+                
+            case .cycling:
+                let newRecord = WorkoutRecord(date: date, workoutType: .cycling, summary: workoutSummary)
+                let cyclingDetail = CyclingDetail(
+                    distance: cyclingDistance,
+                    duration: cyclingDuration,
+                    averagePower: cyclingAveragePower,
+                    intensity: cyclingIntensity,
+                    notes: cyclingNotes.isEmpty ? nil : cyclingNotes
+                )
+                newRecord.cyclingDetail = cyclingDetail
+                newRecord.markAsCompleted()
+                modelContext.insert(newRecord)
+                modelContext.insert(cyclingDetail)
+                
+            case .strength:
+                let newRecord = WorkoutRecord(date: date, workoutType: .strength, summary: workoutSummary)
+                newRecord.strengthDetails = strengthDetails
+                newRecord.markAsCompleted()
+                modelContext.insert(newRecord)
+                for detail in strengthDetails {
+                    modelContext.insert(detail)
+                }
+                
+            case .flexibility:
+                let newRecord = WorkoutRecord(date: date, workoutType: .flexibility, summary: workoutSummary)
+                let flexibilityDetail = FlexibilityDetail(
+                    forwardBendDistance: flexibilityForwardBend,
+                    leftSplitAngle: flexibilityLeftSplit,
+                    rightSplitAngle: flexibilityRightSplit,
+                    duration: flexibilityDuration,
+                    notes: flexibilityNotes.isEmpty ? nil : flexibilityNotes
+                )
+                newRecord.flexibilityDetail = flexibilityDetail
+                newRecord.markAsCompleted()
+                modelContext.insert(newRecord)
+                modelContext.insert(flexibilityDetail)
             }
-        case .flexibility:
-            let newRecord = WorkoutRecord(date: date, workoutType: .flexibility, summary: workoutSummary)
-            let flexibilityDetail = FlexibilityDetail(
-                forwardBendDistance: flexibilityForwardBend,
-                leftSplitAngle: flexibilityLeftSplit,
-                rightSplitAngle: flexibilityRightSplit,
-                duration: flexibilityDuration,
-                notes: flexibilityNotes.isEmpty ? nil : flexibilityNotes
-            )
-            newRecord.flexibilityDetail = flexibilityDetail
-            newRecord.markAsCompleted()
-            modelContext.insert(newRecord)
-            modelContext.insert(flexibilityDetail)
+            
+            // 永続化を実行
+            try modelContext.save()
+            print("✅ 保存成功!")
+            saveState = .success
+            
+        } catch {
+            print("❌ 保存エラー: \(error.localizedDescription)")
+            saveState = .error(error.localizedDescription)
         }
     }
 }
