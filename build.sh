@@ -7,8 +7,7 @@ set -e
 
 echo "🏗️  Delax100DaysWorkout をビルドしています..."
 
-# プロジェクトディレクトリに移動
-cd Delax100DaysWorkout
+# プロジェクトはルートディレクトリにあります
 
 # Clean build
 echo "🧹 古いビルドをクリーンアップ中..."
