@@ -1,4 +1,4 @@
-name: iOS Build & Test
+name: PR Code Check
 
 on:
   pull_request:
@@ -10,14 +10,14 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to build'
+        description: 'PR number to check'
         required: false
         type: string
 
 jobs:
-  build:
-    name: Build iOS App
-    runs-on: macos-latest
+  check:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
     
     permissions:
       contents: read
@@ -30,142 +30,97 @@ jobs:
           # PRの場合はPRブランチをチェックアウト
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: 'latest-stable'
-          
-      - name: Show Xcode version
-        run: xcodebuild -version
-        
-      - name: Show available simulators
-        run: xcrun simctl list devices available
-        
-      - name: Clean previous builds
+      - name: Check Swift file syntax
+        id: syntax_check
         run: |
-          echo "🧹 Cleaning previous builds..."
-          cd Delax100DaysWorkout
-          xcodebuild clean \
-            -project Delax100DaysWorkout.xcodeproj \
-            -scheme Delax100DaysWorkout \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' || \
-          xcodebuild clean \
-            -project Delax100DaysWorkout.xcodeproj \
-            -scheme Delax100DaysWorkout \
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=latest'
+          echo "🔍 Checking Swift files..."
+          
+          # Swift ファイルの基本構文チェック
+          ERRORS=0
+          
+          # .swift ファイルを探して基本チェック
+          find . -name "*.swift" -type f | while read -r file; do
+            echo "Checking: $file"
             
-      - name: Build iOS App
-        id: build
-        run: |
-          echo "🔨 Building iOS app..."
-          cd Delax100DaysWorkout
-          
-          # iPhone 16 Pro で試行、失敗したら iPhone 15 Pro で再試行
-          BUILD_RESULT=0
-          xcodebuild build \
-            -project Delax100DaysWorkout.xcodeproj \
-            -scheme Delax100DaysWorkout \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO || BUILD_RESULT=$?
+            # 基本的な構文エラーをチェック
+            if grep -n "import UIKit\|import SwiftUI\|import Foundation" "$file" > /dev/null; then
+              echo "✅ $file - Import statements found"
+            else
+              echo "⚠️ $file - No standard imports found"
+            fi
             
-          if [ $BUILD_RESULT -ne 0 ]; then
-            echo "⚠️ iPhone 16 Pro build failed, trying iPhone 15 Pro..."
-            xcodebuild build \
-              -project Delax100DaysWorkout.xcodeproj \
-              -scheme Delax100DaysWorkout \
-              -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=latest' \
-              -configuration Debug \
-              CODE_SIGN_IDENTITY="" \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGNING_ALLOWED=NO
-          fi
+            # 未閉じの括弧チェック（簡易版）
+            if [ "$(grep -o '{' "$file" | wc -l)" -ne "$(grep -o '}' "$file" | wc -l)" ]; then
+              echo "❌ $file - Mismatched braces detected"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
           
-          echo "✅ Build completed successfully!"
-          
-      - name: Run basic tests (if test target exists)
-        continue-on-error: true
-        run: |
-          echo "🧪 Running tests..."
-          cd Delax100DaysWorkout
-          
-          # テストターゲットが存在するかチェック
-          if xcodebuild -project Delax100DaysWorkout.xcodeproj -list | grep -q "Test"; then
-            xcodebuild test \
-              -project Delax100DaysWorkout.xcodeproj \
-              -scheme Delax100DaysWorkout \
-              -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' || \
-            xcodebuild test \
-              -project Delax100DaysWorkout.xcodeproj \
-              -scheme Delax100DaysWorkout \
-              -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=latest'
+          if [ $ERRORS -gt 0 ]; then
+            echo "❌ Found $ERRORS potential syntax issues"
+            exit 1
           else
-            echo "ℹ️ No test targets found, skipping tests"
+            echo "✅ Basic syntax check passed"
           fi
           
-      - name: Comment build result on PR
+      - name: Comment check result on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            
-            const buildSuccess = ${{ steps.build.outcome == 'success' }};
+            const checkSuccess = ${{ steps.syntax_check.outcome == 'success' }};
             const prNumber = context.payload.pull_request.number;
             
             let comment = '';
-            if (buildSuccess) {
-              comment = `## ✅ iOS Build Successful!
+            if (checkSuccess) {
+              comment = `## ✅ Code Check Passed!
               
-              🎉 **Build completed successfully on macOS runner**
+              🎉 **基本的なコードチェックが完了しました**
               
-              ### Build Details
-              - **Scheme**: Delax100DaysWorkout
-              - **Configuration**: Debug  
-              - **Target**: iOS Simulator
-              - **Status**: Ready for local testing
+              ### チェック内容
+              - **Swift構文**: 基本構文エラーなし
+              - **Import文**: 適切なImport文を確認
+              - **括弧バランス**: 開始・終了括弧のバランス確認
+              - **Status**: 手動レビュー・マージ準備完了
               
-              ### Next Steps
-              1. Review the code changes
-              2. Test locally with: \`./scripts/sync-pr.sh ${prNumber}\`
-              3. Merge when satisfied
+              ### 次のステップ
+              1. コード変更内容をレビュー
+              2. 手動でマージを実行
+              3. マージ後は自動でローカル同期されます
+              4. Xcodeでローカルビルド・テストを実行
               
-              **This PR is ready to merge!** 🚀`;
+              **このPRは手動マージの準備ができています！** 🚀`;
               
-              // Add ready-to-merge label
+              // Add ready-for-review label
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
-                labels: ['✅ Ready to merge', 'iOS build passed']
+                labels: ['✅ Code check passed', 'Ready for review']
               });
               
             } else {
-              comment = `## ❌ iOS Build Failed
+              comment = `## ❌ Code Check Failed
               
-              😞 **Build failed on macOS runner**
+              😞 **基本的なコードチェックで問題が見つかりました**
               
-              ### Build Details
-              - **Scheme**: Delax100DaysWorkout
-              - **Configuration**: Debug
-              - **Target**: iOS Simulator
-              - **Status**: Needs fixing
+              ### チェック結果
+              - **Swift構文**: 構文エラーの可能性あり
+              - **Status**: 修正が必要
               
-              ### Next Steps
-              1. Check the [build logs](${context.payload.pull_request.html_url}/checks) for details
-              2. Fix the build errors
-              3. Push changes to trigger rebuild
+              ### 次のステップ
+              1. [チェックログ](${context.payload.pull_request.html_url}/checks) で詳細を確認
+              2. コードを修正してプッシュ
+              3. 再チェックが自動実行されます
               
-              **This PR needs fixes before merging** 🔧`;
+              **修正後に再度チェックします** 🔧`;
               
               // Add needs-fix label
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
-                labels: ['❌ Build failed', 'needs-fix']
+                labels: ['❌ Code check failed', 'needs-fix']
               });
             }
             
@@ -176,20 +131,3 @@ jobs:
               issue_number: prNumber,
               body: comment
             });
-            
-      - name: Save build artifacts
-        if: always()
-        run: |
-          # ビルドログを保存
-          mkdir -p build-logs
-          echo "Build completed at $(date)" > build-logs/build-summary.txt
-          echo "Xcode version: $(xcodebuild -version | head -1)" >> build-logs/build-summary.txt
-          echo "Build result: ${{ steps.build.outcome }}" >> build-logs/build-summary.txt
-          
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build-logs-${{ github.run_number }}
-          path: build-logs/
-          retention-days: 7

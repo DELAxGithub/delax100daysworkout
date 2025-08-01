@@ -20,15 +20,21 @@ show_help() {
     echo "  ./scripts/notify.sh <通知タイプ> [オプション]"
     echo ""
     echo "通知タイプ:"
-    echo "  pr-created <PR番号>     - PR作成通知"
-    echo "  build-success <PR番号>  - ビルド成功通知"
-    echo "  build-failure <PR番号>  - ビルド失敗通知"
-    echo "  ready-to-merge <PR番号> - マージ準備完了通知"
-    echo "  issue-fixed <Issue番号> - Issue修正完了通知"
+    echo "  pr-created <PR番号>      - PR作成通知"
+    echo "  build-success <PR番号>   - ビルド成功通知"
+    echo "  build-failure <PR番号>   - ビルド失敗通知"
+    echo "  ready-to-merge <PR番号>  - マージ準備完了通知"
+    echo "  issue-fixed <Issue番号>  - Issue修正完了通知"
+    echo "  merge-completed <PR番号> - マージ完了通知"
+    echo "  merge-pulled <コミット>   - プル完了通知"
+    echo "  xcode-recommended        - Xcodeビルド推奨通知"
     echo ""
     echo "例:"
     echo "  ./scripts/notify.sh pr-created 30"
     echo "  ./scripts/notify.sh build-success 30"
+    echo "  ./scripts/notify.sh merge-completed 30"
+    echo "  ./scripts/notify.sh merge-pulled abc1234"
+    echo "  ./scripts/notify.sh xcode-recommended"
     echo ""
 }
 
@@ -225,6 +231,69 @@ case "$NOTIFICATION_TYPE" in
             send_slack_notification "🛠️ Issue修正完了: [#${TARGET_NUMBER} ${ISSUE_TITLE}]($ISSUE_URL) - PRが作成されました" ":wrench:"
             send_email_notification "$TITLE" "Issue #${TARGET_NUMBER} の修正が完了し、PRが作成されました。\n\n詳細: ${ISSUE_URL}"
         fi
+        ;;
+        
+    "merge-completed")
+        if [ -z "$TARGET_NUMBER" ]; then
+            echo -e "${RED}❌ PR番号が必要です${NC}"
+            exit 1
+        fi
+        
+        PR_INFO=$(get_pr_info "$TARGET_NUMBER")
+        if [ $? -eq 0 ]; then
+            PR_TITLE=$(echo "$PR_INFO" | jq -r '.title')
+            PR_URL=$(echo "$PR_INFO" | jq -r '.url')
+            
+            TITLE="🎉 マージ完了"
+            MESSAGE="PR #${TARGET_NUMBER} がマージされました"
+            
+            echo -e "${GREEN}🎉 マージ完了通知${NC}"
+            echo "  📝 $PR_TITLE"
+            echo "  🔗 $PR_URL"
+            echo "  🔄 自動プルを開始します..."
+            
+            send_macos_notification "$TITLE" "$MESSAGE" "Glass"
+            send_slack_notification "🎉 マージ完了: [PR #${TARGET_NUMBER}]($PR_URL) - 自動プル開始" ":merged:"
+            send_email_notification "$TITLE" "PR #${TARGET_NUMBER} がマージされました。\\n\\n自動プルが開始されます。\\n\\nPR詳細: ${PR_URL}"
+        fi
+        ;;
+        
+    "merge-pulled")
+        if [ -z "$TARGET_NUMBER" ]; then
+            echo -e "${RED}❌ コミットハッシュが必要です${NC}"
+            exit 1
+        fi
+        
+        COMMIT_HASH="$TARGET_NUMBER"
+        SHORT_HASH="${COMMIT_HASH:0:8}"
+        
+        TITLE="📥 プル完了"
+        MESSAGE="最新の変更をローカルに同期しました (${SHORT_HASH})"
+        
+        echo -e "${GREEN}📥 プル完了通知${NC}"
+        echo "  🔄 コミット: $SHORT_HASH"
+        echo "  💡 Xcodeでビルドテストを実行してください"
+        
+        send_macos_notification "$TITLE" "$MESSAGE" "Hero"
+        send_slack_notification "📥 プル完了: 最新の変更を同期 (\`${SHORT_HASH}\`) - Xcodeでテストしてください" ":arrow_down:"
+        send_email_notification "$TITLE" "最新の変更をローカルに同期しました。\\n\\nコミット: ${COMMIT_HASH}\\n\\n次のステップ: Xcodeでビルドテストを実行してください。"
+        
+        # Xcodeビルド推奨通知も送信
+        sleep 2
+        ./scripts/notify.sh xcode-recommended
+        ;;
+        
+    "xcode-recommended")
+        TITLE="🔨 Xcodeビルド推奨"
+        MESSAGE="最新の変更をXcodeでビルド・テストしてください"
+        
+        echo -e "${BLUE}🔨 Xcodeビルド推奨通知${NC}"
+        echo "  💡 ./build.sh または Xcodeで手動ビルドを実行"
+        echo "  🧪 動作確認・実機テスト推奨"
+        
+        send_macos_notification "$TITLE" "$MESSAGE" "Ping"
+        send_slack_notification "🔨 Xcodeビルド推奨: 最新の変更をローカルでテストしてください" ":hammer:"
+        send_email_notification "$TITLE" "最新の変更がプルされました。\\n\\nXcodeでビルド・テストを実行してください:\\n\\n1. ./build.sh でビルド\\n2. Xcodeで実機テスト\\n3. 動作確認"
         ;;
         
     *)
