@@ -1,0 +1,422 @@
+import SwiftUI
+import SwiftData
+
+struct WeeklyReviewView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    
+    @StateObject private var planManager: WeeklyPlanManager
+    @State private var showingApprovalSheet = false
+    @State private var showingProgressDetails = false
+    
+    @Query private var workoutRecords: [WorkoutRecord]
+    @Query private var activeTemplates: [WeeklyTemplate]
+    
+    init() {
+        // 過去4週間のレコードを取得
+        let fourWeeksAgo = Calendar.current.date(byAdding: .weekOfYear, value: -4, to: Date()) ?? Date()
+        self._workoutRecords = Query(
+            filter: #Predicate<WorkoutRecord> { record in
+                record.date >= fourWeeksAgo
+            },
+            sort: \WorkoutRecord.date,
+            order: .reverse
+        )
+        
+        // アクティブなテンプレートを取得
+        self._activeTemplates = Query(
+            filter: #Predicate<WeeklyTemplate> { template in
+                template.isActive == true
+            }
+        )
+        
+        self._planManager = StateObject(wrappedValue: WeeklyPlanManager(modelContext: ModelContext(try! ModelContainer(for: WorkoutRecord.self, WeeklyTemplate.self))))
+    }
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    headerSection
+                    
+                    if let activeTemplate = activeTemplates.first {
+                        progressSummarySection(template: activeTemplate)
+                        
+                        aiAnalysisSection
+                        
+                        if let session = planManager.currentSession {
+                            aiSuggestionSection(session: session)
+                        }
+                    } else {
+                        noActiveTemplateSection
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("週次レビュー")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("閉じる") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingApprovalSheet) {
+            if let session = planManager.currentSession {
+                AIApprovalSheet(session: session, planManager: planManager)
+            }
+        }
+        .sheet(isPresented: $showingProgressDetails) {
+            if let activeTemplate = activeTemplates.first {
+                ProgressDetailsSheet(records: workoutRecords, template: activeTemplate)
+            }
+        }
+        .onAppear {
+            setupPlanManager()
+        }
+    }
+    
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                
+                VStack(alignment: .leading) {
+                    Text("今週のパフォーマンス")
+                        .font(.headline)
+                    Text("AIがあなたの進捗を分析します")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func progressSummarySection(template: WeeklyTemplate) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("進捗サマリー")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button("詳細") {
+                    showingProgressDetails = true
+                }
+                .font(.caption)
+                .foregroundColor(.blue)
+            }
+            
+            let analyzer = ProgressAnalyzer(modelContext: modelContext)
+            let weeklyStats = analyzer.calculateWeeklyStats(records: workoutRecords, template: template)
+            
+            HStack(spacing: 20) {
+                ProgressMetricCard(
+                    title: "完了率",
+                    value: "\(Int(weeklyStats.completionRate * 100))%",
+                    color: weeklyStats.completionRate > 0.8 ? .green : weeklyStats.completionRate > 0.6 ? .orange : .red
+                )
+                
+                ProgressMetricCard(
+                    title: "総ワークアウト",
+                    value: "\(weeklyStats.completedWorkouts)",
+                    color: .blue
+                )
+                
+                ProgressMetricCard(
+                    title: "継続日数",
+                    value: "\(analyzer.analyzeProgress(records: workoutRecords).currentStreak)",
+                    color: .purple
+                )
+            }
+            
+            workoutTypeBreakdown(stats: weeklyStats)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    private func workoutTypeBreakdown(stats: WeeklyStats) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("種目別進捗")
+                .font(.subheadline)
+                .fontWeight(.medium)
+            
+            VStack(spacing: 8) {
+                WorkoutTypeProgressRow(
+                    type: "サイクリング",
+                    icon: "bicycle",
+                    stats: stats.cyclingStats,
+                    color: .green
+                )
+                
+                WorkoutTypeProgressRow(
+                    type: "筋トレ",
+                    icon: "dumbbell",
+                    stats: stats.strengthStats,
+                    color: .red
+                )
+                
+                WorkoutTypeProgressRow(
+                    type: "柔軟性",
+                    icon: "figure.flexibility",
+                    stats: stats.flexibilityStats,
+                    color: .blue
+                )
+            }
+        }
+    }
+    
+    private var aiAnalysisSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "brain.head.profile")
+                    .foregroundColor(.purple)
+                Text("AI分析")
+                    .font(.headline)
+                
+                Spacer()
+                
+                if case .analyzing = planManager.updateStatus {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            
+            switch planManager.updateStatus {
+            case .idle:
+                aiIdleSection
+            case .analyzing:
+                aiAnalyzingSection
+            case .awaitingApproval:
+                aiAwaitingSection
+            case .applying:
+                aiApplyingSection
+            case .completed:
+                aiCompletedSection
+            case .failed(let error):
+                aiFailedSection(error: error)
+            }
+        }
+        .padding()
+        .background(Color.purple.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
+    private var aiIdleSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("来週のトレーニングプランを最適化しませんか？")
+                .font(.subheadline)
+            
+            Text("あなたの進捗データを基に、AIが最適なトレーニング調整を提案します。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Button("AI分析を開始") {
+                Task {
+                    await planManager.initiateWeeklyPlanUpdate()
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.purple)
+        }
+    }
+    
+    private var aiAnalyzingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                ProgressView()
+                    .scaleEffect(0.8)
+                Text("データを分析中...")
+                    .font(.subheadline)
+            }
+            
+            Text("あなたの過去4週間のデータを分析し、最適なプランを作成しています。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var aiAwaitingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("AI分析が完了しました！")
+                .font(.subheadline)
+                .fontWeight(.medium)
+            
+            Text("新しいトレーニングプランの提案をご確認ください。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Button("提案を確認") {
+                showingApprovalSheet = true
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.green)
+        }
+    }
+    
+    private var aiApplyingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                ProgressView()
+                    .scaleEffect(0.8)
+                Text("プランを適用中...")
+                    .font(.subheadline)
+            }
+            
+            Text("新しいトレーニングプランを設定しています。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var aiCompletedSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("プラン更新完了")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            }
+            
+            Text("新しいトレーニングプランが適用されました。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private func aiFailedSection(error: Error) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.red)
+                Text("エラーが発生しました")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            }
+            
+            Text(error.localizedDescription)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Button("再試行") {
+                Task {
+                    await planManager.initiateWeeklyPlanUpdate()
+                }
+            }
+            .buttonStyle(.bordered)
+            .tint(.red)
+        }
+    }
+    
+    private func aiSuggestionSection(session: PlanUpdateSession) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("AI提案プレビュー")
+                .font(.headline)
+            
+            Text(session.aiSuggestion.reasoning)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Text("変更予定: \(session.aiSuggestion.recommendedChanges.count)件")
+                .font(.caption)
+            
+            Text("予想コスト: $\(String(format: "%.4f", session.estimatedCost))")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+    }
+    
+    private var noActiveTemplateSection: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.largeTitle)
+                .foregroundColor(.orange)
+            
+            Text("アクティブなテンプレートがありません")
+                .font(.headline)
+            
+            Text("週次レビューを行うには、まずトレーニングテンプレートを設定してください。")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+    }
+    
+    private func setupPlanManager() {
+        // WeeklyPlanManagerのmodelContextを正しく設定
+        let newPlanManager = WeeklyPlanManager(modelContext: modelContext)
+        planManager.updateStatus = newPlanManager.updateStatus
+    }
+}
+
+struct ProgressMetricCard: View {
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(Color.white)
+        .cornerRadius(8)
+        .shadow(radius: 1)
+    }
+}
+
+struct WorkoutTypeProgressRow: View {
+    let type: String
+    let icon: String
+    let stats: WorkoutTypeStats
+    let color: Color
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(color)
+                .frame(width: 20)
+            
+            Text(type)
+                .font(.subheadline)
+            
+            Spacer()
+            
+            Text("\(stats.completed)/\(stats.target)")
+                .font(.subheadline)
+                .fontWeight(.medium)
+            
+            ProgressView(value: stats.completionRate)
+                .frame(width: 60)
+                .tint(color)
+        }
+    }
+}
+
+#Preview {
+    WeeklyReviewView()
+}

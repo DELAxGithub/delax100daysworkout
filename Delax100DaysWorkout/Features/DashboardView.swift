@@ -5,6 +5,8 @@ struct DashboardView: View {
     @State var viewModel: DashboardViewModel
     
     @State private var isShowingLogEntry = false
+    @State private var showingDeleteAlert = false
+    @State private var workoutToDelete: WorkoutRecord?
     
     var body: some View {
         NavigationStack {
@@ -64,10 +66,15 @@ struct DashboardView: View {
                             .padding()
                         } else {
                             ForEach(viewModel.todaysWorkouts, id: \.self) { workout in
-                                WorkoutCardView(
-                                    workoutType: workout.workoutType,
-                                    title: workout.workoutType.rawValue,
-                                    summary: workout.summary
+                                EditableWorkoutCardView(
+                                    workout: workout,
+                                    onEdit: { editedWorkout in
+                                        viewModel.updateWorkout(workout, with: editedWorkout)
+                                    },
+                                    onDelete: { workoutToDelete in
+                                        self.workoutToDelete = workoutToDelete
+                                        showingDeleteAlert = true
+                                    }
                                 )
                                 .padding(.horizontal)
                             }
@@ -92,6 +99,19 @@ struct DashboardView: View {
                 viewModel.refreshData()
             }) {
                 LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
+            }
+            .alert("ワークアウトを削除", isPresented: $showingDeleteAlert) {
+                Button("削除", role: .destructive) {
+                    if let workout = workoutToDelete {
+                        viewModel.deleteWorkout(workout)
+                        workoutToDelete = nil
+                    }
+                }
+                Button("キャンセル", role: .cancel) {
+                    workoutToDelete = nil
+                }
+            } message: {
+                Text("このワークアウトを削除してもよろしいですか？この操作は取り消せません。")
             }
         }
     }

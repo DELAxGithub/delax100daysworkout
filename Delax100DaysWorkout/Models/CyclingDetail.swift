@@ -23,6 +23,10 @@ enum CyclingIntensity: String, Codable, CaseIterable {
         case .sprint: return "スプリント"
         }
     }
+    
+    var displayName: String {
+        return description
+    }
 }
 
 @Model

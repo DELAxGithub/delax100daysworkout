@@ -95,4 +95,51 @@ class DashboardViewModel {
         currentPwrFormatted = String(format: "%.2f W/kg", currentPwr)
         goalPwrFormatted = String(format: "%.2f W/kg", goalPwr)
     }
+    
+    // MARK: - Workout Editing Functions
+    
+    func updateWorkout(_ originalWorkout: WorkoutRecord, with editedWorkout: WorkoutRecord) {
+        do {
+            // 既存のワークアウトを更新
+            originalWorkout.date = editedWorkout.date
+            originalWorkout.workoutType = editedWorkout.workoutType
+            originalWorkout.summary = editedWorkout.summary
+            originalWorkout.isCompleted = editedWorkout.isCompleted
+            
+            // 詳細データを更新
+            originalWorkout.cyclingDetail = editedWorkout.cyclingDetail
+            originalWorkout.strengthDetails = editedWorkout.strengthDetails
+            originalWorkout.flexibilityDetail = editedWorkout.flexibilityDetail
+            
+            try modelContext.save()
+            
+            // データを再読み込み
+            refreshData()
+            
+            print("✅ ワークアウトが正常に更新されました")
+            
+        } catch {
+            print("❌ ワークアウト更新エラー: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteWorkout(_ workout: WorkoutRecord) {
+        do {
+            modelContext.delete(workout)
+            try modelContext.save()
+            
+            // データを再読み込み
+            refreshData()
+            
+            print("✅ ワークアウトが正常に削除されました")
+            
+        } catch {
+            print("❌ ワークアウト削除エラー: \(error.localizedDescription)")
+        }
+    }
+    
+    func confirmDeleteWorkout(_ workout: WorkoutRecord, completion: @escaping (Bool) -> Void) {
+        // UIの削除確認は呼び出し元で処理
+        completion(true)
+    }
 }

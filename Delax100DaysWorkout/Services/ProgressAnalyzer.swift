@@ -135,6 +135,47 @@ class ProgressAnalyzer {
         return messages.joined(separator: "\n")
     }
     
+    // AI分析用の構造化データを生成
+    func generateAIAnalysisData(records: [WorkoutRecord], template: WeeklyTemplate) -> AIAnalysisRequest {
+        let weeklyStats = calculateWeeklyStats(records: records, template: template)
+        let progress = analyzeProgress(records: records)
+        
+        // ユーザー設定を取得（実装に応じて調整）
+        let userPreferences = UserPreferences(
+            preferredWorkoutDays: [1, 2, 3, 4, 5, 6], // 月-土
+            availableTime: 60, // 1日平均60分
+            fitnessGoals: ["筋力向上", "持久力向上", "柔軟性向上"],
+            limitations: []
+        )
+        
+        return AIAnalysisRequest(
+            weeklyStats: weeklyStats,
+            progress: progress,
+            currentTemplate: template,
+            userPreferences: userPreferences
+        )
+    }
+    
+    // 詳細な週次レポートを生成（AI用）
+    func generateDetailedWeeklyReport(records: [WorkoutRecord], template: WeeklyTemplate) -> DetailedWeeklyReport {
+        let stats = calculateWeeklyStats(records: records, template: template)
+        let progress = analyzeProgress(records: records)
+        
+        // より詳細な分析
+        let cyclingAnalysis = analyzeCyclingTrends(records: records)
+        let strengthAnalysis = analyzeStrengthTrends(records: records)
+        let flexibilityAnalysis = analyzeFlexibilityTrends(records: records)
+        
+        return DetailedWeeklyReport(
+            weeklyStats: stats,
+            progress: progress,
+            cyclingAnalysis: cyclingAnalysis,
+            strengthAnalysis: strengthAnalysis,
+            flexibilityAnalysis: flexibilityAnalysis,
+            recommendations: generateRecommendations(stats: stats, progress: progress)
+        )
+    }
+    
     // MARK: - Private Methods
     
     private func detectCyclingPR(newRecord: WorkoutRecord, history: [WorkoutRecord]) -> Achievement? {
@@ -319,4 +360,228 @@ class ProgressAnalyzer {
         
         return max(longestStreak, currentStreak)
     }
+    
+    // サイクリングのトレンド分析
+    private func analyzeCyclingTrends(records: [WorkoutRecord]) -> CyclingTrendAnalysis {
+        let cyclingRecords = records.filter { $0.workoutType == .cycling }
+            .sorted { $0.date < $1.date }
+        
+        guard cyclingRecords.count >= 3 else {
+            return CyclingTrendAnalysis(
+                powerTrend: .stable,
+                distanceTrend: .stable,
+                consistencyScore: 0.5,
+                recommendations: ["より多くのデータが必要です"]
+            )
+        }
+        
+        let powers = cyclingRecords.compactMap { $0.cyclingDetail?.averagePower }
+        let distances = cyclingRecords.compactMap { $0.cyclingDetail?.distance }
+        
+        return CyclingTrendAnalysis(
+            powerTrend: calculateTrend(values: powers),
+            distanceTrend: calculateTrend(values: distances.map { Double($0) }),
+            consistencyScore: calculateConsistencyScore(values: powers),
+            recommendations: generateCyclingRecommendations(powers: powers, distances: distances)
+        )
+    }
+    
+    // 筋トレのトレンド分析
+    private func analyzeStrengthTrends(records: [WorkoutRecord]) -> StrengthTrendAnalysis {
+        let strengthRecords = records.filter { $0.workoutType == .strength }
+            .sorted { $0.date < $1.date }
+        
+        guard strengthRecords.count >= 3 else {
+            return StrengthTrendAnalysis(
+                volumeTrend: .stable,
+                strengthTrend: .stable,
+                consistencyScore: 0.5,
+                recommendations: ["より多くのデータが必要です"]
+            )
+        }
+        
+        let totalVolumes = strengthRecords.compactMap { record in
+            record.strengthDetails?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
+        }
+        
+        let maxWeights = strengthRecords.compactMap { record in
+            record.strengthDetails?.map { $0.weight }.max()
+        }
+        
+        return StrengthTrendAnalysis(
+            volumeTrend: calculateTrend(values: totalVolumes),
+            strengthTrend: calculateTrend(values: maxWeights),
+            consistencyScore: calculateConsistencyScore(values: totalVolumes),
+            recommendations: generateStrengthRecommendations(volumes: totalVolumes, maxWeights: maxWeights)
+        )
+    }
+    
+    // 柔軟性のトレンド分析
+    private func analyzeFlexibilityTrends(records: [WorkoutRecord]) -> FlexibilityTrendAnalysis {
+        let flexRecords = records.filter { $0.workoutType == .flexibility }
+            .sorted { $0.date < $1.date }
+        
+        guard flexRecords.count >= 3 else {
+            return FlexibilityTrendAnalysis(
+                forwardBendTrend: .stable,
+                splitAngleTrend: .stable,
+                consistencyScore: 0.5,
+                recommendations: ["より多くのデータが必要です"]
+            )
+        }
+        
+        let forwardBends = flexRecords.compactMap { $0.flexibilityDetail?.forwardBendDistance }
+        let splitAngles = flexRecords.compactMap { $0.flexibilityDetail?.averageSplitAngle }
+        
+        return FlexibilityTrendAnalysis(
+            forwardBendTrend: calculateTrend(values: forwardBends),
+            splitAngleTrend: calculateTrend(values: splitAngles),
+            consistencyScore: calculateConsistencyScore(values: splitAngles),
+            recommendations: generateFlexibilityRecommendations(forwardBends: forwardBends, splitAngles: splitAngles)
+        )
+    }
+    
+    // 汎用トレンド計算
+    private func calculateTrend(values: [Double]) -> TrendDirection {
+        guard values.count >= 3 else { return .stable }
+        
+        let firstHalf = Array(values.prefix(values.count / 2))
+        let secondHalf = Array(values.suffix(values.count / 2))
+        
+        let firstAvg = firstHalf.reduce(0, +) / Double(firstHalf.count)
+        let secondAvg = secondHalf.reduce(0, +) / Double(secondHalf.count)
+        
+        if secondAvg > firstAvg * 1.05 {
+            return .improving
+        } else if secondAvg < firstAvg * 0.95 {
+            return .declining
+        } else {
+            return .stable
+        }
+    }
+    
+    // 一貫性スコアの計算
+    private func calculateConsistencyScore(values: [Double]) -> Double {
+        guard values.count > 1 else { return 0.0 }
+        
+        let mean = values.reduce(0, +) / Double(values.count)
+        let variance = values.map { pow($0 - mean, 2) }.reduce(0, +) / Double(values.count)
+        let standardDeviation = sqrt(variance)
+        
+        // CV（変動係数）を逆にして一貫性スコアとする
+        let coefficientOfVariation = standardDeviation / mean
+        return max(0, 1 - coefficientOfVariation)
+    }
+    
+    // レコメンデーション生成
+    private func generateRecommendations(stats: WeeklyStats, progress: Progress) -> [String] {
+        var recommendations: [String] = []
+        
+        // 完了率に基づく推奨
+        if stats.completionRate < 0.7 {
+            recommendations.append("完了率が低いため、目標を調整することを検討してください")
+        } else if stats.completionRate > 0.9 {
+            recommendations.append("素晴らしい完了率です！強度を少し上げても良いかもしれません")
+        }
+        
+        // ストリークに基づく推奨
+        if progress.currentStreak == 0 {
+            recommendations.append("新しいスタートです。小さな目標から始めましょう")
+        } else if progress.currentStreak >= 7 {
+            recommendations.append("連続記録が素晴らしいです！適度な休息も忘れずに")
+        }
+        
+        return recommendations
+    }
+    
+    private func generateCyclingRecommendations(powers: [Double], distances: [Int]) -> [String] {
+        var recommendations: [String] = []
+        
+        if powers.isEmpty {
+            recommendations.append("パワーデータの記録を開始しましょう")
+        } else {
+            let avgPower = powers.reduce(0, +) / Double(powers.count)
+            if avgPower < 150 {
+                recommendations.append("基礎持久力の向上に重点を置きましょう")
+            } else if avgPower > 200 {
+                recommendations.append("高いパワーを維持できています！インターバルトレーニングを追加してみては？")
+            }
+        }
+        
+        return recommendations
+    }
+    
+    private func generateStrengthRecommendations(volumes: [Double], maxWeights: [Double]) -> [String] {
+        var recommendations: [String] = []
+        
+        if volumes.isEmpty {
+            recommendations.append("筋トレのボリューム記録を開始しましょう")
+        } else {
+            let trend = calculateTrend(values: volumes)
+            switch trend {
+            case .improving:
+                recommendations.append("筋力が順調に向上しています！")
+            case .declining:
+                recommendations.append("十分な休息と栄養を確保しましょう")
+            case .stable:
+                recommendations.append("プログレッシブオーバーロードを意識しましょう")
+            }
+        }
+        
+        return recommendations
+    }
+    
+    private func generateFlexibilityRecommendations(forwardBends: [Double], splitAngles: [Double]) -> [String] {
+        var recommendations: [String] = []
+        
+        if splitAngles.isEmpty {
+            recommendations.append("柔軟性の測定を開始しましょう")
+        } else {
+            let avgAngle = splitAngles.reduce(0, +) / Double(splitAngles.count)
+            if avgAngle < 90 {
+                recommendations.append("基本的なストレッチから始めましょう")
+            } else if avgAngle > 130 {
+                recommendations.append("素晴らしい柔軟性です！さらなる向上を目指しましょう")
+            }
+        }
+        
+        return recommendations
+    }
+}
+
+// AI分析用の追加データ構造
+struct DetailedWeeklyReport {
+    let weeklyStats: WeeklyStats
+    let progress: Progress
+    let cyclingAnalysis: CyclingTrendAnalysis
+    let strengthAnalysis: StrengthTrendAnalysis
+    let flexibilityAnalysis: FlexibilityTrendAnalysis
+    let recommendations: [String]
+}
+
+struct CyclingTrendAnalysis {
+    let powerTrend: TrendDirection
+    let distanceTrend: TrendDirection
+    let consistencyScore: Double
+    let recommendations: [String]
+}
+
+struct StrengthTrendAnalysis {
+    let volumeTrend: TrendDirection
+    let strengthTrend: TrendDirection
+    let consistencyScore: Double
+    let recommendations: [String]
+}
+
+struct FlexibilityTrendAnalysis {
+    let forwardBendTrend: TrendDirection
+    let splitAngleTrend: TrendDirection
+    let consistencyScore: Double
+    let recommendations: [String]
+}
+
+enum TrendDirection {
+    case improving
+    case stable
+    case declining
 }
