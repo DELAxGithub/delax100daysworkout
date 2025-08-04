@@ -259,6 +259,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = 100DayFTP;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "このアプリは、サイクリングワークアウトデータ、心拍数、体重データを取得してトレーニング分析を行うためにHealthKitにアクセスします。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "このアプリは、FTPやトレーニングデータをHealthKitに保存してデータの統合管理を行います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -294,6 +296,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = 100DayFTP;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "このアプリは、サイクリングワークアウトデータ、心拍数、体重データを取得してトレーニング分析を行うためにHealthKitにアクセスします。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "このアプリは、FTPやトレーニングデータをHealthKitに保存してデータの統合管理を行います。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -326,7 +330,7 @@
 				DE85A2352E368E6900E742CF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		DE85A2362E368E6900E742CF /* Build configuration list for PBXNativeTarget "Delax100DaysWorkout" */ = {
 			isa = XCConfigurationList;
@@ -335,7 +339,7 @@
 				DE85A2382E368E6900E742CF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

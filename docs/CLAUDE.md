@@ -40,7 +40,10 @@ This is a comprehensive iOS fitness training app built with SwiftUI and SwiftDat
 **Models (SwiftData)**
 - `DailyLog`, `WorkoutRecord`, `WeeklyTemplate`, `DailyTask` - Core data models
 - `UserProfile`, `Achievement`, `WeeklyReport` - User and progress tracking
-- `CyclingDetail`, `StrengthDetail`, `FlexibilityDetail` - Workout-specific data
+- `CyclingDetail` - Enhanced cycling data with heart rate, power metrics, and W/HR calculations
+- `StrengthDetail`, `FlexibilityDetail` - Workout-specific data
+- `FTPHistory` - FTP tracking with measurement methods and power zone calculations
+- `DailyMetric` - Daily health metrics (weight, heart rate) with data source management
 
 **Services Layer**
 - `WeeklyPlanManager` - AI-powered weekly workout plan optimization
@@ -55,6 +58,9 @@ This is a comprehensive iOS fitness training app built with SwiftUI and SwiftDat
 - `DashboardView` - Overview of fitness metrics and achievements
 - `WeeklyReview` - AI-powered weekly performance analysis
 - `SettingsView` - App configuration and preferences
+- `FTPHistoryView` - FTP tracking with Swift Charts visualization
+- `FTPEntryView` - FTP data input with measurement method selection
+- `DailyMetricEntryView` - Daily health metrics input and management
 - Specialized workout input views for each training type
 
 ### Key Integrations
@@ -79,8 +85,11 @@ This is a comprehensive iOS fitness training app built with SwiftUI and SwiftDat
 ## Project Structure Conventions
 
 **File Organization**
-- `Models/` - SwiftData model classes
+- `Models/` - SwiftData model classes (including FTPHistory, DailyMetric)
 - `Features/` - SwiftUI views organized by functionality
+  - `FTP/` - FTP tracking and management views
+  - `Metrics/` - Daily health metrics input views
+  - `Today/`, `Dashboard/`, `Progress/` - Core app functionality
 - `Services/` - Business logic and external service integrations
 - `Utils/` - Utility classes and extensions
 - `Application/` - App configuration and main app structure

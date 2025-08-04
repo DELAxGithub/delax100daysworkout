@@ -5,6 +5,7 @@ import SwiftData
 class ProgressChartViewModel {
     var dailyLogs: [DailyLog] = []
     var userProfile: UserProfile?
+    var workoutRecords: [WorkoutRecord] = []
 
     private var modelContext: ModelContext
 
@@ -22,9 +23,18 @@ class ProgressChartViewModel {
             // Fetch UserProfile to get the goal weight
             let profileDescriptor = FetchDescriptor<UserProfile>()
             userProfile = try modelContext.fetch(profileDescriptor).first
+            
+            // Fetch WorkoutRecords for progress stats
+            let workoutDescriptor = FetchDescriptor<WorkoutRecord>(sortBy: [SortDescriptor(\.date, order: .reverse)])
+            workoutRecords = try modelContext.fetch(workoutDescriptor)
 
         } catch {
-            print("Failed to fetch daily logs for chart: \(error)")
+            print("Failed to fetch data for progress chart: \(error)")
         }
+    }
+    
+    func setModelContext(_ context: ModelContext) {
+        self.modelContext = context
+        fetchData()
     }
 }

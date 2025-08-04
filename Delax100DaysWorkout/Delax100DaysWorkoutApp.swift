@@ -29,7 +29,10 @@ struct Delax100DaysWorkoutApp: App {
             Achievement.self,
             CyclingDetail.self,
             StrengthDetail.self,
-            FlexibilityDetail.self
+            FlexibilityDetail.self,
+            // Phase 1: 自転車トレーニング集計機能用モデル
+            FTPHistory.self,
+            DailyMetric.self
         ])
     }
 }

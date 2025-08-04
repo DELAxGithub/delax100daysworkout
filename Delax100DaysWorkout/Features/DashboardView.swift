@@ -9,6 +9,7 @@ struct DashboardView: View {
     @State private var workoutToDelete: WorkoutRecord?
     @State private var weeklyPlanManager: WeeklyPlanManager?
     @State private var isAnalyzing = false
+    @State private var showingMetricEntry = false
     
     var body: some View {
         NavigationStack {
@@ -188,8 +189,13 @@ struct DashboardView: View {
             .navigationTitle("Dashboard")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        isShowingLogEntry = true
+                    Menu {
+                        Button("ワークアウト記録", systemImage: "figure.run") {
+                            isShowingLogEntry = true
+                        }
+                        Button("日次記録", systemImage: "heart.text.square") {
+                            showingMetricEntry = true
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -205,6 +211,11 @@ struct DashboardView: View {
                 viewModel.refreshData()
             }) {
                 LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
+            }
+            .sheet(isPresented: $showingMetricEntry, onDismiss: {
+                viewModel.refreshData()
+            }) {  
+                DailyMetricEntryView()
             }
             .alert("ワークアウトを削除", isPresented: $showingDeleteAlert) {
                 Button("削除", role: .destructive) {

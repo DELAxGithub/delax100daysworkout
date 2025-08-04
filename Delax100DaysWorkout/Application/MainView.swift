@@ -20,10 +20,10 @@ struct MainView: View {
                 }
                 .tag(1)
             
-            DashboardView(viewModel: DashboardViewModel(modelContext: modelContext))
-                .shakeDetector(currentView: "ダッシュボード")
+            UnifiedHomeDashboardView()
+                .shakeDetector(currentView: "ホーム")
                 .tabItem {
-                    Label("ダッシュボード", systemImage: "house.fill")
+                    Label("ホーム", systemImage: "house.fill")
                 }
                 .tag(2)
             
@@ -36,19 +36,12 @@ struct MainView: View {
             }
             .tag(3)
 
-            ProgressChartView(viewModel: ProgressChartViewModel(modelContext: modelContext))
-                .shakeDetector(currentView: "進捗")
-                .tabItem {
-                    Label("進捗", systemImage: "chart.bar.xaxis")
-                }
-                .tag(4)
-
             SettingsView(viewModel: SettingsViewModel(modelContext: modelContext))
                 .shakeDetector(currentView: "設定")
                 .tabItem {
                     Label("設定", systemImage: "gear")
                 }
-                .tag(5)
+                .tag(4)
         }
     }
 }
