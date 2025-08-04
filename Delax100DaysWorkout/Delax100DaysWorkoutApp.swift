@@ -1,9 +1,19 @@
 import SwiftUI
 import SwiftData
+// import DelaxSwiftUIComponents // TODO: Add via Xcode Swift Package Manager
 
 @main
 struct Delax100DaysWorkoutApp: App {
     @StateObject private var bugReportManager = BugReportManager.shared
+    
+    init() {
+        // BugReportManager設定（共有パッケージ互換）
+        BugReportManager.shared.configure(
+            gitHubToken: EnvironmentConfig.githubToken,
+            gitHubOwner: EnvironmentConfig.githubOwner,
+            gitHubRepo: EnvironmentConfig.githubRepo
+        )
+    }
     
     var body: some Scene {
         WindowGroup {

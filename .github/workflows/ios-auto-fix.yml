@@ -1,0 +1,88 @@
+name: iOS Auto Build & Fix
+
+on:
+  push:
+    paths: 
+      - 'Delax100DaysWorkout/**/*.swift'
+      - 'Delax100DaysWorkout/**/*.plist'
+      - '!Delax100DaysWorkout.xcodeproj/**'
+  pull_request:
+    paths: 
+      - 'Delax100DaysWorkout/**/*.swift'
+      - 'Delax100DaysWorkout/**/*.plist'
+      - '!Delax100DaysWorkout.xcodeproj/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auto-build-fix:
+    runs-on: macos-15
+    if: github.actor != 'github-actions[bot]'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.1'
+      
+      - name: Install Claude CLI
+        run: |
+          pip3 install anthropic
+          echo "Claude CLI installed"
+      
+      - name: Run iOS Auto-Fix
+        run: |
+          chmod +x ./auto-fix-scripts/*.sh
+          ./auto-fix-scripts/auto-build-fix.sh
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+            
+      - name: Commit and push fixes
+        if: steps.changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Auto-Fix"
+          git add .
+          git commit -m "🔧 Auto-fix: Resolve build errors with Claude AI
+
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+          
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+          git push
+          
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Auto-Fix Failed',
+              body: `The auto-fix system failed to resolve build errors.
+              
+              **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              **Commit:** ${{ github.sha }}
+              **Branch:** ${{ github.ref_name }}
+              
+              Please investigate the build errors manually.`,
+              labels: ['auto-fix-failed', 'bug', 'high priority']
+            });

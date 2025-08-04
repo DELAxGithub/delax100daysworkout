@@ -12,7 +12,25 @@ class BugReportManager: ObservableObject {
     private let maxActionsCount = 20
     private let maxLogsCount = 100
     
+    // GitHub Configuration (共有パッケージ互換)
+    private var gitHubToken: String?
+    private var gitHubOwner: String?
+    private var gitHubRepo: String?
+    
     private init() {}
+    
+    // MARK: - Configuration (共有パッケージ互換)
+    
+    func configure(gitHubToken: String?, gitHubOwner: String?, gitHubRepo: String?) {
+        self.gitHubToken = gitHubToken
+        self.gitHubOwner = gitHubOwner
+        self.gitHubRepo = gitHubRepo
+        log(.info, "BugReportManager configured with GitHub settings", source: "BugReportManager")
+    }
+    
+    private var hasValidTokens: Bool {
+        return gitHubToken != nil && gitHubOwner != nil && gitHubRepo != nil
+    }
     
     // MARK: - User Action Tracking
     
@@ -134,19 +152,29 @@ class BugReportManager: ObservableObject {
     // MARK: - GitHub Issue Submission
     
     func submitBugReport(_ report: BugReport) async throws {
-        // 環境変数の状態をログ出力
-        log(.info, "Environment check - GitHub Token: \(EnvironmentConfig.githubToken != nil ? "Set" : "Not set")")
-        log(.info, "Environment check - GitHub Owner: \(EnvironmentConfig.githubOwner)")
-        log(.info, "Environment check - GitHub Repo: \(EnvironmentConfig.githubRepo)")
+        // 設定確認（共有パッケージ互換）
+        log(.info, "Environment check - GitHub Token: \(gitHubToken != nil ? "Set" : "Not set")")
+        log(.info, "Environment check - GitHub Owner: \(gitHubOwner ?? "Not set")")
+        log(.info, "Environment check - GitHub Repo: \(gitHubRepo ?? "Not set")")
         
         #if DEBUG
         // デバッグビルドでは、GitHubトークンがない場合はローカル保存
-        if !EnvironmentConfig.hasValidTokens {
-            let validation = EnvironmentConfig.validateTokens()
-            log(.warning, "GitHub token not configured: \(validation.message)")
-            log(.warning, "Saving bug report locally instead.")
-            try await saveLocally(report)
-            return
+        if !hasValidTokens {
+            // フォールバック: 環境変数からの取得を試行
+            if !EnvironmentConfig.hasValidTokens {
+                let validation = EnvironmentConfig.validateTokens()
+                log(.warning, "GitHub token not configured: \(validation.message)")
+                log(.warning, "Saving bug report locally instead.")
+                try await saveLocally(report)
+                return
+            } else {
+                // 環境変数設定で再設定
+                configure(
+                    gitHubToken: EnvironmentConfig.githubToken,
+                    gitHubOwner: EnvironmentConfig.githubOwner,
+                    gitHubRepo: EnvironmentConfig.githubRepo
+                )
+            }
         }
         #endif
         

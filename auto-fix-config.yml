@@ -1,0 +1,47 @@
+project:
+  name: "Delax100DaysWorkout"
+  xcode_project: "Delax100DaysWorkout.xcodeproj"
+  scheme: "Delax100DaysWorkout"
+  destination: 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'
+  
+build:
+  max_attempts: 5
+  timeout_seconds: 300
+  
+claude:
+  model: "claude-4-sonnet-20250514"
+  max_context_files: 10
+  
+watch:
+  directories:
+    - "Delax100DaysWorkout/Models"
+    - "Delax100DaysWorkout/Features"
+    - "Delax100DaysWorkout/Services"
+    - "Delax100DaysWorkout/Utils"
+    - "Delax100DaysWorkout/Application"
+  debounce_seconds: 3
+  include_patterns: 
+    - "*.swift"
+    - "*.plist"
+  exclude_patterns: 
+    - "*.xcuserstate"
+    - "*.pbxproj"
+    - "DerivedData/*"
+    - "build/*"
+    - ".DS_Store"
+
+error_detection:
+  ignore_patterns:
+    - "warning:.*deprecated"
+    - "note:.*"
+  critical_patterns:
+    - "error:.*"
+    - "fatal error:.*"
+    - "Segmentation fault"
+    - "Thread.*crashed"
+
+github:
+  auto_commit: true
+  create_pr: true
+  pr_title_prefix: "[Auto-Fix]"
+  commit_message_prefix: "🔧 Auto-fix:"
