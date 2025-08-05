@@ -6,6 +6,7 @@ struct WeeklyScheduleView: View {
     @Query(filter: #Predicate<WeeklyTemplate> { $0.isActive }) private var activeTemplates: [WeeklyTemplate]
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date()) - 1
+    @State private var viewModel: WeeklyScheduleViewModel?
     
     private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
     private let dayColors: [Color] = [.red, .gray, .gray, .gray, .gray, .gray, .blue]
@@ -50,7 +51,11 @@ struct WeeklyScheduleView: View {
                         ScrollView {
                             VStack(spacing: 12) {
                                 ForEach(tasks) { task in
-                                    WeeklyTaskCard(task: task)
+                                    WeeklyTaskCard(
+                                        task: task,
+                                        selectedDay: selectedDay,
+                                        viewModel: viewModel
+                                    )
                                 }
                             }
                             .padding()
@@ -64,7 +69,7 @@ struct WeeklyScheduleView: View {
                     )
                 }
             }
-            .navigationTitle("週間スケジュール")
+            .navigationTitle("スケジュール")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -78,6 +83,17 @@ struct WeeklyScheduleView: View {
         }
         .onAppear {
             ensureActiveTemplate()
+            if viewModel == nil {
+                viewModel = WeeklyScheduleViewModel(modelContext: modelContext)
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel?.showingQuickRecord ?? false },
+            set: { _ in viewModel?.showingQuickRecord = false }
+        )) {
+            if let task = viewModel?.quickRecordTask, let record = viewModel?.quickRecordWorkout {
+                QuickRecordSheet(task: task, workoutRecord: record)
+            }
         }
     }
     
@@ -134,6 +150,8 @@ struct DayButton: View {
 
 struct WeeklyTaskCard: View {
     let task: DailyTask
+    let selectedDay: Int
+    let viewModel: WeeklyScheduleViewModel?
     
     private var workoutIcon: String {
         switch task.workoutType {
@@ -155,6 +173,14 @@ struct WeeklyTaskCard: View {
         case .flexibility:
             return .green
         }
+    }
+    
+    private var isToday: Bool {
+        Calendar.current.component(.weekday, from: Date()) - 1 == selectedDay
+    }
+    
+    private var isCompleted: Bool {
+        viewModel?.isTaskCompleted(task) ?? false
     }
     
     var body: some View {
@@ -181,7 +207,30 @@ struct WeeklyTaskCard: View {
                 
                 Spacer()
                 
-                if task.isFlexible {
+                // 今日のタスクの場合、完了ボタンまたは完了チェックマークを表示
+                if isToday {
+                    if isCompleted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.green)
+                    } else {
+                        Button(action: {
+                            if let record = viewModel?.quickCompleteTask(task) {
+                                viewModel?.quickRecordTask = task
+                                viewModel?.quickRecordWorkout = record
+                                viewModel?.showingQuickRecord = true
+                                
+                                // Haptic feedback
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                            }
+                        }) {
+                            Image(systemName: "circle")
+                                .font(.title2)
+                                .foregroundColor(workoutColor)
+                        }
+                    }
+                } else if task.isFlexible {
                     Image(systemName: "arrow.left.arrow.right")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -210,6 +259,7 @@ struct WeeklyTaskCard: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
+        .opacity(isCompleted ? 0.6 : 1.0)
     }
 }
 

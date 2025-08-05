@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct MainView: View {
     @Environment(\.modelContext) private var modelContext
@@ -6,24 +7,24 @@ struct MainView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            TodayView()
-                .shakeDetector(currentView: "今日")
+            WeeklyScheduleView()
+                .shakeDetector(currentView: "スケジュール")
                 .tabItem {
-                    Label("今日", systemImage: "calendar.day.timeline.left")
+                    Label("スケジュール", systemImage: "calendar")
                 }
                 .tag(0)
-            
-            WeeklyScheduleView()
-                .shakeDetector(currentView: "週間予定")
-                .tabItem {
-                    Label("週間予定", systemImage: "calendar")
-                }
-                .tag(1)
             
             UnifiedHomeDashboardView()
                 .shakeDetector(currentView: "ホーム")
                 .tabItem {
                     Label("ホーム", systemImage: "house.fill")
+                }
+                .tag(1)
+            
+            WPRCentralDashboardView()
+                .shakeDetector(currentView: "WPR")
+                .tabItem {
+                    Label("WPR", systemImage: "bolt.fill")
                 }
                 .tag(2)
             
