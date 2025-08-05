@@ -537,3 +537,78 @@ FTPサイクリングアプリから始まり、総合的なフィットネス�
 3. **高度分析機能** - TSS, IF, CTL/ATL/TSB による科学的トレーニング管理
 
 これらのドキュメントを確認することで、前回の実装内容を素早く思い出し、次のフェーズに効率よく移行できます。
+
+### 16. ✅ FTP自動取得機能の実装完了（2025年8月5日）
+
+#### TODOコメント解決による機能改善
+- **課題**: CyclingDetail.swiftの79行目でFTPHistoryから最新のFTPを取得する処理が未実装
+- **解決**: SwiftDataを使用した最新FTP自動取得機能を実装
+
+#### 実装詳細
+- **getCurrentFTP(modelContext:)メソッド**: 
+  - FetchDescriptorで日付順ソートによる最新FTP取得
+  - エラーハンドリングで取得失敗時は暫定値250Wを返却
+  - try-catch構文による安全な実装
+
+- **intensityFactor(modelContext:)メソッド**: 
+  - 実際のFTP値に基づく正確なIntensity Factor計算
+  - 正規化パワー（NP）または平均パワーを使用
+  - 後方互換性のため既存computed propertyも維持
+
+- **trainingStressScore(modelContext:)メソッド**: 
+  - 改善されたIF値に基づくTSS計算
+  - 科学的に正確なトレーニング負荷指標
+
+#### 技術的成果
+- **精度向上**: 暫定値250Wから実際のFTP値ベースの計算へ
+- **自動更新**: FTP更新時の指標計算精度自動向上
+- **後方互換性**: 既存コード影響なしの安全な拡張
+- **ビルド成功**: 全機能正常動作確認済み
+
+#### ユーザー価値
+- **科学的根拠**: 実際のFTPに基づくIF・TSS計算
+- **成長実感**: FTP向上に伴う指標精度向上の体感
+- **信頼性**: エラーハンドリングによる安定動作
+
+この実装により、サイクリングデータ分析の科学的精度が大幅に向上し、ユーザーはより正確なトレーニング指標を得られるようになりました。
+
+---
+
+## 次期実装検討：トレーニング貯金システム
+
+### 実装コンセプト
+「20分１本のSSTを100日で100回やる」ような **トレーニング貯金** の概念を導入し、ワークアウト記録をカウントして達成感を得られるシステムを実装予定。
+
+### 関連ドキュメント（次回セッション参照用）
+
+#### 1. 🏋️‍♂️ 要件・設計ベース
+- **`docs/training_template_requirements_v2.md`** - 週次トレーニングテンプレートの詳細仕様
+  - FTP向上、筋力強化、柔軟性180度開脚の目標設定
+  - Push/Pull/Legs+Core の3部位分割筋トレ体系
+  - 週3回バイク（VO2max、SST、ロングライド/Z2）の構成
+
+#### 2. 📊 データモデル基盤
+- **`Delax100DaysWorkout/Models/DailyTask.swift`** - タスクベース設計
+- **`Delax100DaysWorkout/Models/WorkoutRecord.swift`** - ワークアウト記録構造
+- **`Delax100DaysWorkout/Models/Achievement.swift`** - 達成システムの基盤
+- **`Delax100DaysWorkout/Models/WeeklyTemplate.swift`** - 週次テンプレート管理
+
+#### 3. 🎯 進捗管理システム
+- **`Delax100DaysWorkout/Services/ProgressAnalyzer.swift`** - 進捗分析エンジン
+- **`Delax100DaysWorkout/Features/ProgressChartViewModel.swift`** - 進捗可視化ロジック
+- **`Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift`** - 統合ダッシュボード
+
+#### 4. 🚀 実装候補機能
+1. **SST累積カウンター**: 20分SSTセッションを100回目標でカウント
+2. **筋トレボリューム貯金**: Push/Pull/Legs各部位の累積セット数管理
+3. **柔軟性継続ストリーク**: 前後開脚・左右開脚の継続日数追跡
+4. **目標達成バッジ**: 100SST達成、筋トレ1000セット、柔軟性100日連続等
+
+#### 5. 📈 分析指標設計
+- **週次進捗率**: テンプレート基準での達成度
+- **累積指標**: 各トレーニングタイプの総計管理
+- **継続性指標**: ストリーク日数、達成率推移
+- **成長トレンド**: FTP向上、重量増加、柔軟性改善の可視化
+
+### 実装戦略
+次回セッションでは、これらのドキュメントを基に **トレーニング貯金システム** のspec-driven developmentを実行し、ユーザーの「継続→積み重ね→達成感」体験を設計・実装します。

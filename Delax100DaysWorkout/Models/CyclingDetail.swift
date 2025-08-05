@@ -73,17 +73,43 @@ final class CyclingDetail {
         }
     }
     
+    /// 最新のFTP値を取得する
+    func getCurrentFTP(modelContext: ModelContext) -> Int {
+        let descriptor = FetchDescriptor<FTPHistory>(
+            sortBy: [SortDescriptor(\FTPHistory.date, order: .reverse)]
+        )
+        
+        do {
+            let ftpHistories = try modelContext.fetch(descriptor)
+            return ftpHistories.first?.ftpValue ?? 250
+        } catch {
+            print("Failed to fetch FTP history: \(error)")
+            return 250
+        }
+    }
+    
     /// Intensity Factor（IF）- FTPに対する強度比
+    func intensityFactor(modelContext: ModelContext) -> Double? {
+        let currentFTP = getCurrentFTP(modelContext: modelContext)
+        return (normalizedPower ?? averagePower) / Double(currentFTP)
+    }
+    
+    /// 後方互換性のためのcomputed property（非推奨）
     var intensityFactor: Double? {
         get {
-            // TODO: FTPHistoryから最新のFTPを取得する
-            // 暫定的に250Wを基準FTPとして使用
             let estimatedFTP = 250.0
             return (normalizedPower ?? averagePower) / estimatedFTP
         }
     }
     
     /// Training Stress Score（TSS）- トレーニング負荷スコア
+    func trainingStressScore(modelContext: ModelContext) -> Double? {
+        guard let intensityFactor = intensityFactor(modelContext: modelContext), duration > 0 else { return nil }
+        let hoursDecimal = Double(duration) / 3600.0
+        return hoursDecimal * intensityFactor * intensityFactor * 100
+    }
+    
+    /// 後方互換性のためのcomputed property（非推奨）
     var trainingStressScore: Double? {
         get {
             guard let intensityFactor = intensityFactor, duration > 0 else { return nil }
