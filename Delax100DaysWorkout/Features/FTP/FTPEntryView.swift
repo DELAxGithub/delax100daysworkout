@@ -98,6 +98,10 @@ struct FTPEntryView: View {
         
         do {
             try modelContext.save()
+            
+            // WPR自動更新をトリガー
+            newRecord.triggerWPRFTPUpdate(context: modelContext)
+            
             dismiss()
         } catch {
             alertMessage = "保存に失敗しました: \(error.localizedDescription)"

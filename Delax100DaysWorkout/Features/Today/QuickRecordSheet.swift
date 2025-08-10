@@ -414,6 +414,9 @@ struct QuickRecordSheet: View {
         do {
             try modelContext.save()
             
+            // WPR自動更新をトリガー
+            workoutRecord.triggerWPRUpdate(context: modelContext)
+            
             // Haptic feedback
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.impactOccurred()

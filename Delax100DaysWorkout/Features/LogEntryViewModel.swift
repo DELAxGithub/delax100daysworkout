@@ -124,6 +124,9 @@ class LogEntryViewModel {
                 modelContext.insert(newRecord)
                 modelContext.insert(cyclingDetail)
                 
+                // WPR自動更新をトリガー
+                newRecord.triggerWPRUpdate(context: modelContext)
+                
             case .strength:
                 let newRecord = WorkoutRecord(date: date, workoutType: .strength, summary: workoutSummary)
                 newRecord.strengthDetails = strengthDetails
@@ -132,6 +135,9 @@ class LogEntryViewModel {
                 for detail in strengthDetails {
                     modelContext.insert(detail)
                 }
+                
+                // WPR自動更新をトリガー
+                newRecord.triggerWPRUpdate(context: modelContext)
                 
             case .flexibility:
                 let newRecord = WorkoutRecord(date: date, workoutType: .flexibility, summary: workoutSummary)
@@ -146,6 +152,9 @@ class LogEntryViewModel {
                 newRecord.markAsCompleted()
                 modelContext.insert(newRecord)
                 modelContext.insert(flexibilityDetail)
+                
+                // WPR自動更新をトリガー
+                newRecord.triggerWPRUpdate(context: modelContext)
             }
             
             // 永続化を実行

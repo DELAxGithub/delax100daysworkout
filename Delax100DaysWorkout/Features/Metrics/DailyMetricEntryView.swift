@@ -158,6 +158,22 @@ struct DailyMetricEntryView: View {
         
         do {
             try modelContext.save()
+            
+            // WPR自動更新をトリガー（新規作成時のみ）
+            if existingMetrics?.first == nil {
+                let createdRecord = DailyMetric(
+                    date: startOfDay,
+                    weightKg: weight,
+                    restingHeartRate: restingHR,
+                    maxHeartRate: maxHR,
+                    dataSource: .manual
+                )
+                createdRecord.triggerWPRWeightUpdate(context: modelContext)
+            } else if let existing = existingMetrics?.first {
+                // 既存レコード更新時も体重変更があればWPR更新
+                existing.triggerWPRWeightUpdate(context: modelContext)
+            }
+            
             dismiss()
         } catch {
             alertMessage = "保存に失敗しました: \(error.localizedDescription)"

@@ -32,7 +32,15 @@ struct Delax100DaysWorkoutApp: App {
             FlexibilityDetail.self,
             // Phase 1: 自転車トレーニング集計機能用モデル
             FTPHistory.self,
-            DailyMetric.self
+            DailyMetric.self,
+            // Phase 2: WPR科学的トレーニング貯金システム
+            WPRTrackingSystem.self,
+            EfficiencyMetrics.self,
+            PowerProfile.self,
+            HRAtPowerTracking.self,
+            VolumeLoadSystem.self,
+            ROMTracking.self,
+            TrainingSavings.self
         ])
     }
 }

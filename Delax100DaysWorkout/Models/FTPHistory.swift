@@ -182,3 +182,47 @@ extension FTPHistory {
         sampleData[0]
     }
 }
+
+// MARK: - WPR Integration Extension
+
+extension FTPHistory {
+    /// FTPHistory保存後にWPRTrackingSystemを自動更新
+    @MainActor
+    func triggerWPRFTPUpdate(context: ModelContext) {
+        do {
+            // WPRTrackingSystemを取得または作成
+            let descriptor = FetchDescriptor<WPRTrackingSystem>()
+            let systems = try context.fetch(descriptor)
+            
+            let wprSystem: WPRTrackingSystem
+            if let existingSystem = systems.first {
+                wprSystem = existingSystem
+            } else {
+                // 新規WPRシステム作成
+                wprSystem = WPRTrackingSystem()
+                context.insert(wprSystem)
+            }
+            
+            // FTP値を更新
+            wprSystem.currentFTP = self.ftpValue
+            
+            // ベースラインが設定されていない場合は初期設定
+            if wprSystem.baselineFTP == 0 {
+                wprSystem.baselineFTP = self.ftpValue
+            }
+            
+            // 最終更新日時を更新
+            wprSystem.lastUpdated = Date()
+            
+            // WPR再計算をトリガー
+            wprSystem.recalculateWPRMetrics()
+            
+            try context.save()
+            
+            print("WPRTrackingSystem updated with new FTP: \(self.ftpValue)W")
+            
+        } catch {
+            print("FTP→WPR更新エラー: \(error)")
+        }
+    }
+}

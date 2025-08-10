@@ -275,3 +275,82 @@ extension DailyMetric {
         sampleData[2]
     }
 }
+
+// MARK: - WPR Integration Extension
+
+extension DailyMetric {
+    /// DailyMetric（体重）保存後にWPRTrackingSystemを自動更新
+    @MainActor
+    func triggerWPRWeightUpdate(context: ModelContext) {
+        // 体重データがない場合は何もしない
+        guard let newWeight = self.weightKg else { return }
+        
+        do {
+            // WPRTrackingSystemを取得または作成
+            let descriptor = FetchDescriptor<WPRTrackingSystem>()
+            let systems = try context.fetch(descriptor)
+            
+            let wprSystem: WPRTrackingSystem
+            if let existingSystem = systems.first {
+                wprSystem = existingSystem
+            } else {
+                // 新規WPRシステム作成
+                wprSystem = WPRTrackingSystem()
+                context.insert(wprSystem)
+            }
+            
+            // 体重値を更新
+            wprSystem.currentWeight = newWeight
+            
+            // ベースラインが設定されていない場合は初期設定
+            if wprSystem.baselineWeight == 0.0 {
+                wprSystem.baselineWeight = newWeight
+            }
+            
+            // 最終更新日時を更新
+            wprSystem.lastUpdated = Date()
+            
+            // WPR再計算をトリガー
+            wprSystem.recalculateWPRMetrics()
+            
+            // 体重変化によるボトルネック影響分析
+            analyzeWeightImpactOnBottleneck(wprSystem: wprSystem, newWeight: newWeight)
+            
+            try context.save()
+            
+            print("WPRTrackingSystem updated with new weight: \(newWeight)kg")
+            
+        } catch {
+            print("体重→WPR更新エラー: \(error)")
+        }
+    }
+    
+    /// 体重変化がボトルネックに与える影響を分析
+    private func analyzeWeightImpactOnBottleneck(wprSystem: WPRTrackingSystem, newWeight: Double) {
+        guard wprSystem.baselineWeight > 0 else { return }
+        
+        let weightChange = newWeight - wprSystem.baselineWeight
+        let weightChangePercent = (weightChange / wprSystem.baselineWeight) * 100
+        
+        // 体重減少はWPR向上に直結するため、体重ボトルネックの改善として記録
+        if abs(weightChangePercent) > 2.0 { // 2%以上の変化
+            if weightChange < 0 {
+                // 体重減少 = WPR改善要因
+                wprSystem.projectedWPRGain += abs(weightChange) * (Double(wprSystem.currentFTP) / (wprSystem.baselineWeight * wprSystem.baselineWeight))
+                
+                // 体重がボトルネックの場合、改善の可能性
+                if wprSystem.currentBottleneck == .weight {
+                    print("体重減少により WPR ボトルネックが改善: \(String(format: "%.1f", weightChangePercent))%")
+                }
+            } else {
+                // 体重増加 = WPR低下要因（筋量増加でない場合）
+                print("体重増加による WPR への影響: \(String(format: "%.1f", weightChangePercent))%")
+                
+                // 体重増加が著しい場合はボトルネック候補
+                if weightChangePercent > 5.0 {
+                    wprSystem.currentBottleneck = .weight
+                }
+            }
+        }
+    }
+}
