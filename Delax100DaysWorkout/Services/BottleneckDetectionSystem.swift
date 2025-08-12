@@ -127,7 +127,7 @@ class BottleneckDetectionSystem: ObservableObject {
             bottlenecks.sort { $0.severity.priority > $1.severity.priority }
             
             // 優先アクション生成
-            let prioritizedProtocols = self.generatePrioritizedProtocols(from: bottlenecks)
+            let prioritizedProtocols = await self.generatePrioritizedProtocols(from: bottlenecks)
             
             await MainActor.run {
                 self.detectedBottlenecks = bottlenecks
@@ -148,7 +148,7 @@ class BottleneckDetectionSystem: ObservableObject {
         
         let current = system.efficiencyFactor
         let target = system.efficiencyTarget
-        let baseline = system.efficiencyBaseline
+        let _ = system.efficiencyBaseline
         
         let zScore = calculateZScore(current: current, mean: target, standardDeviation: 0.1)
         let severity = determineSeverity(from: zScore)

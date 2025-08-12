@@ -5,33 +5,50 @@ import Charts
 struct UnifiedHomeDashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var sstViewModel = SSTDashboardViewModel()
+    @StateObject private var healthKitService = HealthKitService()
     @State private var progressViewModel: ProgressChartViewModel? = nil
     @State private var dashboardViewModel: DashboardViewModel? = nil
+    @State private var latestWeight: Double? = nil
+    @State private var isHealthKitSyncing = false
     
     @State private var showingFTPEntry = false
     @State private var showingDemoDataAlert = false
     @State private var demoDataMessage = ""
+    @State private var showingLogEntry = false
+    @State private var showingMetricEntry = false
+    @State private var showingProgressDetails = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
                     // Header Summary Cards
-                    HStack(spacing: 12) {
-                        SummaryCard(
-                            title: "現在のFTP",
-                            value: "\(sstViewModel.currentFTP ?? 0)W",
-                            subtitle: sstViewModel.formattedFTPChange ?? "データなし",
-                            color: .blue,
-                            icon: "bolt.fill"
-                        )
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            SummaryCard(
+                                title: "現在のFTP",
+                                value: "\(sstViewModel.currentFTP ?? 0)W",
+                                subtitle: sstViewModel.formattedFTPChange ?? "データなし",
+                                color: .blue,
+                                icon: "bolt.fill"
+                            )
+                            
+                            SummaryCard(
+                                title: "今週の進捗",
+                                value: "\(progressViewModel?.thisWeekWorkouts ?? 0)",
+                                subtitle: "ワークアウト完了",
+                                color: .green,
+                                icon: "checkmark.circle.fill"
+                            )
+                        }
                         
+                        // 体重カード
                         SummaryCard(
-                            title: "今週の進捗",
-                            value: "\(progressViewModel?.thisWeekWorkouts ?? 0)",
-                            subtitle: "ワークアウト完了",
-                            color: .green,
-                            icon: "checkmark.circle.fill"
+                            title: "最新体重",
+                            value: latestWeight != nil ? String(format: "%.1f kg", latestWeight!) : "未測定",
+                            subtitle: isHealthKitSyncing ? "同期中..." : (healthKitService.isAuthorized ? "Apple Health" : "手動入力"),
+                            color: .orange,
+                            icon: "figure.stand"
                         )
                     }
                     
@@ -232,21 +249,35 @@ struct UnifiedHomeDashboardView: View {
                                 title: "ワークアウト",
                                 icon: "plus.circle.fill",
                                 color: .green,
-                                action: { /* Navigate to LogEntry */ }
+                                action: { showingLogEntry = true }
                             )
                             
                             QuickActionButton(
                                 title: "体重記録",
                                 icon: "scalemass.fill",
                                 color: .orange,
-                                action: { /* Navigate to Weight Entry */ }
+                                action: { 
+                                    if healthKitService.isAuthorized {
+                                        Task {
+                                            await syncHealthKitData()
+                                            // 同期完了をユーザーに通知
+                                            await MainActor.run {
+                                                // Haptic feedback
+                                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                                impactFeedback.impactOccurred()
+                                            }
+                                        }
+                                    } else {
+                                        showingMetricEntry = true
+                                    }
+                                }
                             )
                             
                             QuickActionButton(
                                 title: "進捗確認",
                                 icon: "chart.line.uptrend.xyaxis",
                                 color: .purple,
-                                action: { /* Show detailed progress */ }
+                                action: { showingProgressDetails = true }
                             )
                         }
                         .padding(.horizontal, 4)
@@ -276,6 +307,7 @@ struct UnifiedHomeDashboardView: View {
                     Button("更新", systemImage: "arrow.clockwise") {
                         refreshAllData()
                     }
+                    .disabled(isHealthKitSyncing)
                 }
             }
             .refreshable {
@@ -295,6 +327,56 @@ struct UnifiedHomeDashboardView: View {
                     }
             }
         }
+        .sheet(isPresented: $showingLogEntry) {
+            NavigationStack {
+                LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
+                    .navigationTitle("ワークアウト記録")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("キャンセル") {
+                                showingLogEntry = false
+                            }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showingMetricEntry) {
+            NavigationStack {
+                DailyMetricEntryView()
+                    .navigationTitle("体重記録")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("キャンセル") {
+                                showingMetricEntry = false
+                            }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showingProgressDetails) {
+            NavigationStack {
+                if let progressViewModel = progressViewModel {
+                    ProgressChartView(viewModel: progressViewModel)
+                        .navigationTitle("進捗詳細")
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("キャンセル") {
+                                    showingProgressDetails = false
+                                }
+                            }
+                        }
+                } else {
+                    VStack {
+                        ProgressView("読み込み中...")
+                        Button("閉じる") {
+                            showingProgressDetails = false
+                        }
+                        .padding()
+                    }
+                    .navigationTitle("進捗詳細")
+                }
+            }
+        }
         .alert("デモデータ", isPresented: $showingDemoDataAlert) {
             Button("OK") { }
         } message: {
@@ -303,6 +385,9 @@ struct UnifiedHomeDashboardView: View {
         .onAppear {
             setupViewModels()
             loadAllData()
+            Task {
+                await initializeHealthKit()
+            }
         }
     }
     
@@ -324,6 +409,70 @@ struct UnifiedHomeDashboardView: View {
         sstViewModel.refreshData()
         progressViewModel?.fetchData()
         dashboardViewModel?.refreshData()
+        
+        // HealthKitデータも更新
+        Task {
+            await syncHealthKitData()
+        }
+    }
+    
+    // MARK: - HealthKit Methods
+    
+    private func initializeHealthKit() async {
+        // HealthKit認証を確認・要求
+        if !healthKitService.isAuthorized {
+            do {
+                try await healthKitService.requestAuthorization()
+            } catch {
+                print("HealthKit認証エラー: \(error.localizedDescription)")
+                return
+            }
+        }
+        
+        // 認証成功後、データを同期
+        await syncHealthKitData()
+    }
+    
+    private func syncHealthKitData() async {
+        guard healthKitService.isAuthorized else { 
+            await loadLatestWeight()
+            return 
+        }
+        
+        await MainActor.run {
+            isHealthKitSyncing = true
+        }
+        
+        do {
+            // 過去7日間のデータを同期
+            let startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+            let _ = try await healthKitService.syncWeightData(from: startDate, modelContext: modelContext)
+            
+            // 最新体重を取得して表示
+            await loadLatestWeight()
+            
+        } catch {
+            print("HealthKitデータ同期エラー: \(error.localizedDescription)")
+        }
+        
+        await MainActor.run {
+            isHealthKitSyncing = false
+        }
+    }
+    
+    @MainActor
+    private func loadLatestWeight() async {
+        // 最新のDailyMetricから体重データを取得
+        let descriptor = FetchDescriptor<DailyMetric>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        
+        do {
+            let metrics = try modelContext.fetch(descriptor)
+            latestWeight = metrics.first?.weightKg
+        } catch {
+            print("体重データ取得エラー: \(error.localizedDescription)")
+        }
     }
 }
 

@@ -89,43 +89,8 @@ struct LogEntryView: View {
                     .disabled(viewModel.isSaving)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(action: {
-                        Task {
-                            Logger.ui.info("Saveボタンが押されました")
-                            await viewModel.save()
-                            
-                            Logger.ui.info("保存処理完了。状態: \(viewModel.saveState)")
-                            
-                            // 保存成功時の処理
-                            if case .success = viewModel.saveState {
-                                Logger.ui.info("保存成功 - ハプティックフィードバック実行")
-                                // ハプティックフィードバック
-                                await MainActor.run {
-                                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                    impactFeedback.prepare()
-                                    impactFeedback.impactOccurred()
-                                }
-                                
-                                // 少し遅延してから画面を閉じる
-                                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒
-                                Logger.ui.info("画面を閉じます")
-                                dismiss()
-                            } else if case .error(let message) = viewModel.saveState {
-                                Logger.error.error("保存エラーが発生: \(message)")
-                                errorMessage = message
-                                showingErrorAlert = true
-                            }
-                        }
-                    }) {
-                        HStack(spacing: 8) {
-                            if viewModel.isSaving {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            }
-                            Text(viewModel.isSaving ? "保存中..." : "Save")
-                        }
-                        .animation(.easeInOut(duration: 0.2), value: viewModel.isSaving)
+                    Button("Save") {
+                        handleSave()
                     }
                     .disabled(viewModel.isSaveDisabled || viewModel.isSaving)
                 }
@@ -143,6 +108,26 @@ struct LogEntryView: View {
             Button("OK") { }
         } message: {
             Text(errorMessage)
+        }
+    }
+    
+    private func handleSave() {
+        Task {
+            await viewModel.save()
+            
+            if case .success = viewModel.saveState {
+                // ハプティックフィードバック
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.prepare()
+                impactFeedback.impactOccurred()
+                
+                // 少し遅延してから画面を閉じる
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                dismiss()
+            } else if case .error(let message) = viewModel.saveState {
+                errorMessage = message
+                showingErrorAlert = true
+            }
         }
     }
 }

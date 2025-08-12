@@ -72,6 +72,10 @@ struct WeeklyReviewView: View {
     private func setupPlanManager() {
         if planManager == nil {
             planManager = WeeklyPlanManager(modelContext: modelContext)
+        } else {
+            // WeeklyPlanManagerのmodelContextを正しく設定
+            let newPlanManager = WeeklyPlanManager(modelContext: modelContext)
+            planManager?.updateStatus = newPlanManager.updateStatus
         }
     }
     
@@ -304,7 +308,7 @@ struct WeeklyReviewView: View {
             
             Button("再試行") {
                 Task {
-                    await planManager.initiateWeeklyPlanUpdate()
+                    await planManager?.initiateWeeklyPlanUpdate()
                 }
             }
             .buttonStyle(.bordered)
@@ -344,11 +348,6 @@ struct WeeklyReviewView: View {
         .padding()
     }
     
-    private func setupPlanManager() {
-        // WeeklyPlanManagerのmodelContextを正しく設定
-        let newPlanManager = WeeklyPlanManager(modelContext: modelContext)
-        planManager.updateStatus = newPlanManager.updateStatus
-    }
 }
 
 struct ProgressMetricCard: View {

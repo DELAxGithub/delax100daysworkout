@@ -245,7 +245,7 @@ class LogEntryViewModel {
             return 
         }
         
-        Logger.database.info("保存開始: \(logType.rawValue)")
+        Logger.database.info("保存開始: \(self.logType.rawValue)")
         saveState = .saving
         
         // UI更新を確実にするため少し待機
@@ -306,7 +306,7 @@ class LogEntryViewModel {
             
             // 永続化を実行
             try modelContext.save()
-            Logger.database.info("保存成功: \(logType.rawValue)")
+            Logger.database.info("保存成功: \(self.logType.rawValue)")
             saveState = .success
             
         } catch {

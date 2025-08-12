@@ -29,6 +29,11 @@ class SettingsViewModel {
     var showingAPIKeyField: Bool = false
     var isTestingAPIKey: Bool = false
     var apiKeyTestResult: String = ""
+    
+    // HealthKit管理
+    var healthKitService = HealthKitService()
+    var isHealthKitSyncing: Bool = false
+    var lastHealthKitSync: Date?
 
     private var modelContext: ModelContext
     private var userProfile: UserProfile?
@@ -39,6 +44,7 @@ class SettingsViewModel {
         fetchOrCreateUserProfile()
         loadAISettings()
         loadAPIKey()
+        loadHealthKitSyncDate()
     }
 
     private func fetchOrCreateUserProfile() {
@@ -203,5 +209,69 @@ class SettingsViewModel {
         } else {
             return "形式エラー"
         }
+    }
+    
+    // MARK: - HealthKit管理
+    
+    var healthKitAuthStatus: String {
+        return healthKitService.isAuthorized ? "認証済み" : "未認証"
+    }
+    
+    var lastHealthKitSyncDate: String {
+        guard let lastSync = lastHealthKitSync else {
+            return "未同期"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: "ja_JP")
+        return formatter.string(from: lastSync)
+    }
+    
+    func requestHealthKitAuthorization() async {
+        do {
+            try await healthKitService.requestAuthorization()
+            if healthKitService.isAuthorized {
+                await syncHealthKitData()
+            }
+        } catch {
+            Logger.error.error("HealthKit認証エラー: \(error.localizedDescription)")
+        }
+    }
+    
+    func syncHealthKitData() async {
+        guard healthKitService.isAuthorized else { return }
+        
+        isHealthKitSyncing = true
+        
+        do {
+            // 過去30日間のデータを同期
+            let startDate = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+            
+            // 体重データを同期
+            let _ = try await healthKitService.syncWeightData(from: startDate, modelContext: modelContext)
+            
+            // 心拍数データを同期
+            let _ = try await healthKitService.syncHeartRateData(from: startDate, modelContext: modelContext)
+            
+            lastHealthKitSync = Date()
+            saveHealthKitSyncDate()
+            
+            Logger.general.info("HealthKitデータ同期完了")
+            
+        } catch {
+            Logger.error.error("HealthKitデータ同期エラー: \(error.localizedDescription)")
+        }
+        
+        isHealthKitSyncing = false
+    }
+    
+    private func saveHealthKitSyncDate() {
+        UserDefaults.standard.set(lastHealthKitSync, forKey: "LastHealthKitSync")
+    }
+    
+    private func loadHealthKitSyncDate() {
+        lastHealthKitSync = UserDefaults.standard.object(forKey: "LastHealthKitSync") as? Date
     }
 }

@@ -1,12 +1,26 @@
 import SwiftUI
 import SwiftData
 
+enum ScheduleViewMode: String, CaseIterable {
+    case day = "日表示"
+    case week = "週表示"
+    
+    var systemImage: String {
+        switch self {
+        case .day: return "calendar.day.timeline.left"
+        case .week: return "list.bullet"
+        }
+    }
+}
+
 struct WeeklyScheduleView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<WeeklyTemplate> { $0.isActive }) private var activeTemplates: [WeeklyTemplate]
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date()) - 1
     @State private var viewModel: WeeklyScheduleViewModel?
+    @State private var showingAddTaskSheet = false
+    @State private var viewMode: ScheduleViewMode = .day
     
     private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
     private let dayColors: [Color] = [.red, .gray, .gray, .gray, .gray, .gray, .blue]
@@ -14,69 +28,40 @@ struct WeeklyScheduleView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // 曜日セレクター
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(0..<7) { day in
-                            DayButton(
-                                day: day,
-                                dayName: dayNames[day],
-                                isSelected: selectedDay == day,
-                                color: dayColors[day]
-                            ) {
-                                withAnimation(.spring(response: 0.3)) {
-                                    selectedDay = day
-                                }
-                            }
-                        }
+                // ビューモード切り替え
+                Picker("表示モード", selection: $viewMode) {
+                    ForEach(ScheduleViewMode.allCases, id: \.self) { mode in
+                        Label(mode.rawValue, systemImage: mode.systemImage)
+                            .tag(mode)
                     }
-                    .padding(.horizontal)
                 }
-                .padding(.vertical)
-                .background(Color(.systemBackground))
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
                 
-                Divider()
-                
-                // タスクリスト
-                if let template = activeTemplates.first {
-                    let tasks = template.tasksForDay(selectedDay)
-                    
-                    if tasks.isEmpty {
-                        ContentUnavailableView(
-                            "休息日",
-                            systemImage: "moon.zzz",
-                            description: Text("\(dayNames[selectedDay])曜日はトレーニングがありません")
-                        )
-                    } else {
-                        ScrollView {
-                            VStack(spacing: 12) {
-                                ForEach(tasks) { task in
-                                    WeeklyTaskCard(
-                                        task: task,
-                                        selectedDay: selectedDay,
-                                        viewModel: viewModel
-                                    )
-                                }
-                            }
-                            .padding()
-                        }
-                    }
+                // 表示内容をビューモードに応じて切り替え
+                if viewMode == .day {
+                    dayView
                 } else {
-                    ContentUnavailableView(
-                        "テンプレートがありません",
-                        systemImage: "calendar.badge.exclamationmark",
-                        description: Text("アクティブなテンプレートを作成してください")
-                    )
+                    weekView
                 }
             }
             .navigationTitle("スケジュール")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        jumpToToday()
-                    } label: {
-                        Label("今日へ", systemImage: "calendar.day.timeline.left")
+                    HStack {
+                        Button {
+                            showingAddTaskSheet = true
+                        } label: {
+                            Label("追加", systemImage: "plus")
+                        }
+                        
+                        Button {
+                            jumpToToday()
+                        } label: {
+                            Label("今日へ", systemImage: "calendar.day.timeline.left")
+                        }
                     }
                 }
             }
@@ -95,6 +80,20 @@ struct WeeklyScheduleView: View {
                 QuickRecordSheet(task: task, workoutRecord: record)
             }
         }
+        .sheet(isPresented: $showingAddTaskSheet) {
+            AddCustomTaskSheet(
+                selectedDay: selectedDay,
+                onSave: { task in
+                    if let activeTemplate = activeTemplates.first {
+                        viewModel?.addCustomTask(task, to: activeTemplate)
+                    }
+                    showingAddTaskSheet = false
+                },
+                onCancel: {
+                    showingAddTaskSheet = false
+                }
+            )
+        }
     }
     
     private func jumpToToday() {
@@ -108,6 +107,82 @@ struct WeeklyScheduleView: View {
             let defaultTemplate = WeeklyTemplate.createDefaultTemplate()
             defaultTemplate.activate()
             modelContext.insert(defaultTemplate)
+        }
+    }
+    
+    // MARK: - View Components
+    
+    private var dayView: some View {
+        VStack(spacing: 0) {
+            // 曜日セレクター
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(0..<7) { day in
+                        DayButton(
+                            day: day,
+                            dayName: dayNames[day],
+                            isSelected: selectedDay == day,
+                            color: dayColors[day]
+                        ) {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedDay = day
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.vertical)
+            .background(Color(.systemBackground))
+            
+            Divider()
+            
+            // タスクリスト
+            if let template = activeTemplates.first {
+                let tasks = template.tasksForDay(selectedDay)
+                
+                if tasks.isEmpty {
+                    Button(action: {
+                        showingAddTaskSheet = true
+                    }) {
+                        ContentUnavailableView(
+                            "休息日",
+                            systemImage: "moon.zzz",
+                            description: Text("\(dayNames[selectedDay])曜日はトレーニングがありません\nタップしてトレーニングを追加")
+                        )
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(tasks) { task in
+                                WeeklyTaskCard(
+                                    task: task,
+                                    selectedDay: selectedDay,
+                                    viewModel: viewModel
+                                )
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            } else {
+                ContentUnavailableView(
+                    "テンプレートがありません",
+                    systemImage: "calendar.badge.exclamationmark",
+                    description: Text("アクティブなテンプレートを作成してください")
+                )
+            }
+        }
+    }
+    
+    private var weekView: some View {
+        Group {
+            if let viewModel = viewModel {
+                WeeklyScheduleListView(viewModel: viewModel)
+            } else {
+                ProgressView("読み込み中...")
+            }
         }
     }
 }

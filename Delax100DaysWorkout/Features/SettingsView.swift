@@ -44,6 +44,55 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section(header: Text("ヘルスケア連携")) {
+                    HStack {
+                        Image(systemName: "heart.text.square")
+                            .foregroundColor(.red)
+                        Text("Apple Health")
+                        Spacer()
+                        Text(viewModel.healthKitAuthStatus)
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                    }
+                    
+                    if !viewModel.healthKitService.isAuthorized {
+                        Button("認証を許可") {
+                            Task {
+                                await viewModel.requestHealthKitAuthorization()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    } else {
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("最終同期")
+                                Spacer()
+                                Text(viewModel.lastHealthKitSyncDate)
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                            
+                            Button("手動同期") {
+                                Task {
+                                    await viewModel.syncHealthKitData()
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(viewModel.isHealthKitSyncing)
+                            
+                            if viewModel.isHealthKitSyncing {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("同期中...")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 Section(header: Text("Claude API設定")) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {

@@ -121,4 +121,47 @@ class WeeklyScheduleViewModel {
     func refreshCompletedTasks() {
         checkCompletedTasks()
     }
+    
+    func addCustomTask(_ task: DailyTask, to template: WeeklyTemplate) {
+        // ソート順序を設定（同じ曜日の最大値＋1）
+        let existingTasks = template.tasksForDay(task.dayOfWeek)
+        task.sortOrder = (existingTasks.map { $0.sortOrder }.max() ?? -1) + 1
+        
+        // テンプレートにタスクを追加
+        template.addTask(task)
+        
+        // データベースに保存
+        modelContext.insert(task)
+        
+        do {
+            try modelContext.save()
+            Logger.general.info("Custom task added successfully: \(task.title)")
+        } catch {
+            Logger.error.error("Error saving custom task: \(error.localizedDescription)")
+        }
+    }
+    
+    func moveTask(_ task: DailyTask, toDay targetDay: Int) {
+        guard task.dayOfWeek != targetDay else { return }
+        
+        let originalDay = task.dayOfWeek
+        
+        // 新しい曜日のタスク数を取得してソート順序を設定
+        if let template = task.template {
+            let targetDayTasks = template.tasksForDay(targetDay)
+            task.sortOrder = (targetDayTasks.map { $0.sortOrder }.max() ?? -1) + 1
+        }
+        
+        // 曜日を変更
+        task.dayOfWeek = targetDay
+        
+        do {
+            try modelContext.save()
+            Logger.general.info("Task '\(task.title)' moved from day \(originalDay) to day \(targetDay)")
+        } catch {
+            Logger.error.error("Error moving task: \(error.localizedDescription)")
+            // エラーが発生した場合は元に戻す
+            task.dayOfWeek = originalDay
+        }
+    }
 }
