@@ -315,15 +315,46 @@ struct UnifiedHomeDashboardView: View {
     }
     
     private func loadAllData() {
-        sstViewModel.loadData()
-        progressViewModel?.fetchData()
-        dashboardViewModel?.refreshData()
+        Task { @MainActor in
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { [weak self] in
+                    self?.sstViewModel.loadData()
+                }
+                group.addTask { [weak self] in
+                    self?.progressViewModel?.fetchData()
+                }
+                group.addTask { [weak self] in
+                    self?.dashboardViewModel?.refreshData()
+                }
+                await group.waitForAll()
+            }
+        }
     }
     
     private func refreshAllData() {
-        sstViewModel.refreshData()
-        progressViewModel?.fetchData()
-        dashboardViewModel?.refreshData()
+        Task { @MainActor in
+            let refreshManager = SmartRefreshManager.shared
+            
+            guard refreshManager.shouldRefresh(for: "unified_dashboard", minInterval: .default) else {
+                return
+            }
+            
+            refreshManager.beginRefresh(for: "unified_dashboard")
+            defer { refreshManager.endRefresh(for: "unified_dashboard") }
+            
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { [weak self] in
+                    self?.sstViewModel.refreshData()
+                }
+                group.addTask { [weak self] in
+                    self?.progressViewModel?.fetchData()
+                }
+                group.addTask { [weak self] in
+                    self?.dashboardViewModel?.refreshData(forceRefresh: true)
+                }
+                await group.waitForAll()
+            }
+        }
     }
 }
 

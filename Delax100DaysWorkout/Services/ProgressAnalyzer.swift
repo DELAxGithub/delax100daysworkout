@@ -222,6 +222,17 @@ class ProgressAnalyzer {
         return Achievement.checkForFlexibilityImprovement(current: newDetail, previous: flexHistory)
     }
     
+    private func getDetailForRecord(_ record: WorkoutRecord) -> Any? {
+        switch record.workoutType {
+        case .cycling:
+            return record.cyclingDetail
+        case .strength:
+            return record.strengthDetails
+        case .flexibility:
+            return record.flexibilityDetail
+        }
+    }
+    
     private func calculateTypeStats(records: [WorkoutRecord], type: WorkoutType, template: WeeklyTemplate) -> WorkoutTypeStats {
         let typeRecords = records.filter { $0.workoutType == type }
         let completed = typeRecords.filter { $0.isCompleted }.count
@@ -235,17 +246,22 @@ class ProgressAnalyzer {
         var improvements: [String] = []
         let averageMetric: Double
         
+        // 関連データを事前に取得してN+1問題を回避
+        let recordsWithDetails = typeRecords.map { record in
+            (record: record, detail: getDetailForRecord(record))
+        }
+        
         switch type {
         case .cycling:
-            let powers = typeRecords.compactMap { $0.cyclingDetail?.averagePower }
+            let powers = recordsWithDetails.compactMap { $0.detail as? CyclingDetail }.map { $0.averagePower }
             averageMetric = powers.isEmpty ? 0 : powers.reduce(0, +) / Double(powers.count)
             if powers.count >= 2 && powers.last! > powers.first! {
                 improvements.append("パワーが向上中")
             }
             
         case .strength:
-            let totalVolumes = typeRecords.compactMap { record in
-                record.strengthDetails?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
+            let totalVolumes = recordsWithDetails.compactMap { pair in
+                (pair.detail as? [StrengthDetail])?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
             }
             averageMetric = totalVolumes.isEmpty ? 0 : totalVolumes.reduce(0, +) / Double(totalVolumes.count)
             if totalVolumes.count >= 2 && totalVolumes.last! > totalVolumes.first! {
@@ -253,7 +269,7 @@ class ProgressAnalyzer {
             }
             
         case .flexibility:
-            let angles = typeRecords.compactMap { $0.flexibilityDetail?.averageSplitAngle }
+            let angles = recordsWithDetails.compactMap { ($0.detail as? FlexibilityDetail)?.averageSplitAngle }
             averageMetric = angles.isEmpty ? 0 : angles.reduce(0, +) / Double(angles.count)
             if angles.count >= 2 && angles.last! > angles.first! {
                 improvements.append("柔軟性が向上")

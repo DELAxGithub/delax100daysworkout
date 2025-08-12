@@ -13,6 +13,8 @@ class TodayViewModel {
     private var modelContext: ModelContext
     private var taskSuggestionManager: TaskSuggestionManager
     private var progressAnalyzer: ProgressAnalyzer
+    private let cacheManager = DataCacheManager.shared
+    private let refreshManager = SmartRefreshManager.shared
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -37,41 +39,42 @@ class TodayViewModel {
         }
     }
     
-    func loadTodaysTasks() {
-        // アクティブなテンプレートを取得
-        let templateDescriptor = FetchDescriptor<WeeklyTemplate>(
-            predicate: #Predicate { $0.isActive == true },
-            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+    func loadTodaysTasks(forceRefresh: Bool = false) {
+        Task { @MainActor in
+            await loadTodaysTasksOptimized(forceRefresh: forceRefresh)
+        }
+    }
+    
+    @MainActor
+    private func loadTodaysTasksOptimized(forceRefresh: Bool = false) async {
+        let shouldRefresh = forceRefresh || refreshManager.shouldRefresh(
+            for: "today_tasks",
+            minInterval: .default
         )
         
-        do {
-            let templates = try modelContext.fetch(templateDescriptor)
+        guard shouldRefresh else { return }
+        
+        refreshManager.beginRefresh(for: "today_tasks")
+        defer { refreshManager.endRefresh(for: "today_tasks") }
+        
+        let (_, _, history, template) = await cacheManager.batchFetchDashboardData(from: modelContext)
+        
+        if let template = template {
+            activeTemplate = template
             
-            if let template = templates.first {
-                activeTemplate = template
-                
-                // 履歴を取得してタスクを調整
-                let historyDescriptor = FetchDescriptor<WorkoutRecord>(
-                    sortBy: [SortDescriptor(\.date, order: .reverse)]
-                )
-                let history = (try? modelContext.fetch(historyDescriptor)) ?? []
-                
-                // TaskSuggestionManagerを使用してタスクを取得
-                todaysTasks = taskSuggestionManager.getTodaysTasks(
-                    template: template,
-                    history: history
-                )
-            } else {
-                // デフォルトテンプレートを作成
-                createDefaultTemplate()
-            }
-            
-            // 今日の完了済みタスクを確認
-            checkCompletedTasks()
-            updateProgress()
-        } catch {
-            print("Error loading tasks: \(error)")
+            // TaskSuggestionManagerを使用してタスクを取得
+            todaysTasks = taskSuggestionManager.getTodaysTasks(
+                template: template,
+                history: history
+            )
+        } else {
+            // デフォルトテンプレートを作成
+            createDefaultTemplate()
         }
+        
+        // バッチで完了済みタスクを確認
+        await checkCompletedTasksOptimized()
+        updateProgress()
     }
     
     private func createDefaultTemplate() {
@@ -88,7 +91,8 @@ class TodayViewModel {
         }
     }
     
-    private func checkCompletedTasks() {
+    @MainActor
+    private func checkCompletedTasksOptimized() async {
         let today = Calendar.current.startOfDay(for: Date())
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
         

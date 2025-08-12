@@ -21,35 +21,48 @@ class DashboardViewModel {
     private var userProfile: UserProfile?
     private var latestDailyLog: DailyLog?
     var todaysWorkouts: [WorkoutRecord] = []
+    
+    private let cacheManager = DataCacheManager.shared
+    private let refreshManager = SmartRefreshManager.shared
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         refreshData()
     }
 
-    func refreshData() {
-        fetchData()
-        calculateMetrics()
+    func refreshData(forceRefresh: Bool = false) {
+        Task { @MainActor in
+            await fetchDataOptimized(forceRefresh: forceRefresh)
+            calculateMetrics()
+        }
     }
 
-    private func fetchData() {
-        // Fetch UserProfile
-        let profileDescriptor = FetchDescriptor<UserProfile>()
-        self.userProfile = try? modelContext.fetch(profileDescriptor).first
-
-        // Fetch the most recent DailyLog
-        var logDescriptor = FetchDescriptor<DailyLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
-        logDescriptor.fetchLimit = 1
-        self.latestDailyLog = try? modelContext.fetch(logDescriptor).first
-
-        // Fetch today's WorkoutRecords
+    @MainActor
+    private func fetchDataOptimized(forceRefresh: Bool = false) async {
+        let shouldRefresh = forceRefresh || refreshManager.shouldRefresh(
+            for: "dashboard_main",
+            minInterval: .default
+        )
+        
+        guard shouldRefresh else { return }
+        
+        refreshManager.beginRefresh(for: "dashboard_main")
+        defer { refreshManager.endRefresh(for: "dashboard_main") }
+        
+        let (profile, log, _, _) = await cacheManager.batchFetchDashboardData(from: modelContext)
+        self.userProfile = profile
+        self.latestDailyLog = log
+        
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: Date())
         let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
         let predicate = #Predicate<WorkoutRecord> { record in
             record.date >= startOfToday && record.date < endOfToday
         }
-        let workoutDescriptor = FetchDescriptor<WorkoutRecord>(predicate: predicate, sortBy: [SortDescriptor(\.date)])
+        let workoutDescriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: predicate,
+            sortBy: [SortDescriptor(\.date)]
+        )
         self.todaysWorkouts = (try? modelContext.fetch(workoutDescriptor)) ?? []
     }
 
@@ -114,7 +127,8 @@ class DashboardViewModel {
             try modelContext.save()
             
             // データを再読み込み
-            refreshData()
+            cacheManager.invalidateCache(for: .workoutRecords)
+            refreshData(forceRefresh: true)
             
             print("✅ ワークアウトが正常に更新されました")
             
@@ -129,7 +143,8 @@ class DashboardViewModel {
             try modelContext.save()
             
             // データを再読み込み
-            refreshData()
+            cacheManager.invalidateCache(for: .workoutRecords)
+            refreshData(forceRefresh: true)
             
             print("✅ ワークアウトが正常に削除されました")
             
