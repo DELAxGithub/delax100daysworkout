@@ -1,6 +1,6 @@
 import SwiftUI
 import SwiftData
-// import DelaxSwiftUIComponents // TODO: Add via Xcode Swift Package Manager
+// import DelaxSwiftUIComponents // Reserved for future Swift Package Manager integration
 
 @main
 struct Delax100DaysWorkoutApp: App {

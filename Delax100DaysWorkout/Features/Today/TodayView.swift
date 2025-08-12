@@ -238,9 +238,9 @@ struct TodayView: View {
                 }
             }
             .sheet(isPresented: $showingLogEntry) {
-                if selectedTask != nil {
-                    // TODO: タスクの詳細を事前入力したLogEntryViewを表示
-                    LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
+                if let task = selectedTask {
+                    // Pass selected task to pre-fill the LogEntryView
+                    LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext, preselectedTask: task))
                 }
             }
             .sheet(isPresented: $showingQuickRecord) {

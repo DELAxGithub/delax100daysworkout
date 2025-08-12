@@ -88,8 +88,23 @@ class LogEntryViewModel {
     private var modelContext: ModelContext
     private var baselineSignature: String? = nil
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, preselectedTask: DailyTask? = nil) {
         self.modelContext = modelContext
+        
+        // Pre-fill based on selected task
+        if let task = preselectedTask {
+            // Set log type based on task type
+            if task.activityType.contains("サイクリング") || task.activityType.contains("自転車") {
+                self.logType = .cycling
+                self.workoutSummary = task.activityType
+            } else if task.activityType.contains("筋トレ") || task.activityType.contains("トレーニング") {
+                self.logType = .strength
+                self.workoutSummary = task.activityType
+            } else if task.activityType.contains("柔軟") || task.activityType.contains("ストレッチ") {
+                self.logType = .flexibility
+                self.workoutSummary = task.activityType
+            }
+        }
     }
 
     // MARK: - Smart Defaults

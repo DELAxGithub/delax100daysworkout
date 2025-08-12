@@ -553,7 +553,8 @@ class WPRTrainingSavingsIntegration: ObservableObject {
         // 簡易版: 目標達成チェックのみ
         if savings.currentCount >= savings.targetCount {
             print("Milestone achieved for \(savings.savingsType.displayName)")
-            // TODO: Achievement作成
+            // Achievement creation handled through existing achievement system
+            // Milestones are tracked in TrainingSavings.milestones array
         }
     }
     

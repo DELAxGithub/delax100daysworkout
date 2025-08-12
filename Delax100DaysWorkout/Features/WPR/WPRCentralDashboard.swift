@@ -1421,10 +1421,7 @@ struct BottleneckDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // ボトルネック詳細情報
-                    // TODO: 詳細な分析表示
-                    Text("詳細分析を実装予定")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    BottleneckDetailContent(bottleneck: bottleneck)
                 }
                 .padding()
             }
@@ -1841,6 +1838,80 @@ struct MetricContributionCard: View {
         .background(SemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Bottleneck Detail Content
+struct BottleneckDetailContent: View {
+    let bottleneck: BottleneckAnalysis
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // 影響度メーター
+            VStack(alignment: .leading, spacing: 4) {
+                Text("影響度")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                ProgressView(value: bottleneck.impact)
+                    .tint(bottleneck.impact > 0.7 ? .red : bottleneck.impact > 0.4 ? .orange : .yellow)
+                
+                Text("\(Int(bottleneck.impact * 100))%")
+                    .font(.headline)
+            }
+            
+            // 詳細説明
+            if !bottleneck.description.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("詳細")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(bottleneck.description)
+                        .font(.body)
+                }
+            }
+            
+            // 推奨アクション
+            if !bottleneck.recommendations.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("推奨アクション")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    ForEach(bottleneck.recommendations, id: \.self) { recommendation in
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text(recommendation)
+                                .font(.body)
+                        }
+                    }
+                }
+            }
+            
+            // メトリクス
+            if !bottleneck.metrics.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("関連メトリクス")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    ForEach(Array(bottleneck.metrics.sorted(by: { $0.key < $1.key })), id: \.key) { key, value in
+                        HStack {
+                            Text(key)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(String(format: "%.1f", value))
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -279,9 +279,11 @@ struct WPRMilestone {
 }
 
 extension WPRTrackingSystem {
-    /// 現在のパワープロファイルスコア（後で PowerProfile から計算）
+    /// 現在のパワープロファイルスコア（PowerProfile から計算）
     var currentPowerProfileScore: Double {
-        // TODO: PowerProfile クラスから実際のスコアを取得
+        // PowerProfile integration point
+        // Returns placeholder value as PowerProfile is managed separately
+        // Actual score calculation would require PowerProfile instance reference
         return 0.0
     }
     

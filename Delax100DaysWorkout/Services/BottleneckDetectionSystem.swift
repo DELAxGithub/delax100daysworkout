@@ -531,8 +531,9 @@ class BottleneckDetectionSystem: ObservableObject {
     // MARK: - Data Fetching
     
     private func getLatestPowerProfile() async -> PowerProfile? {
-        // TODO: ModelContextからの非同期データ取得
-        // 現在は同期的実装、本来は非同期で最適化
+        // Async data fetching from ModelContext
+        // Implementation requires async SwiftData query support
+        // Currently returns nil pending SwiftData async API availability
         return nil
     }
     

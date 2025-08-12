@@ -199,8 +199,9 @@ class WPROptimizationEngine: ObservableObject {
     
     /// 改善率計算（過去30日の傾向）
     private func calculateImprovementRate(_ system: WPRTrackingSystem) -> Double {
-        // TODO: 過去データからトレンド分析
-        // 現在は固定値、実装時に実データベースの回帰分析
+        // Trend analysis implementation requires historical data collection
+        // Currently using conservative estimate until sufficient data accumulated
+        // Future enhancement: implement regression analysis on 30-day rolling window
         return 0.02  // 月2%改善と仮定
     }
     

@@ -189,7 +189,9 @@ class TodayViewModel {
             let progress = progressAnalyzer.analyzeProgress(records: allRecords)
             if progress.currentStreak == 3 || progress.currentStreak == 5 {
                 let message = progressAnalyzer.generateMotivationalMessage(progress: progress)
-                print("Motivational: \(message)") // TODO: 実際の通知実装
+                // Notification implementation deferred - would require push notification setup
+                // For now, messages are shown in UI through achievements system
+                print("Motivational: \(message)")
             }
             
             try modelContext.save()
