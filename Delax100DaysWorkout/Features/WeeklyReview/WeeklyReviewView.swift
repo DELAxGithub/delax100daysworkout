@@ -29,7 +29,27 @@ struct WeeklyReviewView: View {
             }
         )
         
-        self._planManager = StateObject(wrappedValue: WeeklyPlanManager(modelContext: ModelContext(try! ModelContainer(for: WorkoutRecord.self, WeeklyTemplate.self))))
+        // ModelContainer作成時のエラーを適切に処理
+        do {
+            let container = try ModelContainer(for: WorkoutRecord.self, WeeklyTemplate.self)
+            self._planManager = StateObject(wrappedValue: WeeklyPlanManager(modelContext: ModelContext(container)))
+        } catch {
+            // エラーが発生した場合は、メモリ内ストレージで fallback コンテナを作成
+            print("Failed to create model container: \(error)")
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let fallbackContainer = try? ModelContainer(
+                for: WorkoutRecord.self, WeeklyTemplate.self,
+                configurations: config
+            )
+            // fallbackも失敗した場合は、空のModelContextを使用
+            if let container = fallbackContainer {
+                self._planManager = StateObject(wrappedValue: WeeklyPlanManager(modelContext: ModelContext(container)))
+            } else {
+                // 最後の手段として、デフォルトのModelContextを使用
+                // 注意: この場合、機能が制限される可能性があります
+                fatalError("Critical error: Unable to initialize model container. Please restart the app.")
+            }
+        }
     }
     
     var body: some View {
