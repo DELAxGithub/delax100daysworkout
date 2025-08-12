@@ -474,12 +474,91 @@ extension WPRTrackingSystem {
         volumeLoad: VolumeLoadSystem?,
         romTracking: ROMTracking?
     ) {
+        // 効率性指標の更新
         if let ef = efficiency {
-            self.efficiencyFactor = ef.efficiencyFactor
+            // 移動平均で更新（品質スコアを重みとして使用）
+            let weight = ef.qualityScore
+            if efficiencyFactor > 0 {
+                efficiencyFactor = efficiencyFactor * (1.0 - weight * 0.3) + ef.efficiencyFactor * (weight * 0.3)
+            } else {
+                efficiencyFactor = ef.efficiencyFactor
+            }
         }
         
-        // TODO: PowerProfile, HRTracking等からの更新ロジック実装
+        // パワープロファイルの更新
+        if let pp = powerProfile {
+            updatePowerProfileScore(from: pp)
+        }
+        
+        // 心拍効率の更新
+        if let hr = hrTracking {
+            updateHREfficiencyScore(from: hr)
+        }
+        
+        // 筋力Volume Loadの更新
+        if let vl = volumeLoad {
+            updateStrengthScore(from: vl)
+        }
+        
+        // 柔軟性ROMの更新
+        if let rom = romTracking {
+            updateFlexibilityScore(from: rom)
+        }
+        
+        // 全体進捗の再計算
+        recalculateOverallProgress()
         
         self.lastUpdated = Date()
+    }
+    
+    /// HRAtPowerTrackingからスコアを更新
+    private func updateHREfficiencyScore(from hrTracking: HRAtPowerTracking) {
+        let improvement = hrTracking.efficiencyImprovement
+        
+        if hrEfficiencyBaseline == 0 {
+            hrEfficiencyBaseline = 0.0  // 改善前の基準値
+            hrEfficiencyFactor = improvement
+        } else {
+            // 心拍効率の改善（負の値がより良い）
+            hrEfficiencyFactor = hrEfficiencyFactor * 0.7 + improvement * 0.3
+        }
+    }
+    
+    /// VolumeLoadSystemからスコアを更新
+    private func updateStrengthScore(from volumeLoad: VolumeLoadSystem) {
+        let improvement = volumeLoad.improvementScore
+        
+        if strengthBaseline == 0 {
+            strengthBaseline = volumeLoad.totalVolumeLoad
+        }
+        
+        strengthFactor = strengthBaseline * (1.0 + improvement)
+    }
+    
+    /// ROMTrackingからスコアを更新
+    private func updateFlexibilityScore(from romTracking: ROMTracking) {
+        let improvement = romTracking.improvementScore
+        
+        if flexibilityBaseline == 0 {
+            flexibilityBaseline = romTracking.functionalMobilityScore * 100  // 度数換算
+        }
+        
+        flexibilityFactor = flexibilityBaseline * (1.0 + improvement)
+    }
+    
+    /// 全体進捗スコアの再計算
+    private func recalculateOverallProgress() {
+        let components = [
+            efficiencyProgress * efficiencyCoefficient,
+            powerProfileProgress * powerProfileCoefficient,
+            hrEfficiencyProgress * hrEfficiencyCoefficient,
+            strengthProgress * strengthCoefficient,
+            flexibilityProgress * flexibilityCoefficient
+        ]
+        
+        overallProgressScore = components.reduce(0, +)
+        
+        // WPRメトリクスも更新
+        recalculateWPRMetrics()
     }
 }

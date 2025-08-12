@@ -81,6 +81,31 @@ class WPRAutoUpdateService: @unchecked Sendable {
         handleNewWorkoutRecord(record) // 同じロジックを使用
     }
     
+    // MARK: - 科学的指標からの更新処理
+    
+    /// 科学的指標の更新を検出して自動反映
+    func updateFromScientificMetrics() {
+        guard let system = wprSystem else { return }
+        
+        // 最新の各科学的指標を取得
+        let latestEfficiency = getLatestEfficiencyMetrics()
+        let latestPowerProfile = getLatestPowerProfile()
+        let latestHRTracking = getLatestHRAtPowerTracking()
+        let latestVolumeLoad = getLatestVolumeLoadSystem()
+        let latestROMTracking = getLatestROMTracking()
+        
+        // WPRTrackingSystemに統合更新を適用
+        system.updateFromScientificMetrics(
+            efficiency: latestEfficiency,
+            powerProfile: latestPowerProfile,
+            hrTracking: latestHRTracking,
+            volumeLoad: latestVolumeLoad,
+            romTracking: latestROMTracking
+        )
+        
+        try? modelContext.save()
+    }
+    
     // MARK: - サイクリングデータからの更新
     
     private func updateFromCyclingRecord(_ record: WorkoutRecord, system: WPRTrackingSystem) {
@@ -308,6 +333,78 @@ class WPRAutoUpdateService: @unchecked Sendable {
             return nil
         }
     }
+    
+    // MARK: - 科学的指標取得メソッド
+    
+    private func getLatestEfficiencyMetrics() -> EfficiencyMetrics? {
+        do {
+            var descriptor = FetchDescriptor<EfficiencyMetrics>()
+            descriptor.sortBy = [SortDescriptor(\.measurementDate, order: .reverse)]
+            descriptor.fetchLimit = 1
+            
+            let metrics = try modelContext.fetch(descriptor)
+            return metrics.first
+        } catch {
+            Logger.error.error("EfficiencyMetrics取得エラー: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    private func getLatestPowerProfile() -> PowerProfile? {
+        do {
+            var descriptor = FetchDescriptor<PowerProfile>()
+            descriptor.sortBy = [SortDescriptor(\.testDate, order: .reverse)]
+            descriptor.fetchLimit = 1
+            
+            let profiles = try modelContext.fetch(descriptor)
+            return profiles.first
+        } catch {
+            Logger.error.error("PowerProfile取得エラー: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    private func getLatestHRAtPowerTracking() -> HRAtPowerTracking? {
+        do {
+            var descriptor = FetchDescriptor<HRAtPowerTracking>()
+            descriptor.sortBy = [SortDescriptor(\.testDate, order: .reverse)]
+            descriptor.fetchLimit = 1
+            
+            let tracking = try modelContext.fetch(descriptor)
+            return tracking.first
+        } catch {
+            Logger.error.error("HRAtPowerTracking取得エラー: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    private func getLatestVolumeLoadSystem() -> VolumeLoadSystem? {
+        do {
+            var descriptor = FetchDescriptor<VolumeLoadSystem>()
+            descriptor.sortBy = [SortDescriptor(\.weekStartDate, order: .reverse)]
+            descriptor.fetchLimit = 1
+            
+            let volumeLoad = try modelContext.fetch(descriptor)
+            return volumeLoad.first
+        } catch {
+            Logger.error.error("VolumeLoadSystem取得エラー: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    private func getLatestROMTracking() -> ROMTracking? {
+        do {
+            var descriptor = FetchDescriptor<ROMTracking>()
+            descriptor.sortBy = [SortDescriptor(\.measurementDate, order: .reverse)]
+            descriptor.fetchLimit = 1
+            
+            let romTracking = try modelContext.fetch(descriptor)
+            return romTracking.first
+        } catch {
+            Logger.error.error("ROMTracking取得エラー: \(error.localizedDescription)")
+            return nil
+        }
+    }
 }
 
 // MARK: - WorkoutRecord Extension for Auto-Update
@@ -318,5 +415,52 @@ extension WorkoutRecord {
     func triggerWPRUpdate(context: ModelContext) {
         let updateService = WPRAutoUpdateService(modelContext: context)
         updateService.handleNewWorkoutRecord(self)
+    }
+}
+
+// MARK: - Scientific Metrics Extensions for Auto-Update
+
+extension EfficiencyMetrics {
+    /// EfficiencyMetricsが保存された後にWPR自動更新を実行
+    @MainActor
+    func triggerWPRUpdate(context: ModelContext) {
+        let updateService = WPRAutoUpdateService(modelContext: context)
+        updateService.updateFromScientificMetrics()
+    }
+}
+
+extension PowerProfile {
+    /// PowerProfileが保存された後にWPR自動更新を実行
+    @MainActor
+    func triggerWPRUpdate(context: ModelContext) {
+        let updateService = WPRAutoUpdateService(modelContext: context)
+        updateService.updateFromScientificMetrics()
+    }
+}
+
+extension HRAtPowerTracking {
+    /// HRAtPowerTrackingが保存された後にWPR自動更新を実行
+    @MainActor
+    func triggerWPRUpdate(context: ModelContext) {
+        let updateService = WPRAutoUpdateService(modelContext: context)
+        updateService.updateFromScientificMetrics()
+    }
+}
+
+extension VolumeLoadSystem {
+    /// VolumeLoadSystemが保存された後にWPR自動更新を実行
+    @MainActor
+    func triggerWPRUpdate(context: ModelContext) {
+        let updateService = WPRAutoUpdateService(modelContext: context)
+        updateService.updateFromScientificMetrics()
+    }
+}
+
+extension ROMTracking {
+    /// ROMTrackingが保存された後にWPR自動更新を実行
+    @MainActor
+    func triggerWPRUpdate(context: ModelContext) {
+        let updateService = WPRAutoUpdateService(modelContext: context)
+        updateService.updateFromScientificMetrics()
     }
 }

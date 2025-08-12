@@ -22,18 +22,20 @@ class WeeklyScheduleViewModel {
     }
     
     private func checkCompletedTasks() {
-        let today = Calendar.current.startOfDay(for: Date())
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-        
-        let recordDescriptor = FetchDescriptor<WorkoutRecord>(
-            predicate: #Predicate { record in
-                record.date >= today && record.date < tomorrow && record.isCompleted
-            }
-        )
+        // シンプルなクエリ（Predicateなし）
+        var recordDescriptor = FetchDescriptor<WorkoutRecord>()
+        recordDescriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
         
         do {
-            let todaysRecords = try modelContext.fetch(recordDescriptor)
-            completedTasks = Set(todaysRecords.compactMap { $0.templateTask?.id })
+            let allRecords = try modelContext.fetch(recordDescriptor)
+            
+            // 今日の完了済み記録をアプリレベルでフィルタリング
+            let today = Date()
+            let todaysCompletedRecords = allRecords.filter { record in
+                Calendar.current.isDate(record.date, inSameDayAs: today) && record.isCompleted
+            }
+            
+            completedTasks = Set(todaysCompletedRecords.compactMap { $0.templateTask?.id })
         } catch {
             Logger.error.error("Error checking completed tasks: \(error.localizedDescription)")
         }
@@ -112,6 +114,35 @@ class WeeklyScheduleViewModel {
     
     func isTaskCompleted(_ task: DailyTask) -> Bool {
         return completedTasks.contains(task.id)
+    }
+    
+    func markTaskAsIncomplete(_ task: DailyTask) {
+        // シンプルなクエリ（Predicateなし）
+        var recordDescriptor = FetchDescriptor<WorkoutRecord>()
+        recordDescriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
+        
+        do {
+            let allRecords = try modelContext.fetch(recordDescriptor)
+            
+            // 今日の該当タスクの完了記録をアプリレベルでフィルタリング
+            let today = Date()
+            let todaysTaskRecords = allRecords.filter { record in
+                Calendar.current.isDate(record.date, inSameDayAs: today) &&
+                record.isCompleted &&
+                record.templateTask?.id == task.id
+            }
+            
+            // 該当記録を未完了に戻す（最新の記録のみ）
+            if let latestRecord = todaysTaskRecords.first {
+                latestRecord.isCompleted = false
+                completedTasks.remove(task.id)
+                
+                try modelContext.save()
+                Logger.general.info("Task marked as incomplete: \(task.title)")
+            }
+        } catch {
+            Logger.error.error("Error marking task as incomplete: \(error.localizedDescription)")
+        }
     }
     
     func isToday(_ day: Int) -> Bool {

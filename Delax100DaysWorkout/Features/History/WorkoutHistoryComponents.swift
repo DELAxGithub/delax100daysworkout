@@ -5,14 +5,29 @@ import SwiftData
 
 struct WorkoutHistoryRow: View {
     let workout: WorkoutRecord
+    let isEditMode: Bool
+    let isSelected: Bool
     let onEdit: (WorkoutRecord) -> Void
     let onDelete: (WorkoutRecord) -> Void
+    let onSelect: (Bool) -> Void
     
     @State private var showingEditSheet = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
+                // 編集モードでの選択チェックボックス
+                if isEditMode {
+                    Button(action: {
+                        onSelect(!isSelected)
+                    }) {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(isSelected ? .blue : .gray)
+                            .font(.title3)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
                 Image(systemName: workout.workoutType.iconName)
                     .foregroundColor(workout.workoutType.iconColor)
                     .font(.title3)
@@ -55,15 +70,31 @@ struct WorkoutHistoryRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
-        .swipeActions(edge: .leading) {
-            Button("編集") {
+        .onLongPressGesture {
+            if !isEditMode {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
                 showingEditSheet = true
             }
-            .tint(.blue)
         }
-        .swipeActions(edge: .trailing) {
-            Button("削除", role: .destructive) {
-                onDelete(workout)
+        .onTapGesture {
+            if isEditMode {
+                onSelect(!isSelected)
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            if !isEditMode {
+                Button("編集") {
+                    showingEditSheet = true
+                }
+                .tint(.blue)
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            if !isEditMode {
+                Button("削除", role: .destructive) {
+                    onDelete(workout)
+                }
             }
         }
         .sheet(isPresented: $showingEditSheet) {

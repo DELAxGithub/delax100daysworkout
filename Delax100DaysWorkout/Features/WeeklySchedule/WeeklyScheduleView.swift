@@ -284,12 +284,16 @@ struct WeeklyTaskCard: View {
                 
                 // 今日のタスクの場合、完了ボタンまたは完了チェックマークを表示
                 if isToday {
-                    if isCompleted {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.green)
-                    } else {
-                        Button(action: {
+                    Button(action: {
+                        if isCompleted {
+                            // 完了済みの場合、未完了に戻す
+                            viewModel?.markTaskAsIncomplete(task)
+                            
+                            // Haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                            impactFeedback.impactOccurred()
+                        } else {
+                            // 未完了の場合、完了にする
                             if let record = viewModel?.quickCompleteTask(task) {
                                 viewModel?.quickRecordTask = task
                                 viewModel?.quickRecordWorkout = record
@@ -299,12 +303,13 @@ struct WeeklyTaskCard: View {
                                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                                 impactFeedback.impactOccurred()
                             }
-                        }) {
-                            Image(systemName: "circle")
-                                .font(.title2)
-                                .foregroundColor(workoutColor)
                         }
+                    }) {
+                        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
+                            .foregroundColor(isCompleted ? .green : workoutColor)
                     }
+                    .buttonStyle(PlainButtonStyle())
                 } else if task.isFlexible {
                     Image(systemName: "arrow.left.arrow.right")
                         .font(.caption)

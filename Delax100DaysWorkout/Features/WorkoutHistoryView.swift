@@ -16,6 +16,7 @@ struct WorkoutHistoryView: View {
     @State private var searchText = ""
     @State private var showingBulkDeleteAlert = false
     @State private var isEditMode = false
+    @State private var selectedWorkouts: Set<WorkoutRecord.ID> = []
     
     private var filteredWorkouts: [WorkoutRecord] {
         var filtered = workoutRecords
@@ -100,16 +101,25 @@ struct WorkoutHistoryView: View {
                         ForEach(filteredWorkouts) { workout in
                             WorkoutHistoryRow(
                                 workout: workout,
+                                isEditMode: isEditMode,
+                                isSelected: selectedWorkouts.contains(workout.id),
                                 onEdit: { editedWorkout in
                                     updateWorkout(workout, with: editedWorkout)
                                 },
                                 onDelete: { workoutToDelete in
                                     self.workoutToDelete = workoutToDelete
                                     showingDeleteAlert = true
+                                },
+                                onSelect: { isSelected in
+                                    if isSelected {
+                                        selectedWorkouts.insert(workout.id)
+                                    } else {
+                                        selectedWorkouts.remove(workout.id)
+                                    }
                                 }
                             )
                         }
-                        .onDelete(perform: deleteWorkouts)
+                        .onDelete(perform: isEditMode ? nil : deleteWorkouts)
                     }
                     .listStyle(.plain)
                 }
@@ -122,6 +132,9 @@ struct WorkoutHistoryView: View {
                         Button(isEditMode ? "完了" : "編集") {
                             withAnimation {
                                 isEditMode.toggle()
+                                if !isEditMode {
+                                    selectedWorkouts.removeAll()
+                                }
                             }
                         }
                     }
@@ -130,10 +143,23 @@ struct WorkoutHistoryView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
                         if isEditMode && !filteredWorkouts.isEmpty {
-                            Button("一括削除") {
-                                showingBulkDeleteAlert = true
+                            if selectedWorkouts.isEmpty {
+                                Button("全選択") {
+                                    selectedWorkouts = Set(filteredWorkouts.map { $0.id })
+                                }
+                                .foregroundColor(.blue)
+                            } else {
+                                Button("選択削除(\(selectedWorkouts.count))") {
+                                    showingBulkDeleteAlert = true
+                                }
+                                .foregroundColor(.red)
+                                
+                                Button("全削除") {
+                                    selectedWorkouts = Set(filteredWorkouts.map { $0.id })
+                                    showingBulkDeleteAlert = true
+                                }
+                                .foregroundColor(.red)
                             }
-                            .foregroundColor(.red)
                         }
                         
                         Button(action: {
@@ -164,14 +190,15 @@ struct WorkoutHistoryView: View {
             } message: {
                 Text("このワークアウト記録を削除してもよろしいですか？この操作は取り消せません。")
             }
-            .alert("一括削除", isPresented: $showingBulkDeleteAlert) {
-                Button("全て削除", role: .destructive) {
-                    deleteAllFilteredWorkouts()
+            .alert("ワークアウトを削除", isPresented: $showingBulkDeleteAlert) {
+                Button("削除", role: .destructive) {
+                    deleteSelectedWorkouts()
+                    selectedWorkouts.removeAll()
                     isEditMode = false
                 }
                 Button("キャンセル", role: .cancel) { }
             } message: {
-                Text("表示中の\(filteredWorkouts.count)件のワークアウトを全て削除してもよろしいですか？この操作は取り消せません。")
+                Text("\(selectedWorkouts.count)件のワークアウトを削除してもよろしいですか？この操作は取り消せません。")
             }
         }
     }
@@ -221,9 +248,10 @@ struct WorkoutHistoryView: View {
         }
     }
     
-    private func deleteAllFilteredWorkouts() {
+    private func deleteSelectedWorkouts() {
         withAnimation {
-            for workout in filteredWorkouts {
+            let workoutsToDelete = filteredWorkouts.filter { selectedWorkouts.contains($0.id) }
+            for workout in workoutsToDelete {
                 modelContext.delete(workout)
             }
             try? modelContext.save()

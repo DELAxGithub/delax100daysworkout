@@ -5,9 +5,9 @@ import OSLog
 
 struct WPRCentralDashboardView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query private var wprSystems: [WPRTrackingSystem]
     @State private var optimizationEngine: WPROptimizationEngine?
     @State private var bottleneckSystem: BottleneckDetectionSystem?
-    @State private var wprSystem: WPRTrackingSystem = WPRTrackingSystem()
     
     @State private var showingBottleneckDetail = false
     @State private var showingProtocolDetail = false
@@ -15,13 +15,23 @@ struct WPRCentralDashboardView: View {
     @State private var isRefreshing = false
     @State private var showingTestResults = false
     @State private var testResults: [String] = []
+    @State private var showingTargetSettings = false
+    
+    private var wprSystem: WPRTrackingSystem {
+        wprSystems.first ?? WPRTrackingSystem()
+    }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
                     // 中央WPRカード
-                    WPRMainCard(system: wprSystem)
+                    WPRMainCard(
+                        system: wprSystem,
+                        onTargetSettingsTap: {
+                            showingTargetSettings = true
+                        }
+                    )
                     
                     // 科学的指標概要
                     if let optimizationEngine = optimizationEngine {
@@ -117,20 +127,34 @@ struct WPRCentralDashboardView: View {
         .sheet(isPresented: $showingTestResults) {
             FunctionalTestResultsView(results: testResults)
         }
+        .sheet(isPresented: $showingTargetSettings) {
+            WPRTargetSettingsSheet(system: wprSystem)
+        }
     }
     
     private func setupWPRSystem() {
         // WPR自動更新サービスを使用してシステムを初期化
         let _ = WPRAutoUpdateService(modelContext: modelContext)
         
-        // WPRシステムの取得（ない場合は自動作成される）
-        do {
-            let descriptor = FetchDescriptor<WPRTrackingSystem>()
-            let systems = try modelContext.fetch(descriptor)
-            wprSystem = systems.first ?? WPRTrackingSystem()
-        } catch {
-            Logger.error.error("WPRシステム取得エラー: \(error.localizedDescription)")
-            wprSystem = WPRTrackingSystem()
+        // WPRシステムが存在しない場合は作成
+        if wprSystems.isEmpty {
+            let newSystem = WPRTrackingSystem()
+            newSystem.targetDate = Calendar.current.date(byAdding: .day, value: 100, to: Date())
+            modelContext.insert(newSystem)
+            
+            do {
+                try modelContext.save()
+            } catch {
+                Logger.error.error("WPRシステム作成エラー: \(error.localizedDescription)")
+            }
+        } else if let existingSystem = wprSystems.first, existingSystem.targetDate == nil {
+            // 既存システムでtarget dateが未設定の場合
+            existingSystem.targetDate = Calendar.current.date(byAdding: .day, value: 100, to: Date())
+            do {
+                try modelContext.save()
+            } catch {
+                Logger.error.error("WPRシステム更新エラー: \(error.localizedDescription)")
+            }
         }
         
         // 最適化エンジンとボトルネックシステムの初期化
@@ -140,7 +164,9 @@ struct WPRCentralDashboardView: View {
         optimizationEngine = engine
         bottleneckSystem = bottleneck
         
-        optimizationEngine?.performQuickAnalysis(wprSystem)
+        if !wprSystems.isEmpty, let currentSystem = wprSystems.first {
+            optimizationEngine?.performQuickAnalysis(currentSystem)
+        }
     }
     
     // MARK: - 機能テスト実行
@@ -378,13 +404,14 @@ struct WPRCentralDashboardView: View {
     
     private func refreshAnalysis() {
         guard let optimizationEngine = optimizationEngine,
-              let bottleneckSystem = bottleneckSystem else { return }
+              let bottleneckSystem = bottleneckSystem,
+              let currentSystem = wprSystems.first else { return }
         
         isRefreshing = true
         
         Task {
-            await optimizationEngine.performCompleteAnalysis(wprSystem)
-            await bottleneckSystem.performComprehensiveBottleneckAnalysis(wprSystem)
+            await optimizationEngine.performCompleteAnalysis(currentSystem)
+            await bottleneckSystem.performComprehensiveBottleneckAnalysis(currentSystem)
             
             await MainActor.run {
                 isRefreshing = false
@@ -394,10 +421,11 @@ struct WPRCentralDashboardView: View {
     
     private func refreshAnalysisAsync() async {
         guard let optimizationEngine = optimizationEngine,
-              let bottleneckSystem = bottleneckSystem else { return }
+              let bottleneckSystem = bottleneckSystem,
+              let currentSystem = wprSystems.first else { return }
         
-        await optimizationEngine.performCompleteAnalysis(wprSystem)
-        await bottleneckSystem.performComprehensiveBottleneckAnalysis(wprSystem)
+        await optimizationEngine.performCompleteAnalysis(currentSystem)
+        await bottleneckSystem.performComprehensiveBottleneckAnalysis(currentSystem)
     }
 }
 
@@ -405,6 +433,7 @@ struct WPRCentralDashboardView: View {
 
 struct WPRMainCard: View {
     let system: WPRTrackingSystem
+    let onTargetSettingsTap: () -> Void
     @State private var animatedProgress: Double = 0
     @State private var animatedWPR: Double = 0
     
@@ -421,7 +450,12 @@ struct WPRMainCard: View {
     }
     
     private var daysRemaining: Int? {
-        system.daysToTarget
+        if let targetDate = system.targetDate {
+            let calendar = Calendar.current
+            let days = calendar.dateComponents([.day], from: Date(), to: targetDate).day
+            return days ?? system.daysToTarget
+        }
+        return system.daysToTarget
     }
     
     private var monthlyGain: Double {
@@ -453,10 +487,21 @@ struct WPRMainCard: View {
             // メイン数値表示
             HStack(alignment: .bottom, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(String(format: "%.1f", animatedWPR))
-                        .font(WPRFont.heroNumber)
-                        .foregroundColor(WPRColor.wprBlue)
-                        .contentTransition(.numericText())
+                    if currentWPR > 0 {
+                        Text(String(format: "%.1f", animatedWPR))
+                            .font(WPRFont.heroNumber)
+                            .foregroundColor(WPRColor.wprBlue)
+                            .contentTransition(.numericText())
+                    } else {
+                        Text("--")
+                            .font(WPRFont.heroNumber)
+                            .foregroundColor(SemanticColor.secondaryText)
+                        
+                        Text("データを入力してください")
+                            .font(.system(size: 10))
+                            .foregroundColor(SemanticColor.secondaryText)
+                            .multilineTextAlignment(.center)
+                    }
                     
                     Text("現在")
                         .font(WPRFont.caption)
@@ -467,28 +512,48 @@ struct WPRMainCard: View {
                 
                 // プログレスバー（縦向き視覚効果）
                 VStack(spacing: 8) {
-                    WPRProgressBar(
-                        progress: animatedProgress,
-                        color: progressRatio >= 0.8 ? WPRColor.excellent : 
-                               progressRatio >= 0.6 ? WPRColor.good :
-                               progressRatio >= 0.4 ? WPRColor.average : WPRColor.needsWork
-                    )
-                    .frame(width: 120, height: 12)
-                    
-                    Text("\(Int(animatedProgress * 100))%")
-                        .font(WPRFont.mediumNumber)
-                        .foregroundColor(SemanticColor.primaryText)
-                        .contentTransition(.numericText())
+                    if currentWPR > 0 {
+                        WPRProgressBar(
+                            progress: animatedProgress,
+                            color: progressRatio >= 0.8 ? WPRColor.excellent : 
+                                   progressRatio >= 0.6 ? WPRColor.good :
+                                   progressRatio >= 0.4 ? WPRColor.average : WPRColor.needsWork
+                        )
+                        .frame(width: 120, height: 12)
+                        
+                        Text("\(Int(animatedProgress * 100))%")
+                            .font(WPRFont.mediumNumber)
+                            .foregroundColor(SemanticColor.primaryText)
+                            .contentTransition(.numericText())
+                    } else {
+                        WPRProgressBar(progress: 0.0, color: SemanticColor.secondaryText.opacity(0.3))
+                            .frame(width: 120, height: 12)
+                        
+                        Text("0%")
+                            .font(WPRFont.mediumNumber)
+                            .foregroundColor(SemanticColor.secondaryText)
+                    }
                 }
                 
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text(String(format: "%.1f", targetWPR))
-                        .font(WPRFont.heroNumber)
-                        .foregroundColor(WPRColor.wprGreen)
+                    HStack(spacing: 4) {
+                        Text(String(format: "%.1f", targetWPR))
+                            .font(WPRFont.heroNumber)
+                            .foregroundColor(WPRColor.wprGreen)
+                        
+                        Button(action: onTargetSettingsTap) {
+                            Image(systemName: "gear")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(WPRColor.wprBlue)
+                                .padding(4)
+                                .background(SemanticColor.secondaryBackground)
+                                .cornerRadius(6)
+                        }
+                    }
                     
-                    Text("目標")
+                    Text(system.isCustomTargetSet ? "カスタム目標" : "デフォルト目標")
                         .font(WPRFont.caption)
                         .foregroundColor(SemanticColor.secondaryText)
                 }
@@ -503,12 +568,16 @@ struct WPRMainCard: View {
                         .foregroundColor(SemanticColor.info)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        if let days = daysRemaining {
+                        if currentWPR > 0, let days = daysRemaining, days > 0 {
                             Text("残り \(days)日")
                                 .font(WPRFont.metricLabel)
                                 .foregroundColor(SemanticColor.primaryText)
+                        } else if currentWPR > 0 {
+                            Text("目標達成済み")
+                                .font(WPRFont.metricLabel)
+                                .foregroundColor(WPRColor.wprGreen)
                         } else {
-                            Text("目標設定なし")
+                            Text("データ待ち")
                                 .font(WPRFont.metricLabel)
                                 .foregroundColor(SemanticColor.secondaryText)
                         }
@@ -524,26 +593,72 @@ struct WPRMainCard: View {
                         .foregroundColor(WPRColor.wprGreen)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("月間 +\(String(format: "%.1f", monthlyGain)) WPR")
-                            .font(WPRFont.metricLabel)
-                            .foregroundColor(SemanticColor.primaryText)
+                        if currentWPR > 0 {
+                            Text("月間 +\(String(format: "%.1f", monthlyGain)) WPR")
+                                .font(WPRFont.metricLabel)
+                                .foregroundColor(SemanticColor.primaryText)
+                        } else {
+                            Text("予測計算中")
+                                .font(WPRFont.metricLabel)
+                                .foregroundColor(SemanticColor.secondaryText)
+                        }
                     }
                 }
                 
                 Spacer()
             }
             
-            // ボトルネック情報
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(WPRColor.wprRed)
-                
-                Text("ボトルネック: \(currentBottleneck)")
-                    .font(WPRFont.metricLabel)
-                    .foregroundColor(SemanticColor.primaryText)
-                
-                Spacer()
+            // ボトルネック情報 or 初期設定案内
+            if currentWPR > 0 {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(WPRColor.wprRed)
+                    
+                    Text("ボトルネック: \(currentBottleneck)")
+                        .font(WPRFont.metricLabel)
+                        .foregroundColor(SemanticColor.primaryText)
+                    
+                    Spacer()
+                }
+            } else {
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(WPRColor.wprBlue)
+                        
+                        Text("FTPと体重を記録してWPR計算を開始")
+                            .font(WPRFont.metricLabel)
+                            .foregroundColor(SemanticColor.primaryText)
+                        
+                        Spacer()
+                    }
+                    
+                    HStack(spacing: 12) {
+                        NavigationLink(destination: EmptyView()) { // TODO: FTP入力画面へのリンク
+                            Text("FTP記録")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(WPRColor.wprBlue)
+                                .cornerRadius(8)
+                        }
+                        
+                        NavigationLink(destination: EmptyView()) { // TODO: 体重入力画面へのリンク
+                            Text("体重記録")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(WPRColor.wprGreen)
+                                .cornerRadius(8)
+                        }
+                        
+                        Spacer()
+                    }
+                }
             }
         }
         .padding(WPRSpacing.cardPadding)
@@ -1842,6 +1957,206 @@ struct MetricContributionCard: View {
         .background(SemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Target Settings Sheet
+
+struct WPRTargetSettingsSheet: View {
+    let system: WPRTrackingSystem
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    
+    @State private var customTargetWPR: Double = 4.5
+    @State private var targetDate: Date = Date()
+    @State private var useCustomTarget: Bool = false
+    
+    private let targetOptions: [Double] = [3.5, 4.0, 4.5, 5.0, 5.5]
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("目標設定") {
+                    Toggle("カスタム目標を使用", isOn: $useCustomTarget)
+                    
+                    if useCustomTarget {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("目標WPR: \(String(format: "%.1f", customTargetWPR))")
+                                .font(WPRFont.metricLabel)
+                            
+                            Slider(
+                                value: $customTargetWPR,
+                                in: 3.0...6.0,
+                                step: 0.1
+                            ) {
+                                Text("目標WPR")
+                            } minimumValueLabel: {
+                                Text("3.0")
+                                    .font(WPRFont.caption)
+                            } maximumValueLabel: {
+                                Text("6.0")
+                                    .font(WPRFont.caption)
+                            }
+                        }
+                        
+                        DatePicker(
+                            "目標達成日",
+                            selection: $targetDate,
+                            in: Date()...,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.compact)
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("推奨目標")
+                                .font(WPRFont.metricLabel)
+                                .fontWeight(.medium)
+                            
+                            LazyVGrid(
+                                columns: Array(repeating: GridItem(.flexible()), count: 2),
+                                spacing: 8
+                            ) {
+                                ForEach(targetOptions, id: \.self) { option in
+                                    TargetOptionCard(
+                                        wpr: option,
+                                        isSelected: customTargetWPR == option,
+                                        onTap: {
+                                            customTargetWPR = option
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section("現在の進捗") {
+                    HStack {
+                        Text("現在WPR")
+                        Spacer()
+                        Text(String(format: "%.2f", system.calculatedWPR))
+                            .fontWeight(.medium)
+                    }
+                    
+                    HStack {
+                        Text("必要な改善")
+                        Spacer()
+                        Text("+\(String(format: "%.2f", max(0, customTargetWPR - system.calculatedWPR)))")
+                            .fontWeight(.medium)
+                            .foregroundColor(WPRColor.wprGreen)
+                    }
+                    
+                    if let days = daysToTarget {
+                        HStack {
+                            Text("推定期間")
+                            Spacer()
+                            Text("\(days)日")
+                                .fontWeight(.medium)
+                                .foregroundColor(WPRColor.wprBlue)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("WPR目標設定")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("キャンセル") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("保存") {
+                        saveSettings()
+                        dismiss()
+                    }
+                    .fontWeight(.medium)
+                    .foregroundColor(WPRColor.wprBlue)
+                }
+            }
+        }
+        .onAppear {
+            loadCurrentSettings()
+        }
+    }
+    
+    private var daysToTarget: Int? {
+        if useCustomTarget {
+            let calendar = Calendar.current
+            return calendar.dateComponents([.day], from: Date(), to: targetDate).day
+        } else {
+            // デフォルトは100日
+            return 100
+        }
+    }
+    
+    private func loadCurrentSettings() {
+        useCustomTarget = system.isCustomTargetSet
+        customTargetWPR = system.targetWPR
+        targetDate = system.targetDate ?? Calendar.current.date(byAdding: .day, value: 100, to: Date()) ?? Date()
+    }
+    
+    private func saveSettings() {
+        if useCustomTarget {
+            system.setCustomTarget(wpr: customTargetWPR, targetDate: targetDate)
+        } else {
+            system.setCustomTarget(wpr: customTargetWPR, targetDate: Calendar.current.date(byAdding: .day, value: 100, to: Date()))
+        }
+        
+        // SwiftDataコンテキストで保存
+        do {
+            try modelContext.save()
+        } catch {
+            print("WPR目標設定保存エラー: \(error.localizedDescription)")
+        }
+    }
+}
+
+struct TargetOptionCard: View {
+    let wpr: Double
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    private var categoryInfo: (title: String, description: String, color: Color) {
+        switch wpr {
+        case 3.5: return ("中級者", "レクリエーション", WPRColor.average)
+        case 4.0: return ("上級者", "競技レベル", WPRColor.good)
+        case 4.5: return ("エリート", "国内トップ", WPRColor.excellent)
+        case 5.0: return ("プロ", "世界クラス", WPRColor.wprGreen)
+        case 5.5: return ("トップ", "世界トップ", WPRColor.wprBlue)
+        default: return ("カスタム", "独自設定", WPRColor.wprRed)
+        }
+    }
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                Text(String(format: "%.1f", wpr))
+                    .font(WPRFont.mediumNumber)
+                    .foregroundColor(isSelected ? .white : categoryInfo.color)
+                
+                VStack(spacing: 2) {
+                    Text(categoryInfo.title)
+                        .font(WPRFont.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(isSelected ? .white : .primary)
+                    
+                    Text(categoryInfo.description)
+                        .font(.system(size: 10))
+                        .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(isSelected ? categoryInfo.color : Color(.systemGray6))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? categoryInfo.color : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

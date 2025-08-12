@@ -9,22 +9,28 @@ struct TaskCardView: View {
     @State private var showCheckmark = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        BaseCard.task(
+            isCompleted: isCompleted,
+            onTap: onDetailTap,
+            onLongPress: onQuickComplete
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.cardSpacing.value) {
             // ヘッダー
             HStack {
                 Image(systemName: task.icon)
-                    .font(.title2)
-                    .foregroundColor(task.workoutType.iconColor)
+                    .font(Typography.headlineMedium.font)
+                    .foregroundColor(SemanticColor.primaryAction)
                 
                 Text(task.title)
-                    .font(.headline)
+                    .font(Typography.headlineMedium.font)
+                    .foregroundColor(SemanticColor.primaryText)
                 
                 Spacer()
                 
                 if isCompleted {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.green)
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(SemanticColor.successAction)
                         .scaleEffect(showCheckmark ? 1.0 : 0.5)
                         .opacity(showCheckmark ? 1.0 : 0.0)
                         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCheckmark)
@@ -34,43 +40,43 @@ struct TaskCardView: View {
             // 説明
             if let description = task.taskDescription {
                 Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(Typography.bodySmall.font)
+                    .foregroundColor(SemanticColor.secondaryText)
             }
             
             // 目標値
             if let targetDetails = task.targetDetails {
-                HStack(spacing: 16) {
+                HStack(spacing: Spacing.md.value) {
                     if task.workoutType == .cycling {
                         if let duration = targetDetails.duration {
                             Label("\(duration)分", systemImage: "clock")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Typography.captionMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
                         }
                         if let power = targetDetails.targetPower {
                             Label("\(power)W", systemImage: "bolt")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Typography.captionMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
                         }
                     } else if task.workoutType == .strength {
                         if let sets = targetDetails.targetSets,
                            let reps = targetDetails.targetReps {
                             Label("\(sets)セット×\(reps)レップ", systemImage: "number")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Typography.captionMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
                         }
                     } else if task.workoutType == .flexibility {
                         if let duration = targetDetails.targetDuration {
                             Label("\(duration)分", systemImage: "clock")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Typography.captionMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
                         }
                     }
                 }
             }
             
             // アクションボタン
-            HStack(spacing: 12) {
+            HStack(spacing: Spacing.listItemSpacing.value) {
                 Button(action: {
                     // バグ報告のトラッキング
                     BugReportManager.shared.trackButtonTap("やった", in: "TaskCardView")
@@ -88,13 +94,13 @@ struct TaskCardView: View {
                         Image(systemName: "checkmark")
                         Text("やった")
                     }
-                    .font(.subheadline)
+                    .font(Typography.labelMedium.font)
                     .fontWeight(.medium)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(isCompleted ? Color.green : task.workoutType.iconColor)
+                    .padding(.horizontal, Spacing.md.value)
+                    .padding(.vertical, Spacing.sm.value)
+                    .background(isCompleted ? SemanticColor.successAction : SemanticColor.primaryAction)
                     .foregroundColor(.white)
-                    .cornerRadius(20)
+                    .cornerRadius(CornerRadius.large)
                 }
                 .disabled(isCompleted)
                 
@@ -106,21 +112,18 @@ struct TaskCardView: View {
                         Image(systemName: "pencil")
                         Text("詳細入力")
                     }
-                    .font(.subheadline)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.gray.opacity(0.2))
-                    .foregroundColor(.primary)
-                    .cornerRadius(20)
+                    .font(Typography.labelMedium.font)
+                    .padding(.horizontal, Spacing.md.value)
+                    .padding(.vertical, Spacing.sm.value)
+                    .background(SemanticColor.secondaryAction.color.opacity(0.2))
+                    .foregroundColor(SemanticColor.primaryText)
+                    .cornerRadius(CornerRadius.large)
                 }
                 .disabled(isCompleted)
                 
                 Spacer()
             }
+            }
         }
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }

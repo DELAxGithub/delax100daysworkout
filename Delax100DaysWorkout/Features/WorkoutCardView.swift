@@ -6,23 +6,23 @@ struct WorkoutCardView: View {
     let summary: String
 
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: workoutType.iconName)
-                .font(.title)
-                .foregroundColor(workoutType.iconColor)
-                .frame(width: 40, height: 40)
+        BaseCard.workout {
+            HStack(spacing: Spacing.md.value) {
+                Image(systemName: workoutType.iconName)
+                    .font(Typography.headlineLarge.font)
+                    .foregroundColor(SemanticColor.primaryAction)
+                    .frame(width: 40, height: 40)
 
-            VStack(alignment: .leading) {
-                Text(title)
-                    .font(.headline)
-                Text(summary)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading) {
+                    Text(title)
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(SemanticColor.primaryText)
+                    Text(summary)
+                        .font(Typography.bodySmall.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                }
+                Spacer()
             }
-            Spacer()
         }
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(12)
     }
 }

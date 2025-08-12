@@ -53,6 +53,8 @@ final class WPRTrackingSystem: @unchecked Sendable {
     // 基本WPR指標
     var currentWPR: Double = 0.0
     var targetWPR: Double = 4.5
+    var isCustomTargetSet: Bool = false     // ユーザーがカスタム目標を設定したか
+    var targetDate: Date?                   // 目標達成予定日
     var baselineFTP: Int = 0
     var baselineWeight: Double = 0.0
     
@@ -206,6 +208,22 @@ final class WPRTrackingSystem: @unchecked Sendable {
         lastUpdated = Date()
     }
     
+    /// カスタム目標設定
+    func setCustomTarget(wpr: Double, targetDate: Date? = nil) {
+        targetWPR = wpr
+        self.targetDate = targetDate ?? Calendar.current.date(byAdding: .day, value: 100, to: Date())
+        isCustomTargetSet = true
+        lastUpdated = Date()
+    }
+    
+    /// 目標をデフォルトにリセット
+    func resetToDefaultTarget() {
+        targetWPR = 4.5
+        targetDate = Calendar.current.date(byAdding: .day, value: 100, to: Date())
+        isCustomTargetSet = false
+        lastUpdated = Date()
+    }
+    
     /// エビデンスベース係数リセット（研究データ基準）
     func resetToEvidenceBasedCoefficients() {
         // Hopker et al. (2010) - EF/効率性重要度
@@ -279,10 +297,25 @@ struct WPRMilestone {
 }
 
 extension WPRTrackingSystem {
-    /// 現在のパワープロファイルスコア（後で PowerProfile から計算）
+    /// 現在のパワープロファイルスコア（PowerProfile から計算）
     var currentPowerProfileScore: Double {
-        // TODO: PowerProfile クラスから実際のスコアを取得
-        return 0.0
+        // powerProfileBaselineが現在のスコアを表す（改善度）
+        return max(0.0, min(powerProfileBaseline, 1.0))
+    }
+    
+    /// PowerProfileデータからスコアを更新する
+    func updatePowerProfileScore(from powerProfile: PowerProfile) {
+        let improvementScore = powerProfile.improvementScore
+        
+        if powerProfileBaseline == 0 {
+            // 初回設定時はベースラインを設定
+            powerProfileBaseline = improvementScore
+        } else {
+            // 改善度を更新（移動平均）
+            powerProfileBaseline = powerProfile.improvementScore * 0.3 + powerProfileBaseline * 0.7
+        }
+        
+        lastUpdated = Date()
     }
     
     /// デバッグ用サンプルデータ生成

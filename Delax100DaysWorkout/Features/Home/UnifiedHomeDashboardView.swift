@@ -482,33 +482,31 @@ struct SummaryCard: View {
     let icon: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.title3)
+        BaseCard.summary {
+            VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                HStack {
+                    Image(systemName: icon)
+                        .foregroundColor(color)
+                        .font(Typography.headlineMedium.font)
+                    
+                    Spacer()
+                }
                 
-                Spacer()
+                Text(value)
+                    .font(Typography.displaySmall.font)
+                    .fontWeight(.bold)
+                    .foregroundColor(SemanticColor.primaryText)
+                
+                Text(title)
+                    .font(Typography.captionMedium.font)
+                    .foregroundColor(SemanticColor.secondaryText)
+                
+                Text(subtitle)
+                    .font(Typography.captionSmall.font)
+                    .foregroundColor(color)
             }
-            
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(subtitle)
-                .font(.caption2)
-                .foregroundColor(color)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
     }
 }
 
@@ -526,25 +524,23 @@ struct SectionCard<Content: View>: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(iconColor)
+        BaseCard(style: ElevatedCardStyle()) {
+            VStack(alignment: .leading, spacing: Spacing.md.value) {
+                HStack {
+                    Image(systemName: icon)
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(iconColor)
+                    
+                    Text(title)
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(SemanticColor.primaryText)
+                    
+                    Spacer()
+                }
                 
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Spacer()
+                content
             }
-            
-            content
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
 
@@ -555,19 +551,19 @@ struct StatView: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.xs.value) {
             Text(value)
-                .font(.title2)
+                .font(Typography.displaySmall.font)
                 .fontWeight(.bold)
                 .foregroundColor(color)
             
             Text(unit)
-                .font(.caption2)
-                .foregroundColor(.secondary)
+                .font(Typography.captionSmall.font)
+                .foregroundColor(SemanticColor.secondaryText)
             
             Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(Typography.captionMedium.font)
+                .foregroundColor(SemanticColor.secondaryText)
         }
         .frame(maxWidth: .infinity)
     }
@@ -581,19 +577,19 @@ struct QuickActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.sm.value) {
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(Typography.headlineMedium.font)
                     .foregroundColor(color)
                 
                 Text(title)
-                    .font(.caption)
-                    .foregroundColor(.primary)
+                    .font(Typography.captionMedium.font)
+                    .foregroundColor(SemanticColor.primaryText)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
+            .padding(.vertical, Spacing.listItemSpacing.value)
             .background(color.opacity(0.1))
-            .cornerRadius(12)
+            .cornerRadius(CornerRadius.large.radius)
         }
         .buttonStyle(.plain)
     }
