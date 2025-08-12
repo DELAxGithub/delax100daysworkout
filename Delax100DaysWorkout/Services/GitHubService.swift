@@ -48,9 +48,11 @@ struct GitHubService {
         print("GitHub API Response Status: \(httpResponse.statusCode)")
         
         if httpResponse.statusCode != 201 {
-            // エラーレスポンスの詳細を取得
+            // エラーレスポンスの詳細を取得（機密情報を除外）
             if let errorData = String(data: data, encoding: .utf8) {
-                print("GitHub API Error Response: \(errorData)")
+                // トークンやその他の機密情報が含まれる可能性があるため、エラーメッセージのみ抽出
+                let sanitizedError = errorData.replacingOccurrences(of: token, with: "[REDACTED]")
+                print("GitHub API Error Response: \(sanitizedError)")
             }
             
             // ステータスコードに応じた詳細なエラー

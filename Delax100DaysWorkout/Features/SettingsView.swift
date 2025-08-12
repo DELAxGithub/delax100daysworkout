@@ -2,12 +2,29 @@ import SwiftUI
 
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
+    @State private var showingCredentialSettings = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Challenge Period")) {
                     DatePicker("Goal Date", selection: $viewModel.goalDate, displayedComponents: .date)
+                }
+                
+                Section(header: Text("セキュリティ設定")) {
+                    Button(action: {
+                        showingCredentialSettings = true
+                    }) {
+                        HStack {
+                            Image(systemName: "lock.shield")
+                                .foregroundColor(.blue)
+                            Text("認証情報の管理")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .foregroundColor(.primary)
                 }
 
                 Section(header: Text("Weight Goals (kg)")) {
@@ -222,6 +239,9 @@ struct SettingsView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Your goals have been updated successfully.")
+            }
+            .sheet(isPresented: $showingCredentialSettings) {
+                CredentialSettingsView()
             }
         }
     }
