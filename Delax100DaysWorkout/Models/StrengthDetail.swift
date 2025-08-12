@@ -49,6 +49,106 @@ final class StrengthDetail {
     }
 }
 
+extension StrengthDetail: ModelValidation {
+    var validationErrors: [ValidationError] {
+        validate().errors + validate().warnings
+    }
+    
+    var isValid: Bool {
+        validate().isValid
+    }
+    
+    func validate() -> ValidationResult {
+        var errors: [ValidationError] = []
+        
+        // エクササイズ名の検証
+        if exercise.isEmpty {
+            errors.append(ValidationError(
+                field: "exercise",
+                message: "エクササイズ名は必須です",
+                severity: .error
+            ))
+        } else if exercise.count > 100 {
+            errors.append(ValidationError(
+                field: "exercise",
+                message: "エクササイズ名は100文字以下にしてください",
+                severity: .error
+            ))
+        }
+        
+        // セット数の検証
+        if let setsError = ValidationRules.validateSets(sets) {
+            errors.append(setsError)
+        }
+        
+        // レップ数の検証  
+        if let repsError = ValidationRules.validateReps(reps) {
+            errors.append(repsError)
+        }
+        
+        // 重量の検証
+        if weight < 0 {
+            errors.append(ValidationError(
+                field: "weight",
+                message: "重量は0kg以上である必要があります",
+                severity: .error
+            ))
+        } else if weight > 500 {
+            errors.append(ValidationError(
+                field: "weight",
+                message: "重量が500kgを超えています",
+                severity: .warning
+            ))
+        }
+        
+        // プルアップ特有の検証
+        if pullUpVariant != nil {
+            // アシスト重量の検証
+            if isAssisted {
+                if assistWeight < 0 {
+                    errors.append(ValidationError(
+                        field: "assistWeight",
+                        message: "アシスト重量は0kg以上である必要があります",
+                        severity: .error
+                    ))
+                } else if assistWeight > 150 {
+                    errors.append(ValidationError(
+                        field: "assistWeight",
+                        message: "アシスト重量が150kgを超えています",
+                        severity: .warning
+                    ))
+                }
+            }
+            
+            // 連続最大回数の検証
+            if maxConsecutiveReps < 0 {
+                errors.append(ValidationError(
+                    field: "maxConsecutiveReps",
+                    message: "連続最大回数は0以上である必要があります",
+                    severity: .error
+                ))
+            } else if maxConsecutiveReps > reps {
+                errors.append(ValidationError(
+                    field: "maxConsecutiveReps",
+                    message: "連続最大回数が総レップ数を超えています",
+                    severity: .error
+                ))
+            }
+        }
+        
+        // ノートの検証
+        if let notes = notes, notes.count > 500 {
+            errors.append(ValidationError(
+                field: "notes",
+                message: "ノートは500文字以下にしてください",
+                severity: .warning
+            ))
+        }
+        
+        return ValidationResult(errors: errors)
+    }
+}
+
 enum StrengthExercise: String, CaseIterable {
     case benchPress = "ベンチプレス"
     case dumbbellPress = "ダンベルプレス"

@@ -98,6 +98,63 @@ final class FTPHistory {
     }
 }
 
+extension FTPHistory: ModelValidation {
+    var validationErrors: [ValidationError] {
+        validate().errors + validate().warnings
+    }
+    
+    func validate() -> ValidationResult {
+        var errors: [ValidationError] = []
+        
+        // 日付の検証
+        if let dateError = ValidationRules.validateDate(date, allowFuture: false) {
+            errors.append(dateError)
+        }
+        
+        // FTP値の検証
+        if let ftpError = ValidationRules.validatePower(Double(ftpValue), type: .ftp) {
+            errors.append(ftpError)
+        }
+        
+        // 自動計算の整合性チェック
+        if isAutoCalculated && measurementMethod != .autoCalculated {
+            errors.append(ValidationError(
+                field: "measurementMethod",
+                message: "自動計算フラグと測定方法が一致しません",
+                severity: .warning
+            ))
+        }
+        
+        if !isAutoCalculated && measurementMethod == .autoCalculated {
+            errors.append(ValidationError(
+                field: "measurementMethod",
+                message: "測定方法が自動計算なのに自動計算フラグがオフです",
+                severity: .warning
+            ))
+        }
+        
+        // ソースワークアウトIDの検証
+        if measurementMethod == .autoCalculated && sourceWorkoutId == nil {
+            errors.append(ValidationError(
+                field: "sourceWorkoutId",
+                message: "自動計算されたFTPにはソースワークアウトIDが必要です",
+                severity: .warning
+            ))
+        }
+        
+        // ノートの検証
+        if let notes = notes, notes.count > 500 {
+            errors.append(ValidationError(
+                field: "notes",
+                message: "ノートは500文字以下にしてください",
+                severity: .warning
+            ))
+        }
+        
+        return ValidationResult(errors: errors)
+    }
+}
+
 // MARK: - Power Zones Helper
 
 struct PowerZones {
