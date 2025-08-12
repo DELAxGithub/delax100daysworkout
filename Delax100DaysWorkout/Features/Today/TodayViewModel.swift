@@ -13,6 +13,7 @@ class TodayViewModel {
     private var modelContext: ModelContext
     private var taskSuggestionManager: TaskSuggestionManager
     private var progressAnalyzer: ProgressAnalyzer
+    private let errorHandler = ErrorHandler.shared
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -70,7 +71,10 @@ class TodayViewModel {
             checkCompletedTasks()
             updateProgress()
         } catch {
-            print("Error loading tasks: \(error)")
+            errorHandler.handle(
+                AppError.failedToLoad(error),
+                context: "タスクの読み込み中"
+            )
         }
     }
     
@@ -84,7 +88,10 @@ class TodayViewModel {
             activeTemplate = defaultTemplate
             loadTodaysTasks()
         } catch {
-            print("Error creating default template: \(error)")
+            errorHandler.handle(
+                AppError.failedToSave(error),
+                context: "デフォルトテンプレートの作成中"
+            )
         }
     }
     
@@ -102,7 +109,10 @@ class TodayViewModel {
             let todaysRecords = try modelContext.fetch(recordDescriptor)
             completedTasks = Set(todaysRecords.compactMap { $0.templateTask?.id })
         } catch {
-            print("Error checking completed tasks: \(error)")
+            errorHandler.handle(
+                AppError.failedToLoad(error),
+                context: "完了タスクの確認中"
+            )
         }
     }
     
@@ -161,7 +171,10 @@ class TodayViewModel {
             checkForAchievements(record)
             return record
         } catch {
-            print("Error saving quick completion: \(error)")
+            errorHandler.handle(
+                AppError.failedToSave(error),
+                context: "タスクのクイック完了中"
+            )
             return nil
         }
     }
@@ -194,7 +207,10 @@ class TodayViewModel {
             
             try modelContext.save()
         } catch {
-            print("Error checking achievements: \(error)")
+            errorHandler.handle(
+                AppError.failedToSave(error),
+                context: "達成記録の確認中"
+            )
         }
     }
     
@@ -248,7 +264,10 @@ class TodayViewModel {
             updateProgress()
             
         } catch {
-            print("Error deleting task: \(error)")
+            errorHandler.handle(
+                AppError.failedToSave(error),
+                context: "タスクの削除中"
+            )
         }
     }
 }

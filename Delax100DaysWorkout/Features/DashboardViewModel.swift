@@ -21,6 +21,7 @@ class DashboardViewModel {
     private var userProfile: UserProfile?
     private var latestDailyLog: DailyLog?
     var todaysWorkouts: [WorkoutRecord] = []
+    private let errorHandler = ErrorHandler.shared
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -33,24 +34,32 @@ class DashboardViewModel {
     }
 
     private func fetchData() {
-        // Fetch UserProfile
-        let profileDescriptor = FetchDescriptor<UserProfile>()
-        self.userProfile = try? modelContext.fetch(profileDescriptor).first
+        do {
+            // Fetch UserProfile
+            let profileDescriptor = FetchDescriptor<UserProfile>()
+            self.userProfile = try modelContext.fetch(profileDescriptor).first
 
-        // Fetch the most recent DailyLog
-        var logDescriptor = FetchDescriptor<DailyLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
-        logDescriptor.fetchLimit = 1
-        self.latestDailyLog = try? modelContext.fetch(logDescriptor).first
+            // Fetch the most recent DailyLog
+            var logDescriptor = FetchDescriptor<DailyLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
+            logDescriptor.fetchLimit = 1
+            self.latestDailyLog = try modelContext.fetch(logDescriptor).first
 
-        // Fetch today's WorkoutRecords
-        let calendar = Calendar.current
-        let startOfToday = calendar.startOfDay(for: Date())
-        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
-        let predicate = #Predicate<WorkoutRecord> { record in
-            record.date >= startOfToday && record.date < endOfToday
+            // Fetch today's WorkoutRecords
+            let calendar = Calendar.current
+            let startOfToday = calendar.startOfDay(for: Date())
+            let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+            let predicate = #Predicate<WorkoutRecord> { record in
+                record.date >= startOfToday && record.date < endOfToday
+            }
+            let workoutDescriptor = FetchDescriptor<WorkoutRecord>(predicate: predicate, sortBy: [SortDescriptor(\.date)])
+            self.todaysWorkouts = try modelContext.fetch(workoutDescriptor)
+        } catch {
+            errorHandler.handle(
+                AppError.failedToLoad(error),
+                context: "ダッシュボードデータの読み込み中"
+            )
+            self.todaysWorkouts = []
         }
-        let workoutDescriptor = FetchDescriptor<WorkoutRecord>(predicate: predicate, sortBy: [SortDescriptor(\.date)])
-        self.todaysWorkouts = (try? modelContext.fetch(workoutDescriptor)) ?? []
     }
 
     private func calculateMetrics() {
@@ -119,7 +128,10 @@ class DashboardViewModel {
             print("✅ ワークアウトが正常に更新されました")
             
         } catch {
-            print("❌ ワークアウト更新エラー: \(error.localizedDescription)")
+            errorHandler.handle(
+                AppError.failedToSave(error),
+                context: "ワークアウトの更新中"
+            )
         }
     }
     
@@ -134,7 +146,10 @@ class DashboardViewModel {
             print("✅ ワークアウトが正常に削除されました")
             
         } catch {
-            print("❌ ワークアウト削除エラー: \(error.localizedDescription)")
+            errorHandler.handle(
+                AppError.failedToSave(error),
+                context: "ワークアウトの削除中"
+            )
         }
     }
     

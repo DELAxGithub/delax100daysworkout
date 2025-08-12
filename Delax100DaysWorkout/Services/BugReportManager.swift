@@ -11,6 +11,7 @@ class BugReportManager: ObservableObject {
     private var logs: [LogEntry] = []
     private let maxActionsCount = 20
     private let maxLogsCount = 100
+    private let errorHandler = ErrorHandler.shared
     
     // GitHub Configuration (共有パッケージ互換)
     private var gitHubToken: String?
@@ -194,9 +195,16 @@ class BugReportManager: ObservableObject {
             log(.error, "Failed to create GitHub Issue: \(error)")
             log(.error, "Error details: \(error.localizedDescription)")
             
+            // Handle error with the new error handler
+            let appError = error.asAppError
+            errorHandler.handle(
+                appError,
+                context: "バグレポートの送信中"
+            )
+            
             // フォールバック: ローカルに保存
             try await saveLocally(report)
-            throw error
+            throw appError
         }
     }
     

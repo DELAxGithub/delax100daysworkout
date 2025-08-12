@@ -57,6 +57,8 @@ class LogEntryViewModel {
     var flexibilityRightSplit: Double = 90.0
     var flexibilityDuration: Int = 0
     var flexibilityNotes: String = ""
+    
+    private let errorHandler = ErrorHandler.shared
 
     var isSaveDisabled: Bool {
         switch logType {
@@ -317,8 +319,12 @@ class LogEntryViewModel {
             saveState = .success
             
         } catch {
-            print("❌ 保存エラー: \(error.localizedDescription)")
-            saveState = .error(error.localizedDescription)
+            let appError = AppError.failedToSave(error)
+            errorHandler.handle(
+                appError,
+                context: "ワークアウトデータの保存中"
+            )
+            saveState = .error(appError.localizedDescription)
         }
     }
 }

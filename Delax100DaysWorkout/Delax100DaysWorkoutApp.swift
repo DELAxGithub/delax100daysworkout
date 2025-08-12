@@ -5,6 +5,7 @@ import SwiftData
 @main
 struct Delax100DaysWorkoutApp: App {
     @StateObject private var bugReportManager = BugReportManager.shared
+    @StateObject private var errorHandler = ErrorHandler.shared
     
     init() {
         // BugReportManager設定（共有パッケージ互換）
@@ -18,6 +19,8 @@ struct Delax100DaysWorkoutApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
+                .withErrorHandling()
+                .environmentObject(errorHandler)
         }
         .modelContainer(for: [
             UserProfile.self,
