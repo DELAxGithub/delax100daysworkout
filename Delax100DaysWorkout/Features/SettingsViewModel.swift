@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 @Observable
 class SettingsViewModel {
     var goalDate: Date = Date().addingTimeInterval(100 * 24 * 60 * 60)
@@ -91,7 +92,6 @@ class SettingsViewModel {
         weeklyPlanManager.updateFrequency = TimeInterval(updateFrequencyDays * 24 * 60 * 60)
     }
     
-    @MainActor
     func runManualAnalysis() async {
         isAnalyzing = true
         await weeklyPlanManager.requestManualUpdate()
@@ -150,7 +150,6 @@ class SettingsViewModel {
         apiKeyTestResult = ""
     }
     
-    @MainActor
     func testAPIKey() async {
         guard !claudeAPIKey.isEmpty else {
             apiKeyTestResult = "APIキーを入力してください"
@@ -201,5 +200,9 @@ class SettingsViewModel {
         } else {
             return "形式エラー"
         }
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }

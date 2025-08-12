@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+@MainActor
 @Observable
 class WeeklyScheduleViewModel {
     var completedTasks: Set<PersistentIdentifier> = []
@@ -119,5 +120,9 @@ class WeeklyScheduleViewModel {
     
     func refreshCompletedTasks() {
         checkCompletedTasks()
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }

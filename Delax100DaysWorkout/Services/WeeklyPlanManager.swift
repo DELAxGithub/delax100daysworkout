@@ -22,6 +22,7 @@ enum PlanUpdateStatus: Equatable {
 
 // PlanUpdateHistoryはファイル末尾の@Modelクラスで定義されています
 
+@MainActor
 class WeeklyPlanManager: ObservableObject {
     private let modelContext: ModelContext
     private let progressAnalyzer: ProgressAnalyzer
@@ -50,7 +51,6 @@ class WeeklyPlanManager: ObservableObject {
     }
     
     // メイン機能：週次プラン更新の開始
-    @MainActor
     func initiateWeeklyPlanUpdate() async {
         guard canPerformUpdate() else {
             print("週次プラン更新の条件が満たされていません")
@@ -122,7 +122,6 @@ class WeeklyPlanManager: ObservableObject {
     }
     
     // 最後の更新を元に戻す
-    @MainActor
     func revertLastUpdate() async {
         guard let history = lastUpdateHistory else {
             print("戻す履歴がありません")
@@ -385,6 +384,10 @@ class WeeklyPlanManager: ObservableObject {
     // 元に戻すことが可能かどうか
     var canRevert: Bool {
         return lastUpdateHistory != nil && updateStatus == .completed
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }
 

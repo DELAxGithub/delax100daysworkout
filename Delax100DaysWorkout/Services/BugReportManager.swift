@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import SwiftUI
 
+@MainActor
 class BugReportManager: ObservableObject {
     static let shared = BugReportManager()
     

@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 @Observable
 class ProgressChartViewModel {
     var dailyLogs: [DailyLog] = []
@@ -36,5 +37,9 @@ class ProgressChartViewModel {
     func setModelContext(_ context: ModelContext) {
         self.modelContext = context
         fetchData()
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }

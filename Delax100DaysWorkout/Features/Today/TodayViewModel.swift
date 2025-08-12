@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+@MainActor
 @Observable
 class TodayViewModel {
     var todaysTasks: [DailyTask] = []
@@ -250,5 +251,9 @@ class TodayViewModel {
         } catch {
             print("Error deleting task: \(error)")
         }
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }

@@ -29,6 +29,7 @@ enum LogType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+@MainActor
 @Observable
 class LogEntryViewModel {
     var logType: LogType = .weight
@@ -245,7 +246,6 @@ class LogEntryViewModel {
         }
     }
 
-    @MainActor
     func save() async {
         guard !isSaveDisabled else { 
             print("❌ 保存無効: 必要な入力が不足しています")
@@ -320,5 +320,9 @@ class LogEntryViewModel {
             print("❌ 保存エラー: \(error.localizedDescription)")
             saveState = .error(error.localizedDescription)
         }
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }

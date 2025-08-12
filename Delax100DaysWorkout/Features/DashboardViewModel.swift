@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 @Observable
 class DashboardViewModel {
     // MARK: - Published Properties for UI
@@ -141,5 +142,9 @@ class DashboardViewModel {
     func confirmDeleteWorkout(_ workout: WorkoutRecord, completion: @escaping (Bool) -> Void) {
         // UIの削除確認は呼び出し元で処理
         completion(true)
+    }
+    
+    deinit {
+        // Cleanup if needed
     }
 }
