@@ -232,12 +232,22 @@ class SettingsViewModel {
     func requestHealthKitAuthorization() async {
         do {
             try await healthKitService.requestAuthorization()
+            // 認証後に状態を再確認
+            await refreshHealthKitStatus()
             if healthKitService.isAuthorized {
                 await syncHealthKitData()
             }
         } catch {
             Logger.error.error("HealthKit認証エラー: \(error.localizedDescription)")
         }
+    }
+    
+    @MainActor
+    func refreshHealthKitStatus() async {
+        // HealthKitServiceの認証状態を強制的に再チェック
+        healthKitService.checkAuthorizationStatus()
+        // UIの更新を待つ
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒
     }
     
     func syncHealthKitData() async {

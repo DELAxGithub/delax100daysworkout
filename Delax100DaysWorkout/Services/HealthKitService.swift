@@ -38,7 +38,7 @@ class HealthKitService: ObservableObject {
     }
     
     @MainActor
-    private func checkAuthorizationStatus() {
+    func checkAuthorizationStatus() {
         guard HKHealthStore.isHealthDataAvailable() else {
             authorizationStatus = .notDetermined
             isAuthorized = false
@@ -47,7 +47,70 @@ class HealthKitService: ObservableObject {
         
         let bodyMassType = HKObjectType.quantityType(forIdentifier: .bodyMass)!
         authorizationStatus = healthStore.authorizationStatus(for: bodyMassType)
-        isAuthorized = authorizationStatus == .sharingAuthorized
+        
+        // HealthKitでは、ユーザーがデータアクセスを許可していても
+        // プライバシー保護のため.notDeterminedが返されることがある
+        // そのため、実際にデータクエリを試行して判定する
+        switch authorizationStatus {
+        case .sharingAuthorized:
+            isAuthorized = true
+        case .sharingDenied:
+            isAuthorized = false
+        case .notDetermined:
+            // 実際にデータアクセスを試行して判定
+            checkDataAccess()
+        @unknown default:
+            isAuthorized = false
+        }
+    }
+    
+    @MainActor
+    private func checkDataAccess() {
+        Task {
+            do {
+                let bodyMassType = HKQuantityType.quantityType(forIdentifier: .bodyMass)!
+                let endDate = Date()
+                let startDate = Calendar.current.date(byAdding: .day, value: -1, to: endDate) ?? endDate
+                
+                // 最新のデータを1件だけクエリして、アクセス可能かチェック
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    let predicate = HKQuery.predicateForSamples(
+                        withStart: startDate,
+                        end: endDate,
+                        options: .strictStartDate
+                    )
+                    
+                    let query = HKSampleQuery(
+                        sampleType: bodyMassType,
+                        predicate: predicate,
+                        limit: 1,
+                        sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+                    ) { _, samples, error in
+                        Task { @MainActor in
+                            if let error = error {
+                                // エラーの種類で判定
+                                if (error as NSError).code == HKError.errorAuthorizationDenied.rawValue {
+                                    self.isAuthorized = false
+                                } else {
+                                    // アクセス権限はあるがデータがない場合
+                                    self.isAuthorized = true
+                                }
+                            } else {
+                                // クエリが成功（データの有無に関わらず）
+                                self.isAuthorized = true
+                            }
+                            continuation.resume()
+                        }
+                    }
+                    
+                    healthStore.execute(query)
+                }
+            } catch {
+                await MainActor.run {
+                    self.isAuthorized = false
+                }
+            }
+        }
     }
     
     // MARK: - Weight Data Sync

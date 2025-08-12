@@ -8,6 +8,8 @@ struct FTPHistoryView: View {
     
     @State private var showingEntrySheet = false
     @State private var showingChart = true
+    @State private var showingBulkDeleteAlert = false
+    @State private var isEditMode = false
     
     var body: some View {
         NavigationStack {
@@ -119,16 +121,44 @@ struct FTPHistoryView: View {
             }
             .navigationTitle("FTP履歴")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if !ftpHistory.isEmpty {
+                        Button(isEditMode ? "完了" : "編集") {
+                            withAnimation {
+                                isEditMode.toggle()
+                            }
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingEntrySheet = true
-                    }) {
-                        Image(systemName: "plus")
+                    HStack {
+                        if isEditMode && !ftpHistory.isEmpty {
+                            Button("一括削除") {
+                                showingBulkDeleteAlert = true
+                            }
+                            .foregroundColor(.red)
+                        }
+                        
+                        Button(action: {
+                            showingEntrySheet = true
+                        }) {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
             .sheet(isPresented: $showingEntrySheet) {
                 FTPEntryView()
+            }
+            .alert("一括削除", isPresented: $showingBulkDeleteAlert) {
+                Button("全て削除", role: .destructive) {
+                    deleteAllFTPRecords()
+                    isEditMode = false
+                }
+                Button("キャンセル", role: .cancel) { }
+            } message: {
+                Text("\(ftpHistory.count)件のFTP記録を全て削除してもよろしいですか？この操作は取り消せません。")
             }
         }
     }
@@ -137,6 +167,15 @@ struct FTPHistoryView: View {
         withAnimation {
             for index in offsets {
                 modelContext.delete(ftpHistory[index])
+            }
+            try? modelContext.save()
+        }
+    }
+    
+    private func deleteAllFTPRecords() {
+        withAnimation {
+            for record in ftpHistory {
+                modelContext.delete(record)
             }
             try? modelContext.save()
         }

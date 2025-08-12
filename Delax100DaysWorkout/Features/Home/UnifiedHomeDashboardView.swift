@@ -14,9 +14,9 @@ struct UnifiedHomeDashboardView: View {
     @State private var showingFTPEntry = false
     @State private var showingDemoDataAlert = false
     @State private var demoDataMessage = ""
-    @State private var showingLogEntry = false
-    @State private var showingMetricEntry = false
     @State private var showingProgressDetails = false
+    @State private var showingMetricsHistory = false
+    @State private var showingHistoryManagement = false
     
     var body: some View {
         NavigationStack {
@@ -248,8 +248,10 @@ struct UnifiedHomeDashboardView: View {
                             QuickActionButton(
                                 title: "ワークアウト",
                                 icon: "plus.circle.fill",
-                                color: .green,
-                                action: { showingLogEntry = true }
+                                color: .gray,
+                                action: { 
+                                    // Disabled - use history screens for workout entry
+                                }
                             )
                             
                             QuickActionButton(
@@ -257,19 +259,7 @@ struct UnifiedHomeDashboardView: View {
                                 icon: "scalemass.fill",
                                 color: .orange,
                                 action: { 
-                                    if healthKitService.isAuthorized {
-                                        Task {
-                                            await syncHealthKitData()
-                                            // 同期完了をユーザーに通知
-                                            await MainActor.run {
-                                                // Haptic feedback
-                                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                                                impactFeedback.impactOccurred()
-                                            }
-                                        }
-                                    } else {
-                                        showingMetricEntry = true
-                                    }
+                                    showingMetricsHistory = true
                                 }
                             )
                             
@@ -278,6 +268,13 @@ struct UnifiedHomeDashboardView: View {
                                 icon: "chart.line.uptrend.xyaxis",
                                 color: .purple,
                                 action: { showingProgressDetails = true }
+                            )
+                            
+                            QuickActionButton(
+                                title: "履歴管理",
+                                icon: "clock.arrow.circlepath",
+                                color: .indigo,
+                                action: { showingHistoryManagement = true }
                             )
                         }
                         .padding(.horizontal, 4)
@@ -327,27 +324,13 @@ struct UnifiedHomeDashboardView: View {
                     }
             }
         }
-        .sheet(isPresented: $showingLogEntry) {
+        .sheet(isPresented: $showingMetricsHistory) {
             NavigationStack {
-                LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
-                    .navigationTitle("ワークアウト記録")
+                MetricsHistoryView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
-                            Button("キャンセル") {
-                                showingLogEntry = false
-                            }
-                        }
-                    }
-            }
-        }
-        .sheet(isPresented: $showingMetricEntry) {
-            NavigationStack {
-                DailyMetricEntryView()
-                    .navigationTitle("体重記録")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("キャンセル") {
-                                showingMetricEntry = false
+                            Button("完了") {
+                                showingMetricsHistory = false
                             }
                         }
                     }
@@ -375,6 +358,19 @@ struct UnifiedHomeDashboardView: View {
                     }
                     .navigationTitle("進捗詳細")
                 }
+            }
+        }
+        .sheet(isPresented: $showingHistoryManagement) {
+            NavigationStack {
+                HistoryManagementView()
+                    .navigationTitle("履歴管理")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("閉じる") {
+                                showingHistoryManagement = false
+                            }
+                        }
+                    }
             }
         }
         .alert("デモデータ", isPresented: $showingDemoDataAlert) {

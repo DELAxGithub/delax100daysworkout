@@ -272,6 +272,11 @@ struct SettingsView: View {
             } message: {
                 Text("Your goals have been updated successfully.")
             }
+            .onAppear {
+                Task {
+                    await viewModel.refreshHealthKitStatus()
+                }
+            }
         }
     }
 }

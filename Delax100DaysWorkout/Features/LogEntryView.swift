@@ -1,133 +1,189 @@
 import SwiftUI
+import SwiftData
 import UIKit
 import OSLog
 
 struct LogEntryView: View {
+    @State private var viewModel: LogEntryViewModel
     @Environment(\.dismiss) private var dismiss
-    @State var viewModel: LogEntryViewModel
+    
+    // State management
+    @State private var isSaving = false
+    @State private var showingSaveSuccess = false
     @State private var showingCancelAlert = false
     @State private var showingErrorAlert = false
     @State private var errorMessage = ""
+    
+    init(viewModel: LogEntryViewModel) {
+        self._viewModel = State(wrappedValue: viewModel)
+    }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Picker("Log Type", selection: $viewModel.logType) {
-                        ForEach(LogType.allCases) { type in
-                            Text(type.rawValue).tag(type)
-                        }
+        Form {
+            // Type and Date Selection
+            Section {
+                Picker("Log Type", selection: $viewModel.logType) {
+                    ForEach(LogType.allCases) { type in
+                        Text(type.rawValue).tag(type)
                     }
-                    .pickerStyle(.segmented)
+                }
+                .pickerStyle(.segmented)
 
-                    DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
-                }
-                .onChange(of: viewModel.logType) { _, _ in
-                    // Reload defaults when switching type and reset baseline
-                    viewModel.preloadFromLastEntries()
-                    viewModel.captureBaseline()
-                }
-
-                switch viewModel.logType {
-                case .weight:
-                    Section(header: Text("Weight Details")) {
-                        HStack {
-                            Text("Weight (kg)")
-                            Spacer()
-                            TextField("Weight", value: $viewModel.weightKg, format: .number.precision(.fractionLength(1)))
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                case .cycling:
-                    Section(header: Text("Summary")) {
-                        TextField("Summary (e.g., 1hr Z2 ride)", text: $viewModel.workoutSummary)
-                    }
-                    CyclingInputView(
-                        distance: $viewModel.cyclingDistance,
-                        duration: $viewModel.cyclingDuration,
-                        averagePower: $viewModel.cyclingAveragePower,
-                        intensity: $viewModel.cyclingIntensity,
-                        notes: $viewModel.cyclingNotes
-                    )
-                    
-                case .strength:
-                    Section(header: Text("Summary")) {
-                        TextField("Summary (e.g., Upper Body Day)", text: $viewModel.workoutSummary)
-                    }
-                    StrengthInputView(strengthDetails: $viewModel.strengthDetails)
-                    
-                case .flexibility:
-                    Section(header: Text("Summary")) {
-                        TextField("Summary (e.g., Morning Stretch)", text: $viewModel.workoutSummary)
-                    }
-                    FlexibilityInputView(
-                        forwardBendDistance: $viewModel.flexibilityForwardBend,
-                        leftSplitAngle: $viewModel.flexibilityLeftSplit,
-                        rightSplitAngle: $viewModel.flexibilityRightSplit,
-                        duration: $viewModel.flexibilityDuration,
-                        notes: $viewModel.flexibilityNotes
-                    )
-                }
+                DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
             }
-            .navigationTitle("New Log Entry")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                // Autofill from previous data on first load and set baseline
+            .onChange(of: viewModel.logType) { _, _ in
+                // Reload defaults when switching type and reset baseline
                 viewModel.preloadFromLastEntries()
                 viewModel.captureBaseline()
             }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        if viewModel.hasChanges {
-                            showingCancelAlert = true
-                        } else {
-                            dismiss()
-                        }
+
+            // Content based on selected log type
+            // NOTE: Only weight is currently supported. Other types cause crashes.
+            switch viewModel.logType {
+            case .weight:
+                Section(header: Text("Weight Details")) {
+                    HStack {
+                        Text("Weight (kg)")
+                        Spacer()
+                        TextField("Weight", value: $viewModel.weightKg, format: .number.precision(.fractionLength(1)))
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
                     }
-                    .disabled(viewModel.isSaving)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        handleSave()
+                
+            default:
+                // Temporarily disabled to prevent crashes
+                // TODO: Implement proper workout entry in dedicated screens
+                Section(header: Text("Coming Soon")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("This feature is being redesigned", systemImage: "hammer.fill")
+                            .foregroundColor(.orange)
+                        Text("Workout entry will be integrated into the history screens for better context and usability.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("For now, please use the weight entry feature above.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
-                    .disabled(viewModel.isSaveDisabled || viewModel.isSaving)
+                    .padding(.vertical, 4)
                 }
             }
         }
-        .alert("変更を破棄しますか？", isPresented: $showingCancelAlert) {
-            Button("破棄", role: .destructive) {
+        .navigationTitle("New Log Entry")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Autofill from previous data on first load and set baseline
+            viewModel.preloadFromLastEntries()
+            viewModel.captureBaseline()
+        }
+        .onTapGesture {
+            // Dismiss keyboard when tapping outside
+            hideKeyboard()
+        }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    if viewModel.hasChanges {
+                        showingCancelAlert = true
+                    } else {
+                        dismiss()
+                    }
+                }
+                .disabled(isSaving)
+            }
+            
+            ToolbarItem(placement: .confirmationAction) {
+                Button(action: handleSave) {
+                    if isSaving {
+                        HStack(spacing: 6) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                            Text("Saving...")
+                        }
+                        .animation(.easeInOut(duration: 0.2), value: isSaving)
+                    } else {
+                        Text("Save")
+                    }
+                }
+                .disabled(viewModel.isSaveDisabled || isSaving)
+            }
+        }
+        .alert("Discard changes?", isPresented: $showingCancelAlert) {
+            Button("Discard", role: .destructive) {
                 dismiss()
             }
-            Button("キャンセル", role: .cancel) { }
+            Button("Keep editing", role: .cancel) { }
         } message: {
-            Text("入力した内容が失われます。")
+            Text("Your changes will be lost.")
         }
-        .alert("保存エラー", isPresented: $showingErrorAlert) {
+        .alert("Saved!", isPresented: $showingSaveSuccess) {
+            Button("OK") {
+                dismiss()
+            }
+        } message: {
+            Text("Your data has been saved successfully.")
+        }
+        .alert("Save Error", isPresented: $showingErrorAlert) {
             Button("OK") { }
         } message: {
             Text(errorMessage)
         }
     }
     
+    // MARK: - Actions
+    
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+    
     private func handleSave() {
+        guard !viewModel.isSaveDisabled else { return }
+        
+        isSaving = true
+        
         Task {
             await viewModel.save()
             
-            if case .success = viewModel.saveState {
-                // ハプティックフィードバック
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.prepare()
-                impactFeedback.impactOccurred()
+            await MainActor.run {
+                isSaving = false
                 
-                // 少し遅延してから画面を閉じる
-                try? await Task.sleep(nanoseconds: 300_000_000)
-                dismiss()
-            } else if case .error(let message) = viewModel.saveState {
-                errorMessage = message
-                showingErrorAlert = true
+                if case .success = viewModel.saveState {
+                    Logger.database.info("✅ Save successful")
+                    
+                    // Haptic feedback
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                    impactFeedback.prepare()
+                    impactFeedback.impactOccurred()
+                    
+                    showingSaveSuccess = true
+                    
+                } else if case .error(let message) = viewModel.saveState {
+                    Logger.error.error("❌ Save error: \(message)")
+                    errorMessage = message
+                    showingErrorAlert = true
+                }
             }
         }
+    }
+}
+
+#Preview {
+    @Previewable @State var previewModelContainer: ModelContainer = {
+        let schema = Schema([
+            WorkoutRecord.self,
+            DailyMetric.self,
+            DailyLog.self,
+            CyclingDetail.self,
+            StrengthDetail.self,
+            FlexibilityDetail.self
+        ])
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try! ModelContainer(for: schema, configurations: [configuration])
+        return container
+    }()
+    
+    NavigationStack {
+        LogEntryView(viewModel: LogEntryViewModel(modelContext: previewModelContainer.mainContext))
     }
 }
