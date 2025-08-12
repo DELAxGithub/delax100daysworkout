@@ -28,21 +28,13 @@ struct MainView: View {
                 }
                 .tag(2)
             
-            NavigationStack {
-                LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
-                    .shakeDetector(currentView: "記録")
-            }
-            .tabItem {
-                Label("記録", systemImage: "plus.circle")
-            }
-            .tag(3)
 
             SettingsView(viewModel: SettingsViewModel(modelContext: modelContext))
                 .shakeDetector(currentView: "設定")
                 .tabItem {
                     Label("設定", systemImage: "gear")
                 }
-                .tag(4)
+                .tag(3)
         }
     }
 }
