@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import OSLog
 
 @Observable
 class WeeklyScheduleViewModel {
@@ -34,7 +35,7 @@ class WeeklyScheduleViewModel {
             let todaysRecords = try modelContext.fetch(recordDescriptor)
             completedTasks = Set(todaysRecords.compactMap { $0.templateTask?.id })
         } catch {
-            print("Error checking completed tasks: \(error)")
+            Logger.error.error("Error checking completed tasks: \(error.localizedDescription)")
         }
     }
     
@@ -76,7 +77,7 @@ class WeeklyScheduleViewModel {
             checkForAchievements(record)
             return record
         } catch {
-            print("Error saving quick completion: \(error)")
+            Logger.error.error("Error saving quick completion: \(error.localizedDescription)")
             return nil
         }
     }
@@ -100,12 +101,12 @@ class WeeklyScheduleViewModel {
             let progress = progressAnalyzer.analyzeProgress(records: allRecords)
             if progress.currentStreak == 3 || progress.currentStreak == 5 {
                 let message = progressAnalyzer.generateMotivationalMessage(progress: progress)
-                print("Motivational: \(message)")
+                Logger.general.info("Motivational: \(message)")
             }
             
             try modelContext.save()
         } catch {
-            print("Error checking achievements: \(error)")
+            Logger.error.error("Error checking achievements: \(error.localizedDescription)")
         }
     }
     

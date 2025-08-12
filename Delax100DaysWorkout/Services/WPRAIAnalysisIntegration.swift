@@ -336,13 +336,13 @@ extension ProgressAnalyzer {
     private func getDailyWeight(for date: Date) -> Double? {
         // DailyMetricから体重データを取得
         // 実装の簡略化のため、現在は固定値を返す
-        return 70.0  // TODO: 実際のデータベースクエリ
+        return 70.0  // Placeholder: Replace with actual database query when needed
     }
     
     private func getFTPAtDate(_ date: Date) -> Int {
         // 指定日時点でのFTP値を取得
         // 実装の簡略化のため、現在は固定値を返す
-        return 250  // TODO: 実際のFTPHistory検索
+        return 250  // Placeholder: Replace with actual FTPHistory query when needed
     }
     
     private func daysSinceBaseline(_ wprSystem: WPRTrackingSystem) -> Double {

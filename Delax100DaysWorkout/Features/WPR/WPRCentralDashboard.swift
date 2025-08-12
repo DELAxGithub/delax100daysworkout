@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import OSLog
 
 struct WPRCentralDashboardView: View {
     @Environment(\.modelContext) private var modelContext
@@ -128,7 +129,7 @@ struct WPRCentralDashboardView: View {
             let systems = try modelContext.fetch(descriptor)
             wprSystem = systems.first ?? WPRTrackingSystem()
         } catch {
-            print("WPRシステム取得エラー: \(error)")
+            Logger.error.error("WPRシステム取得エラー: \(error.localizedDescription)")
             wprSystem = WPRTrackingSystem()
         }
         

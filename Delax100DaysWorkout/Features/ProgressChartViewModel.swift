@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 @Observable
 class ProgressChartViewModel {
@@ -29,7 +30,7 @@ class ProgressChartViewModel {
             workoutRecords = try modelContext.fetch(workoutDescriptor)
 
         } catch {
-            print("Failed to fetch data for progress chart: \(error)")
+            Logger.error.error("Failed to fetch data for progress chart: \(error.localizedDescription)")
         }
     }
     

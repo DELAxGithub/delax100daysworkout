@@ -1,7 +1,9 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import OSLog
 
+@MainActor
 @Observable
 class TodayViewModel {
     var todaysTasks: [DailyTask] = []
@@ -70,7 +72,7 @@ class TodayViewModel {
             checkCompletedTasks()
             updateProgress()
         } catch {
-            print("Error loading tasks: \(error)")
+            Logger.error.error("Error loading tasks: \(error.localizedDescription)")
         }
     }
     
@@ -84,7 +86,7 @@ class TodayViewModel {
             activeTemplate = defaultTemplate
             loadTodaysTasks()
         } catch {
-            print("Error creating default template: \(error)")
+            Logger.error.error("Error creating default template: \(error.localizedDescription)")
         }
     }
     
@@ -102,7 +104,7 @@ class TodayViewModel {
             let todaysRecords = try modelContext.fetch(recordDescriptor)
             completedTasks = Set(todaysRecords.compactMap { $0.templateTask?.id })
         } catch {
-            print("Error checking completed tasks: \(error)")
+            Logger.error.error("Error checking completed tasks: \(error.localizedDescription)")
         }
     }
     
@@ -161,7 +163,7 @@ class TodayViewModel {
             checkForAchievements(record)
             return record
         } catch {
-            print("Error saving quick completion: \(error)")
+            Logger.error.error("Error saving quick completion: \(error.localizedDescription)")
             return nil
         }
     }
@@ -189,12 +191,12 @@ class TodayViewModel {
             let progress = progressAnalyzer.analyzeProgress(records: allRecords)
             if progress.currentStreak == 3 || progress.currentStreak == 5 {
                 let message = progressAnalyzer.generateMotivationalMessage(progress: progress)
-                print("Motivational: \(message)") // TODO: 実際の通知実装
+                Logger.general.info("Motivational: \(message)") // TODO: 実際の通知実装
             }
             
             try modelContext.save()
         } catch {
-            print("Error checking achievements: \(error)")
+            Logger.error.error("Error checking achievements: \(error.localizedDescription)")
         }
     }
     
@@ -248,7 +250,7 @@ class TodayViewModel {
             updateProgress()
             
         } catch {
-            print("Error deleting task: \(error)")
+            Logger.error.error("Error deleting task: \(error.localizedDescription)")
         }
     }
 }

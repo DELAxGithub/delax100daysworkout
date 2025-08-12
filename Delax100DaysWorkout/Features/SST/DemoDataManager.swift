@@ -1,12 +1,13 @@
 import Foundation
 import SwiftData
+import OSLog
 
 class DemoDataManager {
     
     // MARK: - Demo Data Generation
     
     static func generateJuly2025DemoData(modelContext: ModelContext) {
-        print("🚀 Generating July 2025 demo data...")
+        Logger.general.info("Generating July 2025 demo data...")
         
         // Clear existing demo data first
         clearExistingDemoData(modelContext: modelContext)
@@ -19,9 +20,9 @@ class DemoDataManager {
         // Save all changes
         do {
             try modelContext.save()
-            print("✅ July 2025 demo data generated successfully!")
+            Logger.general.info("July 2025 demo data generated successfully!")
         } catch {
-            print("❌ Failed to save demo data: \(error)")
+            Logger.error.error("Failed to save demo data: \(error.localizedDescription)")
         }
     }
     
@@ -46,7 +47,7 @@ class DemoDataManager {
             modelContext.insert(ftpHistory)
         }
         
-        print("📈 Generated \(ftpUpdates.count) FTP history records")
+        Logger.general.info("Generated \(ftpUpdates.count) FTP history records")
     }
     
     // MARK: - Daily Metrics Generation
@@ -82,7 +83,7 @@ class DemoDataManager {
             generatedCount += 1
         }
         
-        print("📊 Generated \(generatedCount) daily metrics records")
+        Logger.general.info("Generated \(generatedCount) daily metrics records")
     }
     
     // MARK: - Cycling Workouts Generation
@@ -151,7 +152,7 @@ class DemoDataManager {
             generatedCount += 1
         }
         
-        print("🚴 Generated \(generatedCount) cycling workout records")
+        Logger.general.info("Generated \(generatedCount) cycling workout records")
     }
     
     // MARK: - Helper Functions
@@ -236,11 +237,11 @@ class DemoDataManager {
             for item in existingWorkouts { modelContext.delete(item) }
             
             if !existingFTP.isEmpty || !existingMetrics.isEmpty || !existingWorkouts.isEmpty {
-                print("🧹 Cleared existing July 2025 demo data")
+                Logger.general.info("Cleared existing July 2025 demo data")
             }
             
         } catch {
-            print("⚠️ Warning: Could not clear existing demo data: \(error)")
+            Logger.error.error("Warning: Could not clear existing demo data: \(error.localizedDescription)")
         }
     }
     

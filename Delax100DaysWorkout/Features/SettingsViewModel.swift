@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
+import OSLog
 
+@MainActor
 @Observable
 class SettingsViewModel {
     var goalDate: Date = Date().addingTimeInterval(100 * 24 * 60 * 60)
@@ -57,7 +59,7 @@ class SettingsViewModel {
                 self.userProfile = newProfile
             }
         } catch {
-            print("Failed to fetch UserProfile: \(error)")
+            Logger.error.error("Failed to fetch UserProfile: \(error.localizedDescription)")
         }
     }
 

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 enum MetricDataSource: String, Codable, CaseIterable {
     case manual = "Manual"
@@ -318,10 +319,10 @@ extension DailyMetric {
             
             try context.save()
             
-            print("WPRTrackingSystem updated with new weight: \(newWeight)kg")
+            Logger.database.info("WPRTrackingSystem updated with new weight: \(newWeight)kg")
             
         } catch {
-            print("体重→WPR更新エラー: \(error)")
+            Logger.error.error("体重→WPR更新エラー: \(error.localizedDescription)")
         }
     }
     
@@ -340,11 +341,11 @@ extension DailyMetric {
                 
                 // 体重がボトルネックの場合、改善の可能性
                 if wprSystem.currentBottleneck == .weight {
-                    print("体重減少により WPR ボトルネックが改善: \(String(format: "%.1f", weightChangePercent))%")
+                    Logger.general.info("体重減少により WPR ボトルネックが改善: \(String(format: "%.1f", weightChangePercent))%")
                 }
             } else {
                 // 体重増加 = WPR低下要因（筋量増加でない場合）
-                print("体重増加による WPR への影響: \(String(format: "%.1f", weightChangePercent))%")
+                Logger.general.info("体重増加による WPR への影響: \(String(format: "%.1f", weightChangePercent))%")
                 
                 // 体重増加が著しい場合はボトルネック候補
                 if weightChangePercent > 5.0 {

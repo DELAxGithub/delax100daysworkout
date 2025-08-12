@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import OSLog
 
 struct ImageUploadService {
     private let imgurClientId = "YOUR_IMGUR_CLIENT_ID" // 実際の運用時には設定が必要
@@ -57,7 +58,7 @@ struct ImageUploadService {
         let fileURL = documentsPath.appendingPathComponent(filename)
         
         try optimizedData.write(to: fileURL)
-        print("[ImageUploadService] Image saved locally: \(fileURL.path)")
+        Logger.general.info("[ImageUploadService] Image saved locally: \(fileURL.path)")
         
         // GitHub Issue用の情報を含む説明テキストを返す
         let imageInfo = """

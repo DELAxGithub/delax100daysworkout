@@ -58,6 +58,7 @@ struct TrainingProtocol {
     let riskLevel: String            // "低", "中", "高"
 }
 
+@MainActor
 class BottleneckDetectionSystem: ObservableObject {
     private let modelContext: ModelContext
     private let optimizationEngine: WPROptimizationEngine

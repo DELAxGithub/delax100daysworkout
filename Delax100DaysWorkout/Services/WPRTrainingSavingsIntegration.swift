@@ -1,9 +1,11 @@
 import Foundation
 import SwiftData
 import Combine
+import OSLog
 
 // MARK: - Unified Training System Integration
 
+@MainActor
 class WPRTrainingSavingsIntegration: ObservableObject {
     private let modelContext: ModelContext
     private let wprOptimizationEngine: WPROptimizationEngine
@@ -52,7 +54,7 @@ class WPRTrainingSavingsIntegration: ObservableObject {
         do {
             try modelContext.save()
         } catch {
-            print("統合システム初期化エラー: \(error)")
+            Logger.error.error("統合システム初期化エラー: \(error.localizedDescription)")
         }
     }
     
@@ -88,7 +90,7 @@ class WPRTrainingSavingsIntegration: ObservableObject {
             do {
                 try modelContext.save()
             } catch {
-                print("統合更新保存エラー: \(error)")
+                Logger.error.error("統合更新保存エラー: \(error.localizedDescription)")
             }
         }
     }
@@ -391,7 +393,7 @@ class WPRTrainingSavingsIntegration: ObservableObject {
             let wprSystems = try modelContext.fetch(wprDescriptor)
             wprSystem = wprSystems.first
         } catch {
-            print("WPRシステム読み込みエラー: \(error)")
+            Logger.error.error("WPRシステム読み込みエラー: \(error.localizedDescription)")
         }
         
         // レガシー貯金システムの読み込み
@@ -400,7 +402,7 @@ class WPRTrainingSavingsIntegration: ObservableObject {
         do {
             legacySavings = try modelContext.fetch(savingsDescriptor)
         } catch {
-            print("レガシー貯金読み込みエラー: \(error)")
+            Logger.error.error("レガシー貯金読み込みエラー: \(error.localizedDescription)")
         }
     }
     
@@ -552,7 +554,7 @@ class WPRTrainingSavingsIntegration: ObservableObject {
     private func checkLegacyMilestones(_ savings: TrainingSavings) {
         // 簡易版: 目標達成チェックのみ
         if savings.currentCount >= savings.targetCount {
-            print("Milestone achieved for \(savings.savingsType.displayName)")
+            Logger.general.info("Milestone achieved for \(savings.savingsType.displayName)")
             // TODO: Achievement作成
         }
     }

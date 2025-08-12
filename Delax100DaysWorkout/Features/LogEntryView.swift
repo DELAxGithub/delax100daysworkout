@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import OSLog
 
 struct LogEntryView: View {
     @Environment(\.dismiss) private var dismiss
@@ -90,14 +91,14 @@ struct LogEntryView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(action: {
                         Task {
-                            print("📱 Saveボタンが押されました")
+                            Logger.ui.info("Saveボタンが押されました")
                             await viewModel.save()
                             
-                            print("📱 保存処理完了。状態: \(viewModel.saveState)")
+                            Logger.ui.info("保存処理完了。状態: \(viewModel.saveState)")
                             
                             // 保存成功時の処理
                             if case .success = viewModel.saveState {
-                                print("🎉 保存成功 - ハプティックフィードバック実行")
+                                Logger.ui.info("保存成功 - ハプティックフィードバック実行")
                                 // ハプティックフィードバック
                                 await MainActor.run {
                                     let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -107,10 +108,10 @@ struct LogEntryView: View {
                                 
                                 // 少し遅延してから画面を閉じる
                                 try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒
-                                print("📱 画面を閉じます")
+                                Logger.ui.info("画面を閉じます")
                                 dismiss()
                             } else if case .error(let message) = viewModel.saveState {
-                                print("❌ 保存エラーが発生: \(message)")
+                                Logger.error.error("保存エラーが発生: \(message)")
                                 errorMessage = message
                                 showingErrorAlert = true
                             }

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 /// WorkoutRecord変更時にWPRTrackingSystemを自動更新するサービス
 @MainActor
@@ -31,7 +32,7 @@ class WPRAutoUpdateService: @unchecked Sendable {
                 setupInitialWPRValues(system: newSystem)
             }
         } catch {
-            print("WPRTrackingSystem読み込みエラー: \(error)")
+            Logger.error.error("WPRTrackingSystem読み込みエラー: \(error.localizedDescription)")
         }
     }
     
@@ -289,7 +290,7 @@ class WPRAutoUpdateService: @unchecked Sendable {
             let ftpRecords = try modelContext.fetch(descriptor)
             return ftpRecords.first?.ftpValue
         } catch {
-            print("FTP取得エラー: \(error)")
+            Logger.error.error("FTP取得エラー: \(error.localizedDescription)")
             return nil
         }
     }
@@ -303,7 +304,7 @@ class WPRAutoUpdateService: @unchecked Sendable {
             let metrics = try modelContext.fetch(descriptor)
             return metrics.first?.weightKg
         } catch {
-            print("体重取得エラー: \(error)")
+            Logger.error.error("体重取得エラー: \(error.localizedDescription)")
             return nil
         }
     }

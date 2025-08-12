@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Combine
+import OSLog
 
 enum PlanUpdateStatus: Equatable {
     case idle
@@ -22,6 +23,7 @@ enum PlanUpdateStatus: Equatable {
 
 // PlanUpdateHistoryはファイル末尾の@Modelクラスで定義されています
 
+@MainActor
 class WeeklyPlanManager: ObservableObject {
     private let modelContext: ModelContext
     private let progressAnalyzer: ProgressAnalyzer
@@ -53,7 +55,7 @@ class WeeklyPlanManager: ObservableObject {
     @MainActor
     func initiateWeeklyPlanUpdate() async {
         guard canPerformUpdate() else {
-            print("週次プラン更新の条件が満たされていません")
+            Logger.general.info("週次プラン更新の条件が満たされていません")
             return
         }
         
@@ -80,7 +82,7 @@ class WeeklyPlanManager: ObservableObject {
                 return
             }
             
-            print("週次プラン分析を開始します（予想コスト: $\(String(format: "%.4f", estimatedCost))）")
+            Logger.general.info("週次プラン分析を開始します（予想コスト: $\(String(format: "%.4f", estimatedCost))）")
             
             // AI分析を実行
             let aiSuggestion = try await aiService.analyzeAndSuggestWeeklyPlan(request: analysisRequest)
@@ -113,11 +115,11 @@ class WeeklyPlanManager: ObservableObject {
             // 分析統計を更新
             updateAnalysisStatistics(aiSuggestion)
             
-            print("週次プランが自動的に更新されました。")
+            Logger.general.info("週次プランが自動的に更新されました。")
             
         } catch {
             updateStatus = .failed(error)
-            print("週次プラン更新でエラーが発生しました: \(error.localizedDescription)")
+            Logger.error.error("週次プラン更新でエラーが発生しました: \(error.localizedDescription)")
         }
     }
     
@@ -125,7 +127,7 @@ class WeeklyPlanManager: ObservableObject {
     @MainActor
     func revertLastUpdate() async {
         guard let history = lastUpdateHistory else {
-            print("戻す履歴がありません")
+            Logger.general.info("戻す履歴がありません")
             return
         }
         
@@ -143,18 +145,18 @@ class WeeklyPlanManager: ObservableObject {
             updateStatus = .completed
             lastUpdateHistory = nil
             
-            print("プランを元に戻しました")
+            Logger.general.info("プランを元に戻しました")
             
         } catch {
             updateStatus = .failed(error)
-            print("プランの復元でエラーが発生しました: \(error.localizedDescription)")
+            Logger.error.error("プランの復元でエラーが発生しました: \(error.localizedDescription)")
         }
     }
     
     // 手動更新をトリガー
     func requestManualUpdate() async {
         guard updateStatus == .idle else {
-            print("既に更新処理が進行中です")
+            Logger.general.info("既に更新処理が進行中です")
             return
         }
         

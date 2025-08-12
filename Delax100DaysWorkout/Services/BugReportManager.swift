@@ -1,7 +1,9 @@
 import Foundation
 import UIKit
 import SwiftUI
+import OSLog
 
+@MainActor
 class BugReportManager: ObservableObject {
     static let shared = BugReportManager()
     
@@ -64,7 +66,7 @@ class BugReportManager: ObservableObject {
         }
         
         #if DEBUG
-        print("[\(level.rawValue)] \(source ?? "App"): \(message)")
+        Logger.debug.debug("[\(level.rawValue)] \(source ?? "App"): \(message)")
         #endif
     }
     

@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
+import OSLog
 
+@MainActor
 @Observable
 class DashboardViewModel {
     // MARK: - Published Properties for UI
@@ -116,10 +118,10 @@ class DashboardViewModel {
             // データを再読み込み
             refreshData()
             
-            print("✅ ワークアウトが正常に更新されました")
+            Logger.database.info("ワークアウトが正常に更新されました")
             
         } catch {
-            print("❌ ワークアウト更新エラー: \(error.localizedDescription)")
+            Logger.error.error("ワークアウト更新エラー: \(error.localizedDescription)")
         }
     }
     
@@ -131,10 +133,10 @@ class DashboardViewModel {
             // データを再読み込み
             refreshData()
             
-            print("✅ ワークアウトが正常に削除されました")
+            Logger.database.info("ワークアウトが正常に削除されました")
             
         } catch {
-            print("❌ ワークアウト削除エラー: \(error.localizedDescription)")
+            Logger.error.error("ワークアウト削除エラー: \(error.localizedDescription)")
         }
     }
     

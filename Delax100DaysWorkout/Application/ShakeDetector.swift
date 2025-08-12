@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import OSLog
 
 // MARK: - Shake Detection Extension
 
@@ -31,10 +32,10 @@ struct ShakeDetector: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
-                print("[ShakeDetector] Shake detected for view: \(currentView)")
+                Logger.ui.info("[ShakeDetector] Shake detected for view: \(currentView)")
                 // シェイク検出時に即座にスクリーンショットを取得
                 capturedScreenshot = captureScreenshot()
-                print("[ShakeDetector] Screenshot captured, size: \(capturedScreenshot?.count ?? 0) bytes")
+                Logger.ui.info("[ShakeDetector] Screenshot captured, size: \(capturedScreenshot?.count ?? 0) bytes")
                 showBugReport = true
             }
             .sheet(isPresented: $showBugReport) {
@@ -45,7 +46,7 @@ struct ShakeDetector: ViewModifier {
     private func captureScreenshot() -> Data? {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first else { 
-            print("[ShakeDetector] Failed to get window scene")
+            Logger.ui.error("[ShakeDetector] Failed to get window scene")
             return nil 
         }
         
@@ -55,7 +56,7 @@ struct ShakeDetector: ViewModifier {
         }
         
         let imageData = image.jpegData(compressionQuality: 0.8)
-        print("[ShakeDetector] Screenshot captured: \(imageData?.count ?? 0) bytes")
+        Logger.ui.info("[ShakeDetector] Screenshot captured: \(imageData?.count ?? 0) bytes")
         
         return imageData
     }
@@ -118,7 +119,7 @@ struct DebugMenuView: View {
                     
                     Button {
                         let validation = EnvironmentConfig.validateTokens()
-                        print("環境変数検証: \(validation.message)")
+                        Logger.debug.debug("環境変数検証: \(validation.message)")
                     } label: {
                         Label("環境変数を検証", systemImage: "checkmark.circle")
                     }

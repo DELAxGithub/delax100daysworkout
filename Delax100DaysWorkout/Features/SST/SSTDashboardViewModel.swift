@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 import SwiftUI
 
 @MainActor
@@ -76,7 +77,7 @@ class SSTDashboardViewModel: ObservableObject {
             ftpHistory = try context.fetch(descriptor)
             currentFTP = ftpHistory.first?.ftpValue
         } catch {
-            print("Failed to load FTP history: \(error)")
+            Logger.error.error("Failed to load FTP history: \(error.localizedDescription)")
             ftpHistory = []
             currentFTP = nil
         }
@@ -102,7 +103,7 @@ class SSTDashboardViewModel: ObservableObject {
                 return WHRDataPoint(date: workout.date, whrRatio: whr, averagePower: cycling.averagePower)
             }
         } catch {
-            print("Failed to load W/HR data: \(error)")
+            Logger.error.error("Failed to load W/HR data: \(error.localizedDescription)")
             whrData = []
         }
     }

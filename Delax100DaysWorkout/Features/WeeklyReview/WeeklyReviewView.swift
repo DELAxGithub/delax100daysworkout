@@ -5,7 +5,7 @@ struct WeeklyReviewView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @StateObject private var planManager: WeeklyPlanManager
+    @State private var planManager: WeeklyPlanManager?
     @State private var showingProgressDetails = false
     
     @Query private var workoutRecords: [WorkoutRecord]
@@ -28,8 +28,6 @@ struct WeeklyReviewView: View {
                 template.isActive == true
             }
         )
-        
-        self._planManager = StateObject(wrappedValue: WeeklyPlanManager(modelContext: ModelContext(try! ModelContainer(for: WorkoutRecord.self, WeeklyTemplate.self))))
     }
     
     var body: some View {
@@ -68,6 +66,12 @@ struct WeeklyReviewView: View {
         }
         .onAppear {
             setupPlanManager()
+        }
+    }
+    
+    private func setupPlanManager() {
+        if planManager == nil {
+            planManager = WeeklyPlanManager(modelContext: modelContext)
         }
     }
     
@@ -180,7 +184,7 @@ struct WeeklyReviewView: View {
                 
                 Spacer()
                 
-                if case .analyzing = planManager.updateStatus {
+                if case .analyzing = planManager?.updateStatus {
                     ProgressView()
                         .scaleEffect(0.8)
                 }
@@ -205,6 +209,7 @@ struct WeeklyReviewView: View {
     }
     
     private var statusText: String {
+        guard let planManager = planManager else { return "初期化中..." }
         switch planManager.updateStatus {
         case .idle:
             return "分析可能"
@@ -228,7 +233,7 @@ struct WeeklyReviewView: View {
             
             Button("AI分析を開始") {
                 Task {
-                    await planManager.initiateWeeklyPlanUpdate()
+                    await planManager?.initiateWeeklyPlanUpdate()
                 }
             }
             .buttonStyle(.borderedProminent)

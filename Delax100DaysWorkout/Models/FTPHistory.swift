@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 enum FTPMeasurementMethod: String, Codable, CaseIterable {
     case twentyMinuteTest = "20MinTest"
@@ -219,10 +220,10 @@ extension FTPHistory {
             
             try context.save()
             
-            print("WPRTrackingSystem updated with new FTP: \(self.ftpValue)W")
+            Logger.database.info("WPRTrackingSystem updated with new FTP: \(self.ftpValue)W")
             
         } catch {
-            print("FTP→WPR更新エラー: \(error)")
+            Logger.error.error("FTP→WPR更新エラー: \(error.localizedDescription)")
         }
     }
 }

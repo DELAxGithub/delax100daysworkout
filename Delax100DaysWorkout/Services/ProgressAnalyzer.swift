@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 struct WeeklyStats {
     let weekStartDate: Date
@@ -284,7 +285,7 @@ class ProgressAnalyzer {
         do {
             return try modelContext.fetch(descriptor)
         } catch {
-            print("Error fetching achievements: \(error)")
+            Logger.error.error("Error fetching achievements: \(error.localizedDescription)")
             return []
         }
     }

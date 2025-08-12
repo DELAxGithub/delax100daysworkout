@@ -4,6 +4,7 @@ import Combine
 
 // MARK: - WPR Optimization Engine
 
+@MainActor
 class WPROptimizationEngine: ObservableObject {
     private let modelContext: ModelContext
     
@@ -362,11 +363,11 @@ class WPROptimizationEngine: ObservableObject {
         await Task.detached { [weak self] in
             guard let self = self else { return }
             
-            let progressScore = self.calculateProgressScore(system)
-            let bottleneck = self.detectBottleneck(system)
-            let projection30 = self.predictWPRProgression(system, days: 30)
-            let projection60 = self.predictWPRProgression(system, days: 60)
-            let projection100 = self.predictWPRProgression(system, days: 100)
+            let progressScore = await self.calculateProgressScore(system)
+            let bottleneck = await self.detectBottleneck(system)
+            let projection30 = await self.predictWPRProgression(system, days: 30)
+            let projection60 = await self.predictWPRProgression(system, days: 60)
+            let projection100 = await self.predictWPRProgression(system, days: 100)
             
             await MainActor.run {
                 system.overallProgressScore = progressScore
@@ -389,7 +390,7 @@ class WPROptimizationEngine: ObservableObject {
             
             // データベース保存
             do {
-                try self.modelContext.save()
+                try await self.modelContext.save()
             } catch {
                 await MainActor.run {
                     self.analysisError = "保存エラー: \(error.localizedDescription)"

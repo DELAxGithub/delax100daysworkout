@@ -30,7 +30,9 @@ struct EnvironmentConfig {
     
     static var hasValidTokens: Bool {
         // GitHub Tokenのみ必須（Claude APIは自動修正機能でのみ使用）
-        return githubToken != nil && !githubToken!.isEmpty
+        guard let token = githubToken, !token.isEmpty else { return false }
+        // Basic security check - token should not be placeholder
+        return !token.contains("your_github_token_here") && token.count > 10
     }
     
     // トークンの検証

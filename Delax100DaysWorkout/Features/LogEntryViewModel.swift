@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 enum SaveState: Equatable {
     case idle
@@ -29,6 +30,7 @@ enum LogType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+@MainActor
 @Observable
 class LogEntryViewModel {
     var logType: LogType = .weight
@@ -69,15 +71,6 @@ class LogEntryViewModel {
         }
     }
     
-    var hasChanges: Bool {
-        switch logType {
-        case .weight:
-            return weightKg > 0
-        case .cycling, .strength, .flexibility:
-            return !workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        }
-    }
-    
     var isSaving: Bool {
         if case .saving = saveState {
             return true
@@ -115,10 +108,10 @@ class LogEntryViewModel {
 
     private func preloadLastWeight() {
         guard weightKg <= 0 else { return }
-        let descriptor = FetchDescriptor<DailyLog>(
-            sortBy: [SortDescriptor(\DailyLog.date, order: .reverse)],
-            fetchLimit: 1
+        var descriptor = FetchDescriptor<DailyLog>(
+            sortBy: [SortDescriptor(\DailyLog.date, order: .reverse)]
         )
+        descriptor.fetchLimit = 1
         if let last = try? modelContext.fetch(descriptor).first {
             weightKg = last.weightKg
         }
@@ -179,11 +172,11 @@ class LogEntryViewModel {
               cyclingAveragePower == 0,
               workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
-        let descriptor = FetchDescriptor<WorkoutRecord>(
-            predicate: #Predicate { $0.workoutType == .cycling },
-            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)],
-            fetchLimit: 1
+        var descriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: #Predicate { $0.workoutType.rawValue == "Cycling" },
+            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)]
         )
+        descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first,
            let detail = record.cyclingDetail {
             cyclingDistance = detail.distance
@@ -198,11 +191,11 @@ class LogEntryViewModel {
     private func preloadLastStrength() {
         guard strengthDetails.isEmpty,
               workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        let descriptor = FetchDescriptor<WorkoutRecord>(
-            predicate: #Predicate { $0.workoutType == .strength },
-            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)],
-            fetchLimit: 1
+        var descriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: #Predicate { $0.workoutType.rawValue == "Strength" },
+            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)]
         )
+        descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first,
            let details = record.strengthDetails {
             // Create fresh copies so we don't reuse persisted objects
@@ -229,11 +222,11 @@ class LogEntryViewModel {
         guard flexibilityDuration == 0,
               flexibilityForwardBend == 0,
               workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        let descriptor = FetchDescriptor<WorkoutRecord>(
-            predicate: #Predicate { $0.workoutType == .flexibility },
-            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)],
-            fetchLimit: 1
+        var descriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: #Predicate { $0.workoutType.rawValue == "Flexibility" },
+            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)]
         )
+        descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first,
            let detail = record.flexibilityDetail {
             flexibilityForwardBend = detail.forwardBendDistance
@@ -248,11 +241,11 @@ class LogEntryViewModel {
     @MainActor
     func save() async {
         guard !isSaveDisabled else { 
-            print("❌ 保存無効: 必要な入力が不足しています")
+            Logger.debug.debug("保存無効: 必要な入力が不足しています")
             return 
         }
         
-        print("🔄 保存開始...")
+        Logger.database.info("保存開始: \(logType.rawValue)")
         saveState = .saving
         
         // UI更新を確実にするため少し待機
@@ -313,11 +306,11 @@ class LogEntryViewModel {
             
             // 永続化を実行
             try modelContext.save()
-            print("✅ 保存成功!")
+            Logger.database.info("保存成功: \(logType.rawValue)")
             saveState = .success
             
         } catch {
-            print("❌ 保存エラー: \(error.localizedDescription)")
+            Logger.error.error("保存エラー: \(error.localizedDescription)")
             saveState = .error(error.localizedDescription)
         }
     }

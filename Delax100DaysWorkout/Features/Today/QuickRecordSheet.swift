@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 import SwiftData
 
 struct QuickRecordSheet: View {
@@ -440,7 +441,7 @@ struct QuickRecordSheet: View {
                 dismiss()
             }
         } catch {
-            print("Error saving details: \(error)")
+            Logger.error.error("Error saving details: \(error.localizedDescription)")
             
             // Error feedback
             let notificationFeedback = UINotificationFeedbackGenerator()

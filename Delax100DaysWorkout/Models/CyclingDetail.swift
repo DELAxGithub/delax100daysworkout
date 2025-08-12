@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 enum CyclingIntensity: String, Codable, CaseIterable {
     case recovery = "Recovery"
@@ -83,7 +84,7 @@ final class CyclingDetail {
             let ftpHistories = try modelContext.fetch(descriptor)
             return ftpHistories.first?.ftpValue ?? 250
         } catch {
-            print("Failed to fetch FTP history: \(error)")
+            Logger.error.error("Failed to fetch FTP history: \(error.localizedDescription)")
             return 250
         }
     }

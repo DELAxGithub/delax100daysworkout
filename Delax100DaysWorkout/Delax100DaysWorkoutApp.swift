@@ -1,6 +1,6 @@
 import SwiftUI
 import SwiftData
-// import DelaxSwiftUIComponents // TODO: Add via Xcode Swift Package Manager
+// DelaxSwiftUIComponents will be added when needed via Swift Package Manager
 
 @main
 struct Delax100DaysWorkoutApp: App {
@@ -35,11 +35,6 @@ struct Delax100DaysWorkoutApp: App {
             DailyMetric.self,
             // Phase 2: WPR科学的トレーニング貯金システム
             WPRTrackingSystem.self,
-            EfficiencyMetrics.self,
-            PowerProfile.self,
-            HRAtPowerTracking.self,
-            VolumeLoadSystem.self,
-            ROMTracking.self,
             TrainingSavings.self
         ])
     }

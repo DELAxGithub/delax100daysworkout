@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 struct AIAnalysisRequest {
     let weeklyStats: WeeklyStats
@@ -58,7 +59,7 @@ class WeeklyPlanAIService {
             self.claudeAPIKey = apiKey
         } else {
             self.claudeAPIKey = ""
-            print("⚠️ CLAUDE_API_KEY not found. AI features will not work.")
+            Logger.error.error("CLAUDE_API_KEY not found. AI features will not work.")
         }
         
         // 初期診断
@@ -336,23 +337,23 @@ class WeeklyPlanAIService {
     }
     
     private func parseAIResponse(response: String) throws -> WeeklyPlanSuggestion {
-        print("AI Response received: \(response)")
+        Logger.network.info("AI Response received: \(response)")
         
         // JSON部分を抽出 - 最も安全な方法
         guard let jsonStart = response.range(of: "{") else {
-            print("Error: No opening brace found in response")
+            Logger.error.error("Error: No opening brace found in response")
             throw AIServiceError.parseError
         }
         
         // 最後の }を検索
         guard let jsonEnd = response.range(of: "}", options: .backwards) else {
-            print("Error: No closing brace found in response")
+            Logger.error.error("Error: No closing brace found in response")
             throw AIServiceError.parseError
         }
         
         // 範囲の妥当性をチェック
         guard jsonStart.lowerBound < jsonEnd.upperBound else {
-            print("Error: Invalid JSON range - start after end")
+            Logger.error.error("Error: Invalid JSON range - start after end")
             throw AIServiceError.parseError
         }
         
@@ -361,20 +362,20 @@ class WeeklyPlanAIService {
         let endIndex = response.distance(from: response.startIndex, to: jsonEnd.upperBound)
         
         guard startIndex < endIndex, endIndex <= response.count else {
-            print("Error: Invalid string indices")
+            Logger.error.error("Error: Invalid string indices")
             throw AIServiceError.parseError
         }
         
         let jsonString = String(response.dropFirst(startIndex).prefix(endIndex - startIndex))
-        print("Extracted JSON: \(jsonString)")
+        Logger.debug.debug("Extracted JSON: \(jsonString)")
         
         guard let jsonData = jsonString.data(using: .utf8) else {
-            print("Error: Could not convert JSON string to data")
+            Logger.error.error("Error: Could not convert JSON string to data")
             throw AIServiceError.parseError
         }
         
         guard let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            print("Error: Could not parse JSON data")
+            Logger.error.error("Error: Could not parse JSON data")
             throw AIServiceError.parseError
         }
         
@@ -386,7 +387,7 @@ class WeeklyPlanAIService {
                   let changeTypeString = changeDict["changeType"] as? String,
                   let taskTitle = changeDict["taskTitle"] as? String,
                   let reason = changeDict["reason"] as? String else {
-                print("Warning: Invalid change data: \(changeDict)")
+                Logger.error.error("Warning: Invalid change data: \(changeDict)")
                 return nil
             }
             
@@ -397,7 +398,7 @@ class WeeklyPlanAIService {
             case "remove": changeType = .remove
             case "intensity": changeType = .intensity
             default: 
-                print("Warning: Unknown change type: \(changeTypeString)")
+                Logger.error.error("Warning: Unknown change type: \(changeTypeString)")
                 return nil
             }
             

@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 struct GitHubService {
     private let owner: String
@@ -19,7 +20,7 @@ struct GitHubService {
         }
         
         let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues")!
-        print("GitHub API URL: \(url.absoluteString)")
+        Logger.network.info("GitHub API URL: \(url.absoluteString)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -45,12 +46,12 @@ struct GitHubService {
         }
         
         // デバッグ情報をログ出力
-        print("GitHub API Response Status: \(httpResponse.statusCode)")
+        Logger.network.info("GitHub API Response Status: \(httpResponse.statusCode)")
         
         if httpResponse.statusCode != 201 {
             // エラーレスポンスの詳細を取得
             if let errorData = String(data: data, encoding: .utf8) {
-                print("GitHub API Error Response: \(errorData)")
+                Logger.network.error("GitHub API Error Response: \(errorData)")
             }
             
             // ステータスコードに応じた詳細なエラー
@@ -102,9 +103,9 @@ struct GitHubService {
         
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode == 200 {
-            print("Successfully added auto-fix-candidate label to issue #\(issueNumber)")
+            Logger.network.info("Successfully added auto-fix-candidate label to issue #\(issueNumber)")
         } else {
-            print("Failed to add auto-fix-candidate label to issue #\(issueNumber)")
+            Logger.network.error("Failed to add auto-fix-candidate label to issue #\(issueNumber)")
         }
     }
     
@@ -143,10 +144,10 @@ struct GitHubService {
                 throw GitHubError.failedToUploadScreenshot
             }
             
-            print("Screenshot information added successfully")
+            Logger.network.info("Screenshot information added successfully")
         } catch {
             // スクリーンショットの処理に失敗しても、Issueは作成済みなので続行
-            print("Failed to add screenshot information: \(error.localizedDescription)")
+            Logger.network.error("Failed to add screenshot information: \(error.localizedDescription)")
             // エラーを投げずに処理を続行
         }
     }
@@ -269,11 +270,11 @@ struct GitHubService {
         switch bugReport.category {
         case .buttonNotWorking:
             labels.append("auto-fix-candidate")
-            print("Added auto-fix-candidate label for button not working issue")
+            Logger.network.info("Added auto-fix-candidate label for button not working issue")
         case .displayIssue:
             // 表示問題も自動修正候補に
             labels.append("auto-fix-candidate")
-            print("Added auto-fix-candidate label for display issue")
+            Logger.network.info("Added auto-fix-candidate label for display issue")
         default:
             break
         }
