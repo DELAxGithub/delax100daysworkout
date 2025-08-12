@@ -21,6 +21,11 @@ struct LogEntryView: View {
 
                     DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
                 }
+                .onChange(of: viewModel.logType) { _, _ in
+                    // Reload defaults when switching type and reset baseline
+                    viewModel.preloadFromLastEntries()
+                    viewModel.captureBaseline()
+                }
 
                 switch viewModel.logType {
                 case .weight:
@@ -66,6 +71,11 @@ struct LogEntryView: View {
             }
             .navigationTitle("New Log Entry")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // Autofill from previous data on first load and set baseline
+                viewModel.preloadFromLastEntries()
+                viewModel.captureBaseline()
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

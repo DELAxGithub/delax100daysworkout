@@ -86,9 +86,163 @@ class LogEntryViewModel {
     }
 
     private var modelContext: ModelContext
+    private var baselineSignature: String? = nil
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    // MARK: - Smart Defaults
+    /// Prefill fields using the most recent entry of the selected type.
+    /// Called on appear; only fills when current fields are empty/zero.
+    func preloadFromLastEntries() {
+        switch logType {
+        case .weight:
+            preloadLastWeight()
+        case .cycling:
+            preloadLastCycling()
+        case .strength:
+            preloadLastStrength()
+        case .flexibility:
+            preloadLastFlexibility()
+        }
+    }
+
+    /// Capture current values as the baseline so prefilled data isn't treated as edits.
+    func captureBaseline() {
+        baselineSignature = computeSignature()
+    }
+
+    private func preloadLastWeight() {
+        guard weightKg <= 0 else { return }
+        let descriptor = FetchDescriptor<DailyLog>(
+            sortBy: [SortDescriptor(\DailyLog.date, order: .reverse)],
+            fetchLimit: 1
+        )
+        if let last = try? modelContext.fetch(descriptor).first {
+            weightKg = last.weightKg
+        }
+    }
+
+    // MARK: - Change Tracking
+    private func computeSignature() -> String {
+        switch logType {
+        case .weight:
+            return "type:weight;date:\(date.timeIntervalSince1970);kg:\(weightKg)"
+        case .cycling:
+            return [
+                "type:cycling",
+                "date:\(date.timeIntervalSince1970)",
+                "sum:\(workoutSummary)",
+                "dist:\(cyclingDistance)",
+                "dur:\(cyclingDuration)",
+                "avgP:\(cyclingAveragePower)",
+                "int:\(cyclingIntensity.rawValue)",
+                "notes:\(cyclingNotes)"
+            ].joined(separator: ";")
+        case .strength:
+            let detailsSig = strengthDetails.map { d in
+                [d.exercise, String(d.sets), String(d.reps), String(d.weight), d.notes ?? "", d.pullUpVariant?.rawValue ?? "", String(d.isAssisted), String(d.assistWeight), String(d.maxConsecutiveReps)].joined(separator: ",")
+            }.joined(separator: "|")
+            return ["type:strength", "date:\(date.timeIntervalSince1970)", "sum:\(workoutSummary)", "items:\(detailsSig)"]
+                .joined(separator: ";")
+        case .flexibility:
+            return [
+                "type:flex",
+                "date:\(date.timeIntervalSince1970)",
+                "sum:\(workoutSummary)",
+                "fb:\(flexibilityForwardBend)",
+                "ls:\(flexibilityLeftSplit)",
+                "rs:\(flexibilityRightSplit)",
+                "dur:\(flexibilityDuration)",
+                "notes:\(flexibilityNotes)"
+            ].joined(separator: ";")
+        }
+    }
+
+    var hasChanges: Bool {
+        if let baseline = baselineSignature {
+            return computeSignature() != baseline
+        }
+        // Fallback (no baseline captured yet)
+        switch logType {
+        case .weight:
+            return weightKg > 0
+        case .cycling, .strength, .flexibility:
+            return !workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    private func preloadLastCycling() {
+        guard cyclingDistance == 0,
+              cyclingDuration == 0,
+              cyclingAveragePower == 0,
+              workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        let descriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: #Predicate { $0.workoutType == .cycling },
+            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)],
+            fetchLimit: 1
+        )
+        if let record = try? modelContext.fetch(descriptor).first,
+           let detail = record.cyclingDetail {
+            cyclingDistance = detail.distance
+            cyclingDuration = detail.duration
+            cyclingAveragePower = detail.averagePower
+            cyclingIntensity = detail.intensity
+            cyclingNotes = detail.notes ?? ""
+            if workoutSummary.isEmpty { workoutSummary = record.summary }
+        }
+    }
+
+    private func preloadLastStrength() {
+        guard strengthDetails.isEmpty,
+              workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let descriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: #Predicate { $0.workoutType == .strength },
+            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)],
+            fetchLimit: 1
+        )
+        if let record = try? modelContext.fetch(descriptor).first,
+           let details = record.strengthDetails {
+            // Create fresh copies so we don't reuse persisted objects
+            strengthDetails = details.map { d in
+                let copy = StrengthDetail(
+                    exercise: d.exercise,
+                    sets: d.sets,
+                    reps: d.reps,
+                    weight: d.weight,
+                    notes: d.notes
+                )
+                copy.isPersonalRecord = d.isPersonalRecord
+                copy.pullUpVariant = d.pullUpVariant
+                copy.isAssisted = d.isAssisted
+                copy.assistWeight = d.assistWeight
+                copy.maxConsecutiveReps = d.maxConsecutiveReps
+                return copy
+            }
+            if workoutSummary.isEmpty { workoutSummary = record.summary }
+        }
+    }
+
+    private func preloadLastFlexibility() {
+        guard flexibilityDuration == 0,
+              flexibilityForwardBend == 0,
+              workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let descriptor = FetchDescriptor<WorkoutRecord>(
+            predicate: #Predicate { $0.workoutType == .flexibility },
+            sortBy: [SortDescriptor(\WorkoutRecord.date, order: .reverse)],
+            fetchLimit: 1
+        )
+        if let record = try? modelContext.fetch(descriptor).first,
+           let detail = record.flexibilityDetail {
+            flexibilityForwardBend = detail.forwardBendDistance
+            flexibilityLeftSplit = detail.leftSplitAngle
+            flexibilityRightSplit = detail.rightSplitAngle
+            flexibilityDuration = detail.duration
+            flexibilityNotes = detail.notes ?? ""
+            if workoutSummary.isEmpty { workoutSummary = record.summary }
+        }
     }
 
     @MainActor
