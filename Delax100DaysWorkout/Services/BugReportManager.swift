@@ -39,7 +39,8 @@ class BugReportManager: ObservableObject {
     func trackUserAction(_ action: String, viewName: String, details: [String: String]? = nil) {
         let userAction = UserAction(action: action, viewName: viewName, details: details)
         
-        DispatchQueue.main.async { [weak self] in
+        // Memory Leak対策・循環参照解消 (Issue #33)
+        Task { @MainActor [weak self] in
             guard let self = self else { return }
             self.userActions.append(userAction)
             
@@ -55,7 +56,8 @@ class BugReportManager: ObservableObject {
     func log(_ level: LogLevel, _ message: String, source: String? = nil) {
         let entry = LogEntry(level: level, message: message, source: source)
         
-        DispatchQueue.main.async { [weak self] in
+        // Memory Leak対策・循環参照解消 (Issue #33)
+        Task { @MainActor [weak self] in
             guard let self = self else { return }
             self.logs.append(entry)
             

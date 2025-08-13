@@ -3,7 +3,7 @@ import SwiftData
 import OSLog
 
 @Model
-final class DailyLog {
+final class DailyLog: @unchecked Sendable {
     var date: Date
     var weightKg: Double
     

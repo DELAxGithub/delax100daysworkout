@@ -25,7 +25,7 @@ enum MetricDataSource: String, Codable, CaseIterable {
 }
 
 @Model
-final class DailyMetric {
+final class DailyMetric: @unchecked Sendable {
     var id: UUID = UUID()
     var date: Date
     var weightKg: Double?

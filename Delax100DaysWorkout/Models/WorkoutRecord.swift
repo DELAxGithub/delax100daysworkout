@@ -43,9 +43,21 @@ final class WorkoutRecord {
     var isCompleted: Bool = false
     var isQuickRecord: Bool = false
     
+    @Relationship(deleteRule: .cascade)
     var cyclingDetail: CyclingDetail?
+    
+    @Relationship(deleteRule: .cascade)
     var strengthDetails: [StrengthDetail]?
+    
+    @Relationship(deleteRule: .cascade)
     var flexibilityDetail: FlexibilityDetail?
+    
+    @Relationship(deleteRule: .cascade)
+    var pilatesDetail: PilatesDetail?
+    
+    @Relationship(deleteRule: .cascade)
+    var yogaDetail: YogaDetail?
+    
     var templateTask: DailyTask?
     
     init(date: Date, workoutType: WorkoutType, summary: String, isQuickRecord: Bool = false) {

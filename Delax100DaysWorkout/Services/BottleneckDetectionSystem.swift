@@ -129,12 +129,19 @@ class BottleneckDetectionSystem: ObservableObject {
             // 優先アクション生成
             let prioritizedProtocols = await self.generatePrioritizedProtocols(from: bottlenecks)
             
+            // Swift 6 Sendable完全対応・並行処理安全化 (Issue #33)
+            let finalBottlenecks = bottlenecks
+            let finalPrioritizedProtocols = prioritizedProtocols
+            let finalCriticalCount = finalBottlenecks.filter { $0.severity == .critical }.count
+            let finalMajorCount = finalBottlenecks.filter { $0.severity == .major }.count
+            let finalOverallRisk = await self.calculateOverallRiskScore(finalBottlenecks)
+            
             await MainActor.run {
-                self.detectedBottlenecks = bottlenecks
-                self.prioritizedActions = prioritizedProtocols
-                self.criticalBottlenecks = bottlenecks.filter { $0.severity == .critical }.count
-                self.majorBottlenecks = bottlenecks.filter { $0.severity == .major }.count
-                self.overallRiskScore = self.calculateOverallRiskScore(bottlenecks)
+                self.detectedBottlenecks = finalBottlenecks
+                self.prioritizedActions = finalPrioritizedProtocols
+                self.criticalBottlenecks = finalCriticalCount
+                self.majorBottlenecks = finalMajorCount
+                self.overallRiskScore = finalOverallRisk
                 self.isAnalyzing = false
                 self.lastAnalysisDate = Date()
             }

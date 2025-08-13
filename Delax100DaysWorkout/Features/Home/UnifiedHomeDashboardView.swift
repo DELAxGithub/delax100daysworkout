@@ -45,7 +45,13 @@ struct UnifiedHomeDashboardView: View {
                         // 体重カード
                         SummaryCard(
                             title: "最新体重",
-                            value: latestWeight != nil ? String(format: "%.1f kg", latestWeight!) : "未測定",
+                            value: {
+                                if let weight = latestWeight {
+                                    return String(format: "%.1f kg", weight)
+                                } else {
+                                    return "未測定"
+                                }
+                            }(),
                             subtitle: isHealthKitSyncing ? "同期中..." : (healthKitService.isAuthorized ? "Apple Health" : "手動入力"),
                             color: .orange,
                             icon: "figure.stand"

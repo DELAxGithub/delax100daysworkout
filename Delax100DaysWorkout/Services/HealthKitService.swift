@@ -2,26 +2,37 @@ import Foundation
 import HealthKit
 import SwiftData
 
+// MARK: - Memory Management・並行処理安全化 (Issue #33)
 @MainActor
 class HealthKitService: ObservableObject {
-    
-    // MARK: - Properties
-    
-    private let healthStore = HKHealthStore()
     @Published var isAuthorized = false
     @Published var authorizationStatus: HKAuthorizationStatus = .notDetermined
     @Published var lastAutoSyncDate: Date?
     @Published var lastSyncDataCount: Int = 0
     @Published var isAutoSyncing = false
     
+    // MARK: - Properties (@MainActor安全)
+    
+    private let healthStore = HKHealthStore()
+    
     // MARK: - HealthKit Types
     
-    private let readTypes: Set<HKObjectType> = [
-        HKObjectType.quantityType(forIdentifier: .bodyMass)!,
-        HKObjectType.quantityType(forIdentifier: .heartRate)!,
-        HKObjectType.quantityType(forIdentifier: .cyclingPower)!,
-        HKObjectType.workoutType()
-    ]
+    private let readTypes: Set<HKObjectType> = {
+        var types: Set<HKObjectType> = []
+        
+        if let bodyMassType = HKObjectType.quantityType(forIdentifier: .bodyMass) {
+            types.insert(bodyMassType)
+        }
+        if let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) {
+            types.insert(heartRateType)
+        }
+        if let cyclingPowerType = HKObjectType.quantityType(forIdentifier: .cyclingPower) {
+            types.insert(cyclingPowerType)
+        }
+        types.insert(HKObjectType.workoutType())
+        
+        return types
+    }()
     
     // MARK: - Initialization
     

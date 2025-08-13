@@ -209,7 +209,12 @@ extension ProgressAnalyzer {
             return Double(ftp) / weight
         }
         
-        let trend = wprValues.isEmpty ? 0.0 : (wprValues.last! - wprValues.first!)
+        let trend: Double
+        if let lastValue = wprValues.last, let firstValue = wprValues.first {
+            trend = lastValue - firstValue
+        } else {
+            trend = 0.0
+        }
         let averageWPR = wprValues.isEmpty ? 0.0 : wprValues.reduce(0, +) / Double(wprValues.count)
         let wprVariability = wprValues.isEmpty ? 0.0 : 0.1  // プレースホルダー
         

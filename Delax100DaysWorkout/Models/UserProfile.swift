@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class UserProfile {
+final class UserProfile: @unchecked Sendable {
     // A unique identifier, although for a single-user app, we'll likely only have one instance.
     @Attribute(.unique) var id: UUID
     

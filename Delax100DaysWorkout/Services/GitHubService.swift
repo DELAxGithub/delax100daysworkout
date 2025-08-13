@@ -19,7 +19,9 @@ struct GitHubService {
             throw GitHubError.missingToken
         }
         
-        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues")!
+        guard let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues") else {
+            throw NSError(domain: "GitHubService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid GitHub API URL"])
+        }
         Logger.network.info("GitHub API URL: \(url.absoluteString)")
         
         var request = URLRequest(url: url)
@@ -89,7 +91,9 @@ struct GitHubService {
     private func addAutoFixLabel(to issueNumber: Int) async throws {
         guard let token = token else { return }
         
-        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/labels")!
+        guard let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/labels") else {
+            throw NSError(domain: "GitHubService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid GitHub labels API URL"])
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -127,10 +131,15 @@ struct GitHubService {
             let imageUrl = try await imageUploadService.uploadImage(imageData)
             
             // GitHub Issueにコメントとしてスクリーンショット情報を追加
-            let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/comments")!
+            guard let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues/\(issueNumber)/comments") else {
+                throw NSError(domain: "GitHubService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Invalid GitHub comments API URL"])
+            }
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            request.setValue("Bearer \(token!)", forHTTPHeaderField: "Authorization")
+            guard let token = token else {
+                throw NSError(domain: "GitHubService", code: -1, userInfo: [NSLocalizedDescriptionKey: "GitHub token is missing"])
+            }
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             

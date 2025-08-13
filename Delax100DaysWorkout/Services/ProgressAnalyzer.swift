@@ -246,7 +246,7 @@ class ProgressAnalyzer {
         case .cycling:
             let powers = typeRecords.compactMap { $0.cyclingDetail?.averagePower }
             averageMetric = powers.isEmpty ? 0 : powers.reduce(0, +) / Double(powers.count)
-            if powers.count >= 2 && powers.last! > powers.first! {
+            if powers.count >= 2, let lastPower = powers.last, let firstPower = powers.first, lastPower > firstPower {
                 improvements.append("パワーが向上中")
             }
             
@@ -255,14 +255,14 @@ class ProgressAnalyzer {
                 record.strengthDetails?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
             }
             averageMetric = totalVolumes.isEmpty ? 0 : totalVolumes.reduce(0, +) / Double(totalVolumes.count)
-            if totalVolumes.count >= 2 && totalVolumes.last! > totalVolumes.first! {
+            if totalVolumes.count >= 2, let lastVolume = totalVolumes.last, let firstVolume = totalVolumes.first, lastVolume > firstVolume {
                 improvements.append("総負荷量が増加")
             }
             
         case .flexibility:
             let angles = typeRecords.compactMap { $0.flexibilityDetail?.averageSplitAngle }
             averageMetric = angles.isEmpty ? 0 : angles.reduce(0, +) / Double(angles.count)
-            if angles.count >= 2 && angles.last! > angles.first! {
+            if angles.count >= 2, let lastAngle = angles.last, let firstAngle = angles.first, lastAngle > firstAngle {
                 improvements.append("柔軟性が向上")
             }
         case .pilates:

@@ -179,8 +179,11 @@ struct LogEntryView: View {
             FlexibilityDetail.self
         ])
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: schema, configurations: [configuration])
-        return container
+        do {
+            return try ModelContainer(for: schema, configurations: [configuration])
+        } catch {
+            fatalError("Preview ModelContainer creation failed: \(error)")
+        }
     }()
     
     NavigationStack {

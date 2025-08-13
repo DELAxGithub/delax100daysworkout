@@ -226,7 +226,11 @@ struct TodayView: View {
                     }) {
                         Image(systemName: "arrow.uturn.backward")
                     }
-                    .disabled(lastCompletedTask == nil || !(viewModel?.completedTasks.contains(lastCompletedTask!.id) ?? false))
+                    .disabled({
+                        guard let task = lastCompletedTask,
+                              let viewModel = viewModel else { return true }
+                        return !viewModel.completedTasks.contains(task.id)
+                    }())
                 }
             }
             .onAppear {

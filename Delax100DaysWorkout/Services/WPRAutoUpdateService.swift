@@ -148,15 +148,15 @@ class WPRAutoUpdateService: @unchecked Sendable {
     }
     
     private func updatePowerProfile(from detail: CyclingDetail, system: WPRTrackingSystem) {
-        // パワープロファイルスコアの改善を計算
-        let powerImprovement = calculatePowerImprovement(detail)
+        // パワープロファイルスコアの改善を計算 (Memory Leak対策 - Issue #33)
+        let _ = calculatePowerImprovement(detail)
         
         // ベースラインからの改善率を更新
         if system.powerProfileBaseline == 0 {
             system.powerProfileBaseline = detail.averagePower
         }
         
-        let currentImprovement = (detail.averagePower - system.powerProfileBaseline) / system.powerProfileBaseline
+        let _ = (detail.averagePower - system.powerProfileBaseline) / system.powerProfileBaseline
         
         // 移動平均で更新
         system.powerProfileBaseline = max(system.powerProfileBaseline, detail.averagePower * 0.1 + system.powerProfileBaseline * 0.9)

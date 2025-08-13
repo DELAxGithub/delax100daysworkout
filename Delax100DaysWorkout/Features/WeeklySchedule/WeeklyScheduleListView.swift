@@ -230,6 +230,12 @@ struct WeeklyTaskListRow: View {
 }
 
 #Preview {
-    WeeklyScheduleListView(viewModel: WeeklyScheduleViewModel(modelContext: ModelContext(try! ModelContainer(for: WeeklyTemplate.self))))
+    WeeklyScheduleListView(viewModel: WeeklyScheduleViewModel(modelContext: {
+        do {
+            return ModelContext(try ModelContainer(for: WeeklyTemplate.self))
+        } catch {
+            fatalError("Preview ModelContainer creation failed: \(error)")
+        }
+    }()))
         .modelContainer(for: [WeeklyTemplate.self], inMemory: true)
 }

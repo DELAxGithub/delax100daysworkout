@@ -12,6 +12,7 @@ final class DailyTask {
     var sortOrder: Int = 0
     
     // リレーション
+    @Relationship(inverse: \WeeklyTemplate.dailyTasks)
     var template: WeeklyTemplate?
     
     var targetDetails: TargetDetails? {

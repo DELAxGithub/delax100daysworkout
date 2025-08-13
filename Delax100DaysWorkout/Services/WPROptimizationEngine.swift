@@ -388,12 +388,14 @@ class WPROptimizationEngine: ObservableObject {
                 self.lastAnalysisDate = Date()
             }
             
-            // データベース保存
+            // Swift 6 Sendable対応・データベース保存 (Issue #33)
             do {
-                try await self.modelContext.save()
-            } catch {
                 await MainActor.run {
-                    self.analysisError = "保存エラー: \(error.localizedDescription)"
+                    do {
+                        try self.modelContext.save()
+                    } catch {
+                        self.analysisError = "保存エラー: \(error.localizedDescription)"
+                    }
                 }
             }
         }.value

@@ -183,6 +183,75 @@ extension WorkoutRecord: Searchable {
             }
         }
         
+        // Add pilates details if available
+        if let pilatesDetail = pilatesDetail {
+            components.append(contentsOf: [
+                pilatesDetail.exerciseType,
+                pilatesDetail.difficulty.rawValue,
+                "\(pilatesDetail.duration)分間"
+            ])
+            
+            if let reps = pilatesDetail.repetitions {
+                components.append("\(reps)回")
+            }
+            
+            if let holdTime = pilatesDetail.holdTime {
+                components.append("ホールド\(holdTime)秒")
+            }
+            
+            if let core = pilatesDetail.coreEngagement {
+                components.append("コア強度\(String(format: "%.1f", core))")
+            }
+            
+            if let posture = pilatesDetail.posturalAlignment {
+                components.append("姿勢\(String(format: "%.1f", posture))")
+            }
+            
+            if let breath = pilatesDetail.breathControl {
+                components.append("呼吸\(String(format: "%.1f", breath))")
+            }
+            
+            if let notes = pilatesDetail.notes, !notes.isEmpty {
+                components.append(notes)
+            }
+        }
+        
+        // Add yoga details if available
+        if let yogaDetail = yogaDetail {
+            components.append(contentsOf: [
+                yogaDetail.yogaStyle.rawValue,
+                "\(yogaDetail.duration)分間"
+            ])
+            
+            for pose in yogaDetail.poses {
+                components.append(pose)
+            }
+            
+            if let breathingTechnique = yogaDetail.breathingTechnique, !breathingTechnique.isEmpty {
+                components.append(breathingTechnique)
+            }
+            
+            if let flexibility = yogaDetail.flexibility {
+                components.append("柔軟性\(String(format: "%.1f", flexibility))")
+            }
+            
+            if let balance = yogaDetail.balance {
+                components.append("バランス\(String(format: "%.1f", balance))")
+            }
+            
+            if let mindfulness = yogaDetail.mindfulness {
+                components.append("マインドフルネス\(String(format: "%.1f", mindfulness))")
+            }
+            
+            if yogaDetail.meditation {
+                components.append("瞑想")
+            }
+            
+            if let notes = yogaDetail.notes, !notes.isEmpty {
+                components.append(notes)
+            }
+        }
+        
         return components.joined(separator: " ")
     }
     
@@ -199,8 +268,10 @@ extension WorkoutRecord: Searchable {
             return Double(strengthDetails?.count ?? 0)
         case .flexibility:
             return flexibilityDetail?.forwardBendDistance ?? 0.0
-        case .pilates, .yoga:
-            return isCompleted ? 1.0 : 0.0
+        case .pilates:
+            return pilatesDetail?.coreEngagement ?? (isCompleted ? 1.0 : 0.0)
+        case .yoga:
+            return yogaDetail?.mindfulness ?? (isCompleted ? 1.0 : 0.0)
         }
     }
     

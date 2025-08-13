@@ -47,7 +47,7 @@ class PerformanceMonitor: ObservableObject {
     
     func endOperation(_ operationId: String, name: String, metadata: [String: Any] = [:]) {
         guard isMonitoring,
-              let signpostId = activeOperations.removeValue(forKey: operationId) else { return }
+              let _ = activeOperations.removeValue(forKey: operationId) else { return }
         
         // Performance tracking temporarily disabled due to API constraints
         
@@ -121,17 +121,26 @@ class PerformanceMonitor: ObservableObject {
 // MARK: - Performance Metric
 
 struct PerformanceMetric: Codable, Identifiable {
-    let id = UUID()
+    let id: UUID
     let name: String
     let category: PerformanceCategory
     let timestamp: Date
     let metadata: [String: String]
+    
+    init(name: String, category: PerformanceCategory, timestamp: Date, metadata: [String: String] = [:]) {
+        self.id = UUID()
+        self.name = name
+        self.category = category
+        self.timestamp = timestamp
+        self.metadata = metadata
+    }
     
     var duration: TimeInterval? {
         metadata["duration"].flatMap(Double.init)
     }
     
     init(name: String, category: PerformanceCategory, timestamp: Date, metadata: [String: Any]) {
+        self.id = UUID()
         self.name = name
         self.category = category
         self.timestamp = timestamp
