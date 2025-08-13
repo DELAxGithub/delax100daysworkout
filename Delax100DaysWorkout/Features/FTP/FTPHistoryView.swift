@@ -21,90 +21,92 @@ struct FTPHistoryView: View {
                         description: Text("右上の「+」ボタンでFTPを記録しましょう")
                     )
                 } else {
-                    VStack(spacing: 20) {
+                    VStack(spacing: Spacing.lg.value) {
                         // Chart Section
                         if showingChart {
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    Text("FTP推移")
-                                        .font(.headline)
-                                    Spacer()
-                                    Button(action: {
-                                        withAnimation {
-                                            showingChart.toggle()
+                            BaseCard(style: ElevatedCardStyle()) {
+                                VStack(alignment: .leading, spacing: Spacing.md.value) {
+                                    HStack {
+                                        Text("FTP推移")
+                                            .font(Typography.headlineMedium.font)
+                                            .foregroundColor(SemanticColor.primaryText)
+                                        Spacer()
+                                        Button(action: {
+                                            withAnimation {
+                                                showingChart.toggle()
+                                            }
+                                        }) {
+                                            Image(systemName: showingChart ? "eye.slash" : "eye")
+                                                .foregroundColor(SemanticColor.primaryAction)
                                         }
-                                    }) {
-                                        Image(systemName: showingChart ? "eye.slash" : "eye")
                                     }
-                                }
-                                .padding(.horizontal)
                                 
-                                if ftpHistory.count >= 2 {
-                                    Chart(ftpHistory.reversed(), id: \.id) { record in
-                                        LineMark(
-                                            x: .value("日付", record.date),
-                                            y: .value("FTP", record.ftpValue)
-                                        )
-                                        .foregroundStyle(.blue)
-                                        
-                                        PointMark(
-                                            x: .value("日付", record.date),
-                                            y: .value("FTP", record.ftpValue)
-                                        )
-                                        .foregroundStyle(.blue)
-                                        .symbol(.circle)
-                                    }
-                                    .frame(height: 200)
-                                    .chartYAxisLabel("FTP (W)")
-                                    .chartXAxisLabel("日付")
-                                    .padding(.horizontal)
-                                } else {
-                                    Text("チャート表示には2つ以上のFTP記録が必要です")
-                                        .foregroundColor(.secondary)
+                                    if ftpHistory.count >= 2 {
+                                        Chart(ftpHistory.reversed(), id: \.id) { record in
+                                            LineMark(
+                                                x: .value("日付", record.date),
+                                                y: .value("FTP", record.ftpValue)
+                                            )
+                                            .foregroundStyle(SemanticColor.primaryAction.color)
+                                            .lineStyle(StrokeStyle(lineWidth: 2))
+                                            
+                                            PointMark(
+                                                x: .value("日付", record.date),
+                                                y: .value("FTP", record.ftpValue)
+                                            )
+                                            .foregroundStyle(SemanticColor.primaryAction.color)
+                                            .symbol(.circle)
+                                        }
                                         .frame(height: 200)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color(.systemGroupedBackground))
-                                        .cornerRadius(8)
-                                        .padding(.horizontal)
+                                        .chartYAxisLabel("FTP (W)")
+                                        .chartXAxisLabel("日付")
+                                    } else {
+                                        Text("チャート表示には2つ以上のFTP記録が必要です")
+                                            .font(Typography.bodyMedium.font)
+                                            .foregroundColor(SemanticColor.secondaryText)
+                                            .frame(height: 200)
+                                            .frame(maxWidth: .infinity)
+                                    }
                                 }
                             }
+                            .padding(.horizontal)
                         }
                         
                         // Current FTP Section
                         if let currentFTP = ftpHistory.first {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Text("現在のFTP")
-                                        .font(.headline)
-                                    Spacer()
-                                    Text(currentFTP.formattedFTP)
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.blue)
-                                }
+                            BaseCard(style: ElevatedCardStyle()) {
+                                VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                                    HStack {
+                                        Text("現在のFTP")
+                                            .font(Typography.headlineMedium.font)
+                                            .foregroundColor(SemanticColor.primaryText)
+                                        Spacer()
+                                        Text(currentFTP.formattedFTP)
+                                            .font(Typography.displaySmall.font)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(SemanticColor.primaryAction)
+                                    }
                                 
-                                // Show improvement if we have previous data
-                                if ftpHistory.count > 1 {
-                                    let previousFTP = ftpHistory[1]
-                                    if let change = currentFTP.ftpChange(from: previousFTP),
-                                       let changePercent = currentFTP.ftpChangePercentage(from: previousFTP) {
-                                        HStack {
-                                            Image(systemName: change > 0 ? "arrow.up.right" : change < 0 ? "arrow.down.right" : "arrow.right")
-                                                .foregroundColor(change > 0 ? .green : change < 0 ? .red : .gray)
-                                            Text("前回から \(change > 0 ? "+" : "")\(change)W (\(String(format: "%.1f", changePercent))%)")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
+                                    // Show improvement if we have previous data
+                                    if ftpHistory.count > 1 {
+                                        let previousFTP = ftpHistory[1]
+                                        if let change = currentFTP.ftpChange(from: previousFTP),
+                                           let changePercent = currentFTP.ftpChangePercentage(from: previousFTP) {
+                                            HStack {
+                                                Image(systemName: change > 0 ? "arrow.up.right" : change < 0 ? "arrow.down.right" : "arrow.right")
+                                                    .foregroundColor(change > 0 ? SemanticColor.successAction : change < 0 ? SemanticColor.errorAction : SemanticColor.secondaryText)
+                                                Text("前回から \(change > 0 ? "+" : "")\(change)W (\(String(format: "%.1f", changePercent))%)")
+                                                    .font(Typography.captionMedium.font)
+                                                    .foregroundColor(SemanticColor.secondaryText)
+                                            }
                                         }
                                     }
-                                }
                                 
-                                Text("記録日: \(currentFTP.formattedDate)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    Text("記録日: \(currentFTP.formattedDate)")
+                                        .font(Typography.captionMedium.font)
+                                        .foregroundColor(SemanticColor.secondaryText)
+                                }
                             }
-                            .padding()
-                            .background(Color(.systemGroupedBackground))
-                            .cornerRadius(12)
                             .padding(.horizontal)
                         }
                         
@@ -186,41 +188,45 @@ struct FTPRecordRow: View {
     let record: FTPHistory
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(record.formattedFTP)
-                        .font(.headline)
-                    Text(record.methodDisplayText)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing) {
-                    Text(record.formattedDate)
-                        .font(.subheadline)
-                    if record.isAutoCalculated {
-                        HStack {
-                            Image(systemName: "function")
-                                .foregroundColor(.purple)
-                            Text("自動計算")
-                                .font(.caption)
-                                .foregroundColor(.purple)
+        BaseCard(style: DefaultCardStyle()) {
+            VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                HStack {
+                    VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                        Text(record.formattedFTP)
+                            .font(Typography.headlineMedium.font)
+                            .foregroundColor(SemanticColor.primaryText)
+                        Text(record.methodDisplayText)
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: Spacing.xs.value) {
+                        Text(record.formattedDate)
+                            .font(Typography.bodyMedium.font)
+                            .foregroundColor(SemanticColor.primaryText)
+                        if record.isAutoCalculated {
+                            HStack {
+                                Image(systemName: "function")
+                                    .foregroundColor(SemanticColor.primaryAction)
+                                Text("自動計算")
+                                    .font(Typography.captionSmall.font)
+                                    .foregroundColor(SemanticColor.primaryAction)
+                            }
                         }
                     }
                 }
-            }
-            
-            if let notes = record.notes, !notes.isEmpty {
-                Text(notes)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 2)
+                
+                if let notes = record.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                        .padding(.top, Spacing.xs.value)
+                }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, Spacing.xs.value)
     }
 }
 

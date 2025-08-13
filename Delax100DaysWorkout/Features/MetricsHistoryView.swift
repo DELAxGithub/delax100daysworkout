@@ -46,61 +46,62 @@ struct MetricsHistoryView: View {
                 Divider()
                     .padding(.vertical, 8)
                 // Chart Toggle
-                HStack {
-                    Button(action: {
-                        withAnimation {
-                            showingChart.toggle()
+                BaseCard(style: DefaultCardStyle()) {
+                    HStack {
+                        Button(action: {
+                            withAnimation {
+                                showingChart.toggle()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: showingChart ? "eye.slash" : "eye")
+                                    .foregroundColor(SemanticColor.primaryAction)
+                                Text(showingChart ? "チャートを隠す" : "チャートを表示")
+                                    .font(Typography.captionMedium.font)
+                                    .foregroundColor(SemanticColor.primaryAction)
+                            }
                         }
-                    }) {
-                        HStack {
-                            Image(systemName: showingChart ? "eye.slash" : "eye")
-                            Text(showingChart ? "チャートを隠す" : "チャートを表示")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                        
+                        Spacer()
+                        
+                        Text("データ数: \(filteredMetrics.count)")
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
                     }
-                    
-                    Spacer()
-                    
-                    Text("データ数: \(filteredMetrics.count)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
                 if showingChart && !metricsWithWeight.isEmpty {
                     // Weight Chart
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("体重推移")
-                            .font(.headline)
-                            .padding(.horizontal)
+                    BaseCard(style: ElevatedCardStyle()) {
+                        VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                            Text("体重推移")
+                                .font(Typography.headlineMedium.font)
+                                .foregroundColor(SemanticColor.primaryText)
                         
-                        Chart(metricsWithWeight.reversed(), id: \.id) { metric in
-                            if let weight = metric.weightKg {
-                                LineMark(
-                                    x: .value("日付", metric.date),
-                                    y: .value("体重", weight)
-                                )
-                                .foregroundStyle(.orange)
-                                .lineStyle(StrokeStyle(lineWidth: 2))
-                                
-                                PointMark(
-                                    x: .value("日付", metric.date),
-                                    y: .value("体重", weight)
-                                )
-                                .foregroundStyle(.orange)
-                                .symbol(Circle())
+                            Chart(metricsWithWeight.reversed(), id: \.id) { metric in
+                                if let weight = metric.weightKg {
+                                    LineMark(
+                                        x: .value("日付", metric.date),
+                                        y: .value("体重", weight)
+                                    )
+                                    .foregroundStyle(SemanticColor.warningAction.color)
+                                    .lineStyle(StrokeStyle(lineWidth: 2))
+                                    
+                                    PointMark(
+                                        x: .value("日付", metric.date),
+                                        y: .value("体重", weight)
+                                    )
+                                    .foregroundStyle(SemanticColor.warningAction.color)
+                                    .symbol(Circle())
+                                }
                             }
+                            .frame(height: 150)
+                            .chartYAxisLabel("体重 (kg)")
+                            .chartXAxisLabel("日付")
                         }
-                        .frame(height: 150)
-                        .chartYAxisLabel("体重 (kg)")
-                        .chartXAxisLabel("日付")
-                        .padding(.horizontal)
                     }
-                    .padding(.vertical)
-                    .background(Color(.systemBackground))
-                    .cornerRadius(12)
                     .padding(.horizontal)
                 }
                 

@@ -68,7 +68,7 @@ struct HistoryManagementView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
-        .background(Color(.systemGroupedBackground))
+        .background(SemanticColor.surfaceBackground)
     }
 }
 

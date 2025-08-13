@@ -1,0 +1,423 @@
+import SwiftUI
+
+// MARK: - Enhanced Loading Component
+/// 統一ローディングコンポーネント - 進捗表示・キャンセル機能付き
+
+struct EnhancedLoadingView: View {
+    let title: String
+    let subtitle: String?
+    let progress: Double?
+    let showCancel: Bool
+    let onCancel: (() -> Void)?
+    let style: LoadingStyle
+    
+    init(
+        title: String = "読み込み中...",
+        subtitle: String? = nil,
+        progress: Double? = nil,
+        showCancel: Bool = false,
+        onCancel: (() -> Void)? = nil,
+        style: LoadingStyle = .standard
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.progress = progress
+        self.showCancel = showCancel
+        self.onCancel = onCancel
+        self.style = style
+    }
+    
+    var body: some View {
+        VStack(spacing: Spacing.lg.value) {
+            // Loading Indicator
+            Group {
+                if let progress = progress {
+                    ProgressView(value: progress, total: 1.0)
+                        .progressViewStyle(EnhancedProgressViewStyle())
+                        .frame(width: 120)
+                } else {
+                    ProgressView()
+                        .progressViewStyle(style.progressStyle)
+                        .scaleEffect(style.scale)
+                }
+            }
+            
+            // Text Content
+            VStack(spacing: Spacing.sm.value) {
+                Text(title)
+                    .font(Typography.headlineMedium.font)
+                    .foregroundColor(SemanticColor.primaryText)
+                    .multilineTextAlignment(.center)
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(Typography.bodyMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+                
+                if let progress = progress {
+                    Text("\(Int(progress * 100))% 完了")
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.accent)
+                }
+            }
+            
+            // Cancel Button
+            if showCancel, let onCancel = onCancel {
+                EnhancedButton(
+                    action: onCancel,
+                    style: .subtle,
+                    hapticFeedback: .impact(.light)
+                ) {
+                    Text("キャンセル")
+                        .font(Typography.bodyMedium.font)
+                        .padding(.horizontal, Spacing.md.value)
+                        .padding(.vertical, Spacing.sm.value)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(style.backgroundColor)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityValue(progress != nil ? "\(Int((progress ?? 0) * 100))パーセント完了" : "読み込み中")
+    }
+}
+
+// MARK: - Loading Styles
+
+enum LoadingStyle {
+    case standard
+    case minimal
+    case fullScreen
+    case card
+    
+    var progressStyle: some ProgressViewStyle {
+        switch self {
+        case .standard, .fullScreen:
+            return CircularProgressViewStyle(tint: SemanticColor.primaryAction)
+        case .minimal, .card:
+            return CircularProgressViewStyle(tint: SemanticColor.secondaryText)
+        }
+    }
+    
+    var scale: CGFloat {
+        switch self {
+        case .standard: return 1.2
+        case .minimal: return 0.8
+        case .fullScreen: return 1.5
+        case .card: return 1.0
+        }
+    }
+    
+    var backgroundColor: Color {
+        switch self {
+        case .standard, .card: return Color.clear
+        case .minimal: return Color.clear
+        case .fullScreen: return SemanticColor.surfaceBackground.opacity(0.95)
+        }
+    }
+}
+
+struct EnhancedProgressViewStyle: ProgressViewStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(spacing: Spacing.sm.value) {
+            ZStack {
+                Circle()
+                    .stroke(SemanticColor.divider, lineWidth: 4)
+                
+                Circle()
+                    .trim(from: 0, to: configuration.fractionCompleted ?? 0)
+                    .stroke(SemanticColor.primaryAction, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.easeInOut(duration: 0.3), value: configuration.fractionCompleted)
+            }
+            .frame(width: 40, height: 40)
+        }
+    }
+}
+
+// MARK: - Enhanced Error Component
+
+struct EnhancedErrorView: View {
+    let error: EnhancedAppError
+    let onRetry: (() -> Void)?
+    let onDismiss: (() -> Void)?
+    let style: ErrorStyle
+    
+    init(
+        error: EnhancedAppError,
+        onRetry: (() -> Void)? = nil,
+        onDismiss: (() -> Void)? = nil,
+        style: ErrorStyle = .standard
+    ) {
+        self.error = error
+        self.onRetry = onRetry
+        self.onDismiss = onDismiss
+        self.style = style
+    }
+    
+    var body: some View {
+        BaseCard(style: style.cardStyle) {
+            VStack(spacing: Spacing.lg.value) {
+                // Error Icon
+                Image(systemName: error.category.iconName)
+                    .font(Typography.displayMedium.font)
+                    .foregroundColor(error.category.color)
+                
+                // Error Content
+                VStack(spacing: Spacing.sm.value) {
+                    Text(error.title)
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(SemanticColor.primaryText)
+                        .multilineTextAlignment(.center)
+                    
+                    Text(error.message)
+                        .font(Typography.bodyMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                        .multilineTextAlignment(.center)
+                    
+                    if !error.suggestion.isEmpty {
+                        Text(error.suggestion)
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.accent)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                
+                // Action Buttons
+                HStack(spacing: Spacing.md.value) {
+                    if let onDismiss = onDismiss {
+                        EnhancedButton(
+                            action: onDismiss,
+                            style: .subtle
+                        ) {
+                            Text("閉じる")
+                                .font(Typography.bodyMedium.font)
+                                .padding(.horizontal, Spacing.md.value)
+                                .padding(.vertical, Spacing.sm.value)
+                        }
+                    }
+                    
+                    if let onRetry = onRetry {
+                        EnhancedButton(
+                            action: onRetry,
+                            style: .prominent,
+                            hapticFeedback: .impact(.medium)
+                        ) {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                Text("再試行")
+                            }
+                            .font(Typography.bodyMedium.font)
+                            .padding(.horizontal, Spacing.md.value)
+                            .padding(.vertical, Spacing.sm.value)
+                        }
+                    }
+                }
+            }
+            .padding(Spacing.lg.value)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("エラー: \(error.title)")
+        .accessibilityHint(error.message)
+    }
+}
+
+// MARK: - Error Styles
+
+enum ErrorStyle {
+    case standard
+    case minimal
+    case critical
+    
+    var cardStyle: CardStyling {
+        switch self {
+        case .standard: return DefaultCardStyle()
+        case .minimal: return OutlinedCardStyle()
+        case .critical: return ElevatedCardStyle()
+        }
+    }
+}
+
+// MARK: - Enhanced App Error Model
+
+struct EnhancedAppError: Error, Identifiable {
+    let id = UUID()
+    let title: String
+    let message: String
+    let suggestion: String
+    let category: ErrorCategory
+    let underlyingError: Error?
+    
+    init(
+        title: String,
+        message: String,
+        suggestion: String = "",
+        category: ErrorCategory = .general,
+        underlyingError: Error? = nil
+    ) {
+        self.title = title
+        self.message = message
+        self.suggestion = suggestion
+        self.category = category
+        self.underlyingError = underlyingError
+    }
+}
+
+// MARK: - Error Categories
+
+enum ErrorCategory {
+    case network
+    case data
+    case permission
+    case general
+    case validation
+    
+    var iconName: String {
+        switch self {
+        case .network: return "wifi.exclamationmark"
+        case .data: return "externaldrive.badge.exclamationmark"
+        case .permission: return "hand.raised"
+        case .general: return "exclamationmark.triangle"
+        case .validation: return "checkmark.seal"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .network: return SemanticColor.warning
+        case .data: return SemanticColor.error
+        case .permission: return SemanticColor.accent
+        case .general: return SemanticColor.secondaryText
+        case .validation: return SemanticColor.warning
+        }
+    }
+}
+
+// MARK: - Common Error Factory
+
+extension EnhancedAppError {
+    static func networkError(underlyingError: Error? = nil) -> EnhancedAppError {
+        EnhancedAppError(
+            title: "ネットワークエラー",
+            message: "インターネット接続を確認してください",
+            suggestion: "Wi-Fiやモバイルデータの接続状況をお確かめください",
+            category: .network,
+            underlyingError: underlyingError
+        )
+    }
+    
+    static func dataError(underlyingError: Error? = nil) -> EnhancedAppError {
+        EnhancedAppError(
+            title: "データエラー",
+            message: "データの読み込みに失敗しました",
+            suggestion: "アプリを再起動するか、しばらく時間をおいてから再度お試しください",
+            category: .data,
+            underlyingError: underlyingError
+        )
+    }
+    
+    static func permissionError(feature: String) -> EnhancedAppError {
+        EnhancedAppError(
+            title: "アクセス許可が必要です",
+            message: "\(feature)を使用するにはアクセス許可が必要です",
+            suggestion: "設定アプリから許可を有効にしてください",
+            category: .permission
+        )
+    }
+    
+    static func validationError(field: String) -> EnhancedAppError {
+        EnhancedAppError(
+            title: "入力エラー",
+            message: "\(field)の入力内容を確認してください",
+            suggestion: "正しい形式で入力してください",
+            category: .validation
+        )
+    }
+}
+
+// MARK: - State Management Component
+
+struct StateAwareView<Content: View, LoadingContent: View, ErrorContent: View>: View {
+    let state: ViewState
+    let content: Content
+    let loadingContent: LoadingContent?
+    let errorContent: ((AppError) -> ErrorContent)?
+    
+    init(
+        state: ViewState,
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder loadingContent: () -> LoadingContent = { EnhancedLoadingView() },
+        @ViewBuilder errorContent: @escaping (EnhancedAppError) -> ErrorContent = { error in 
+            EnhancedErrorView(error: error) 
+        }
+    ) {
+        self.state = state
+        self.content = content()
+        self.loadingContent = loadingContent()
+        self.errorContent = errorContent
+    }
+    
+    var body: some View {
+        switch state {
+        case .idle, .loaded:
+            content
+        case .loading(let message):
+            if let loadingContent = loadingContent {
+                loadingContent
+            } else {
+                EnhancedLoadingView(title: message ?? "読み込み中...")
+            }
+        case .error(let error):
+            if let errorContent = errorContent {
+                errorContent(error)
+            } else {
+                EnhancedErrorView(error: error)
+            }
+        }
+    }
+}
+
+// MARK: - View State Enum
+
+enum ViewState: Equatable {
+    case idle
+    case loading(message: String? = nil)
+    case loaded
+    case error(EnhancedAppError)
+    
+    static func == (lhs: ViewState, rhs: ViewState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.loaded, .loaded):
+            return true
+        case (.loading(let msg1), .loading(let msg2)):
+            return msg1 == msg2
+        case (.error(let err1), .error(let err2)):
+            return err1.id == err2.id
+        default:
+            return false
+        }
+    }
+}
+
+#Preview {
+    VStack(spacing: Spacing.xl.value) {
+        EnhancedLoadingView(
+            title: "データを読み込んでいます",
+            subtitle: "しばらくお待ちください",
+            progress: 0.6,
+            showCancel: true,
+            onCancel: { print("Cancelled") }
+        )
+        .frame(height: 200)
+        
+        EnhancedErrorView(
+            error: .networkError(),
+            onRetry: { print("Retry") },
+            onDismiss: { print("Dismiss") }
+        )
+    }
+    .padding()
+}

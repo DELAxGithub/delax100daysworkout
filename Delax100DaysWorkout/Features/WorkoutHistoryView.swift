@@ -42,22 +42,24 @@ struct WorkoutHistoryView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Search Bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    TextField("ワークアウト検索...", text: $searchText)
-                        .textFieldStyle(.plain)
-                    
-                    if !searchText.isEmpty {
-                        Button("クリア") {
-                            searchText = ""
+                BaseCard(style: DefaultCardStyle()) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(SemanticColor.secondaryText)
+                        TextField("ワークアウト検索...", text: $searchText)
+                            .textFieldStyle(.plain)
+                            .font(Typography.bodyMedium.font)
+                        
+                        if !searchText.isEmpty {
+                            Button("クリア") {
+                                searchText = ""
+                            }
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.primaryAction)
                         }
-                        .font(.caption)
-                        .foregroundColor(.blue)
                     }
                 }
-                .padding()
-                .background(Color(.systemGray6))
+                .padding(.horizontal)
                 
                 // Summary Cards
                 ScrollView(.horizontal, showsIndicators: false) {

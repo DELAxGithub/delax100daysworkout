@@ -9,60 +9,66 @@ struct MetricHistoryRow: View {
     let onDelete: (DailyMetric) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(metric.formattedDate)
-                        .font(.headline)
-                    
-                    HStack {
-                        Image(systemName: metric.dataSource.iconName)
-                            .foregroundColor(.secondary)
-                            .font(.caption)
+        BaseCard(style: DefaultCardStyle()) {
+            VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                HStack {
+                    VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                        Text(metric.formattedDate)
+                            .font(Typography.headlineMedium.font)
+                            .foregroundColor(SemanticColor.primaryText)
                         
-                        Text(metric.dataSource.displayName)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    if let weight = metric.formattedWeight {
                         HStack {
-                            Image(systemName: "scalemass.fill")
-                                .foregroundColor(.orange)
-                                .font(.caption)
-                            Text(weight)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+                            Image(systemName: metric.dataSource.iconName)
+                                .foregroundColor(SemanticColor.secondaryText)
+                                .font(Typography.captionMedium.font)
+                            
+                            Text(metric.dataSource.displayName)
+                                .font(Typography.captionMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
                         }
                     }
                     
-                    if let restingHR = metric.formattedRestingHR {
-                        HStack {
-                            Image(systemName: "heart.fill")
-                                .foregroundColor(.red)
-                                .font(.caption)
-                            Text(restingHR)
-                                .font(.caption)
-                        }
-                    }
+                    Spacer()
                     
-                    if let maxHR = metric.formattedMaxHR {
-                        HStack {
-                            Image(systemName: "heart.circle.fill")
-                                .foregroundColor(.purple)
-                                .font(.caption)
-                            Text(maxHR)
-                                .font(.caption)
+                    VStack(alignment: .trailing, spacing: Spacing.xs.value) {
+                        if let weight = metric.formattedWeight {
+                            HStack {
+                                Image(systemName: "scalemass.fill")
+                                    .foregroundColor(SemanticColor.warningAction)
+                                    .font(Typography.captionMedium.font)
+                                Text(weight)
+                                    .font(Typography.bodyMedium.font)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(SemanticColor.primaryText)
+                            }
+                        }
+                        
+                        if let restingHR = metric.formattedRestingHR {
+                            HStack {
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(SemanticColor.errorAction)
+                                    .font(Typography.captionMedium.font)
+                                Text(restingHR)
+                                    .font(Typography.captionMedium.font)
+                                    .foregroundColor(SemanticColor.primaryText)
+                            }
+                        }
+                        
+                        if let maxHR = metric.formattedMaxHR {
+                            HStack {
+                                Image(systemName: "heart.circle.fill")
+                                    .foregroundColor(SemanticColor.primaryAction)
+                                    .font(Typography.captionMedium.font)
+                                Text(maxHR)
+                                    .font(Typography.captionMedium.font)
+                                    .foregroundColor(SemanticColor.primaryText)
+                            }
                         }
                     }
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, Spacing.xs.value)
         .contentShape(Rectangle())
         .swipeActions(edge: .leading) {
             Button("編集") {
@@ -234,33 +240,31 @@ struct MetricSummaryCard: View {
     let icon: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.caption)
-                Spacer()
-            }
-            
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            HStack {
-                Text(title)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundColor(color)
+        BaseCard(style: DefaultCardStyle()) {
+            VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                HStack {
+                    Image(systemName: icon)
+                        .foregroundColor(color)
+                        .font(Typography.captionMedium.font)
+                    Spacer()
+                }
+                
+                Text(value)
+                    .font(Typography.headlineSmall.font)
+                    .fontWeight(.bold)
+                    .foregroundColor(SemanticColor.primaryText)
+                
+                HStack {
+                    Text(title)
+                        .font(Typography.captionSmall.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                    Spacer()
+                    Text(subtitle)
+                        .font(Typography.captionSmall.font)
+                        .foregroundColor(color)
+                }
             }
         }
-        .padding(8)
         .frame(width: 90, height: 60)
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
     }
 }

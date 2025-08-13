@@ -14,66 +14,67 @@ struct WorkoutHistoryRow: View {
     @State private var showingEditSheet = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                // 編集モードでの選択チェックボックス
-                if isEditMode {
-                    Button(action: {
-                        onSelect(!isSelected)
-                    }) {
-                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(isSelected ? .blue : .gray)
-                            .font(.title3)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                
-                Image(systemName: workout.workoutType.iconName)
-                    .foregroundColor(workout.workoutType.iconColor)
-                    .font(.title3)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(workout.summary)
-                        .font(.headline)
-                        .lineLimit(2)
-                    
-                    Text(workout.workoutType.rawValue)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(workout.date, format: .dateTime.month().day().hour().minute())
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if workout.isCompleted {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                            .font(.caption)
+        BaseCard(style: DefaultCardStyle()) {
+            VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                HStack {
+                    // 編集モードでの選択チェックボックス
+                    if isEditMode {
+                        Button(action: {
+                            onSelect(!isSelected)
+                        }) {
+                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(isSelected ? SemanticColor.primaryAction : SemanticColor.secondaryText)
+                                .font(Typography.headlineSmall.font)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     
-                    if workout.isQuickRecord {
-                        Text("クイック記録")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(4)
-                            .foregroundColor(.blue)
+                    Image(systemName: workout.workoutType.iconName)
+                        .foregroundColor(workout.workoutType.iconColor)
+                        .font(Typography.headlineSmall.font)
+                        .frame(width: 24)
+                    
+                    VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                        Text(workout.summary)
+                            .font(Typography.headlineMedium.font)
+                            .foregroundColor(SemanticColor.primaryText)
+                            .lineLimit(2)
+                        
+                        Text(workout.workoutType.rawValue)
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: Spacing.xs.value) {
+                        Text(workout.date, format: .dateTime.month().day().hour().minute())
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
+                        
+                        if workout.isCompleted {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(SemanticColor.successAction)
+                                .font(Typography.captionMedium.font)
+                        }
+                        
+                        if workout.isQuickRecord {
+                            Text("クイック記録")
+                                .font(Typography.captionSmall.font)
+                                .padding(.horizontal, Spacing.xs.value)
+                                .padding(.vertical, Spacing.xs.value)
+                                .background(SemanticColor.primaryAction.color.opacity(0.1))
+                                .cornerRadius(CornerRadius.small.radius)
+                                .foregroundColor(SemanticColor.primaryAction)
+                        }
                     }
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, Spacing.xs.value)
         .contentShape(Rectangle())
         .onLongPressGesture {
             if !isEditMode {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                impactFeedback.impactOccurred()
                 showingEditSheet = true
             }
         }
@@ -231,27 +232,25 @@ struct HistorySummaryCard: View {
     let icon: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.caption)
-                Spacer()
+        BaseCard(style: DefaultCardStyle()) {
+            VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                HStack {
+                    Image(systemName: icon)
+                        .foregroundColor(color)
+                        .font(Typography.captionMedium.font)
+                    Spacer()
+                }
+                
+                Text(value)
+                    .font(Typography.headlineSmall.font)
+                    .fontWeight(.bold)
+                    .foregroundColor(SemanticColor.primaryText)
+                
+                Text(title)
+                    .font(Typography.captionSmall.font)
+                    .foregroundColor(SemanticColor.secondaryText)
             }
-            
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            Text(title)
-                .font(.caption2)
-                .foregroundColor(.secondary)
         }
-        .padding(8)
         .frame(width: 80, height: 60)
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
     }
 }

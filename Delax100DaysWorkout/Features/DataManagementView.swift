@@ -30,21 +30,24 @@ struct DataManagementView: View {
         NavigationStack {
             List {
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("データベース概要")
-                            .font(.headline)
-                        
-                        Text("総データ数: \(totalDataCount) 件")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        if totalDataCount > 0 {
-                            Text("全てのデータを削除すると、アプリの状態が初期化されます。")
-                                .font(.caption)
-                                .foregroundColor(.orange)
+                    BaseCard(style: ElevatedCardStyle()) {
+                        VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                            Text("データベース概要")
+                                .font(Typography.headlineMedium.font)
+                                .foregroundColor(SemanticColor.primaryText)
+                            
+                            Text("総データ数: \(totalDataCount) 件")
+                                .font(Typography.bodyMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
+                            
+                            if totalDataCount > 0 {
+                                Text("全てのデータを削除すると、アプリの状態が初期化されます。")
+                                    .font(Typography.captionMedium.font)
+                                    .foregroundColor(SemanticColor.warningAction)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, Spacing.xs.value)
                 }
                 
                 Section("データ種別") {
@@ -249,32 +252,34 @@ struct DataTypeRow: View {
     
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.title3)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.subheadline)
-                        .foregroundColor(.primary)
+            BaseCard(style: DefaultCardStyle()) {
+                HStack {
+                    Image(systemName: icon)
+                        .foregroundColor(color)
+                        .font(Typography.headlineMedium.font)
+                        .frame(width: 24)
                     
-                    Text("\(count) 件")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                if count > 0 {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                } else {
-                    Text("データなし")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                        Text(title)
+                            .font(Typography.bodyMedium.font)
+                            .foregroundColor(SemanticColor.primaryText)
+                        
+                        Text("\(count) 件")
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
+                    }
+                    
+                    Spacer()
+                    
+                    if count > 0 {
+                        Image(systemName: "trash")
+                            .foregroundColor(SemanticColor.errorAction)
+                            .font(Typography.captionMedium.font)
+                    } else {
+                        Text("データなし")
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
+                    }
                 }
             }
         }

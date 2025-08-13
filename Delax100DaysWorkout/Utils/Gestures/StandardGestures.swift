@@ -113,7 +113,7 @@ extension View {
         modifier(StandardSwipeGesture(direction: direction, action: action))
     }
     
-    func minimumTouchTarget() -> some View {
+    func standardMinimumTouchTarget() -> some View {
         frame(
             minWidth: GestureConfiguration.shared.adjustedTouchTarget,
             minHeight: GestureConfiguration.shared.adjustedTouchTarget

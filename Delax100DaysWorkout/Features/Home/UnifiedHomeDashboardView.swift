@@ -311,67 +311,42 @@ struct UnifiedHomeDashboardView: View {
                 refreshAllData()
             }
         }
-        .sheet(isPresented: $showingFTPEntry) {
-            NavigationStack {
-                FTPEntryView()
-                    .navigationTitle("FTP記録")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("キャンセル") {
-                                showingFTPEntry = false
-                            }
-                        }
-                    }
-            }
+        .modalNavigation(
+            isPresented: $showingFTPEntry,
+            title: "FTP記録"
+        ) {
+            FTPEntryView()
         }
-        .sheet(isPresented: $showingMetricsHistory) {
-            NavigationStack {
-                MetricsHistoryView()
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("完了") {
-                                showingMetricsHistory = false
-                            }
-                        }
-                    }
-            }
+        .modalNavigation(
+            isPresented: $showingMetricsHistory,
+            title: "メトリクス履歴"
+        ) {
+            MetricsHistoryView()
         }
-        .sheet(isPresented: $showingProgressDetails) {
-            NavigationStack {
-                if let progressViewModel = progressViewModel {
-                    ProgressChartView(viewModel: progressViewModel)
-                        .navigationTitle("進捗詳細")
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button("キャンセル") {
-                                    showingProgressDetails = false
-                                }
-                            }
-                        }
-                } else {
-                    VStack {
-                        ProgressView("読み込み中...")
-                        Button("閉じる") {
-                            showingProgressDetails = false
-                        }
-                        .padding()
-                    }
-                    .navigationTitle("進捗詳細")
+        .modalNavigation(
+            isPresented: $showingProgressDetails,
+            title: "進捗詳細"
+        ) {
+            if let progressViewModel = progressViewModel {
+                ProgressChartView(viewModel: progressViewModel)
+            } else {
+                VStack(spacing: Spacing.md.value) {
+                    ProgressView("進捗データを読み込み中...")
+                        .progressViewStyle(CircularProgressViewStyle())
+                    
+                    Text("ワークアウト履歴を解析しています...")
+                        .font(Typography.bodyMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(SemanticColor.surfaceBackground.color)
             }
         }
-        .sheet(isPresented: $showingHistoryManagement) {
-            NavigationStack {
-                HistoryManagementView()
-                    .navigationTitle("履歴管理")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("閉じる") {
-                                showingHistoryManagement = false
-                            }
-                        }
-                    }
-            }
+        .modalNavigation(
+            isPresented: $showingHistoryManagement,
+            title: "履歴管理"
+        ) {
+            HistoryManagementView()
         }
         .alert("デモデータ", isPresented: $showingDemoDataAlert) {
             Button("OK") { }
