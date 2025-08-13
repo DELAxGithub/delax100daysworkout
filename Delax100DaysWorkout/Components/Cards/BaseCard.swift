@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 // MARK: - BaseCard (Simplified)
 
@@ -116,7 +117,7 @@ extension BaseCard {
             }
             
             // Tappable Card
-            BaseCard(onTap: { print("Workout tapped") }) {
+            BaseCard(onTap: { Logger.debug.debug("Workout tapped") }) {
                 HStack {
                     Image(systemName: "figure.strengthtraining.traditional")
                         .font(.title2)

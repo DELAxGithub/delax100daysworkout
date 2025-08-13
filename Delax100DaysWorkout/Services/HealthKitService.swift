@@ -1,6 +1,7 @@
 import Foundation
 import HealthKit
 import SwiftData
+import OSLog
 
 // MARK: - Memory Management・並行処理安全化 (Issue #33)
 @MainActor
@@ -143,7 +144,7 @@ class HealthKitService: ObservableObject {
     
     func autoSyncOnAppLaunch(modelContext: ModelContext) async {
         guard isAuthorized else { 
-            print("HealthKit not authorized, skipping auto sync")
+            Logger.general.info("HealthKit not authorized, skipping auto sync")
             return 
         }
         
@@ -156,7 +157,7 @@ class HealthKitService: ObservableObject {
             let startDate = lastAutoSyncDate ?? Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
             let endDate = Date()
             
-            print("HealthKit auto sync: checking for new data since \(startDate)")
+            Logger.general.info("HealthKit auto sync: checking for new data since \(startDate)")
             
             // 並行して全データを同期
             async let weightMetrics = syncWeightData(from: startDate, modelContext: modelContext)
@@ -175,17 +176,17 @@ class HealthKitService: ObservableObject {
                 self.lastSyncDataCount = totalCount
                 self.isAutoSyncing = false
                 if totalCount > 0 {
-                    print("HealthKit auto sync completed: \(totalCount) new data items")
+                    Logger.general.info("HealthKit auto sync completed: \(totalCount) new data items")
                     self.saveLastSyncDate(endDate)
                 } else {
-                    print("HealthKit auto sync: no new data found")
+                    Logger.general.info("HealthKit auto sync: no new data found")
                 }
             }
             
         } catch {
             await MainActor.run {
                 self.isAutoSyncing = false
-                print("HealthKit auto sync failed: \(error.localizedDescription)")
+                Logger.error.error("HealthKit auto sync failed: \(error.localizedDescription)")
             }
         }
     }

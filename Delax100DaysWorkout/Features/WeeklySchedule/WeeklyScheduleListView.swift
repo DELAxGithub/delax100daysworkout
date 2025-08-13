@@ -64,12 +64,20 @@ struct WeeklyScheduleListView: View {
                             .buttonStyle(.plain)
                         } else {
                             ForEach(tasks) { task in
-                                WeeklyTaskListRow(
+                                DraggableTaskRow(
                                     task: task,
                                     day: day,
                                     viewModel: viewModel,
                                     isToday: isToday(day)
                                 )
+                                .onDrop(of: [.text], delegate: TaskDropDelegate(
+                                    task: task,
+                                    day: day,
+                                    viewModel: viewModel
+                                ))
+                            }
+                            .onMove { source, destination in
+                                viewModel.moveTasksInDay(day, from: source, to: destination)
                             }
                         }
                     }
@@ -91,10 +99,98 @@ struct WeeklyScheduleListView: View {
                 }
             )
         }
+        .alert("タスクを削除", isPresented: .constant(viewModel.showingDeleteConfirmation != nil)) {
+            Button("削除", role: .destructive) {
+                if let task = viewModel.showingDeleteConfirmation {
+                    viewModel.deleteTask(task)
+                    viewModel.showingDeleteConfirmation = nil
+                }
+            }
+            Button("キャンセル", role: .cancel) {
+                viewModel.showingDeleteConfirmation = nil
+            }
+        } message: {
+            if let task = viewModel.showingDeleteConfirmation {
+                Text("「\(task.title)」を削除しますか？この操作は取り消せません。")
+            }
+        }
+        .sheet(item: Binding<IdentifiableTask?>(
+            get: { viewModel.showingMoveTask.map(IdentifiableTask.init) },
+            set: { _ in viewModel.showingMoveTask = nil }
+        )) { identifiableTask in
+            TaskMoveSheet(task: identifiableTask.task, viewModel: viewModel)
+        }
     }
     
     private func isToday(_ day: Int) -> Bool {
         return Calendar.current.component(.weekday, from: Date()) - 1 == day
+    }
+}
+
+// MARK: - Draggable Task Row
+
+struct DraggableTaskRow: View {
+    let task: DailyTask
+    let day: Int
+    let viewModel: WeeklyScheduleViewModel
+    let isToday: Bool
+    
+    @State private var isDragging = false
+    
+    var body: some View {
+        DraggableContainer(
+            onDragStart: {
+                isDragging = true
+                HapticManager.shared.trigger(.impact(.medium))
+            },
+            onDragEnd: {
+                isDragging = false
+            },
+            dragData: {
+                // Create drag data with task ID
+                let taskData = "task:\(task.id)"
+                return NSItemProvider(object: taskData as NSString)
+            }
+        ) {
+            WeeklyTaskListRow(
+                task: task,
+                day: day,
+                viewModel: viewModel,
+                isToday: isToday
+            )
+        }
+        .opacity(isDragging ? 0.6 : 1.0)
+        .swipeActions(edge: .trailing) {
+            Button("削除", role: .destructive) {
+                viewModel.confirmDeleteTask(task)
+            }
+            .tint(SemanticColor.destructiveAction.color)
+        }
+        .swipeActions(edge: .leading) {
+            Button("編集") {
+                viewModel.startEditingTask(task)
+            }
+            .tint(SemanticColor.primaryAction.color)
+        }
+        .contextMenu {
+            Button("編集", systemImage: "pencil") {
+                viewModel.startEditingTask(task)
+            }
+            
+            Button("複製", systemImage: "doc.on.doc") {
+                viewModel.duplicateTask(task)
+            }
+            
+            Button("移動", systemImage: "arrow.right") {
+                viewModel.showMoveTaskSheet(task)
+            }
+            
+            Divider()
+            
+            Button("削除", systemImage: "trash", role: .destructive) {
+                viewModel.confirmDeleteTask(task)
+            }
+        }
     }
 }
 
@@ -103,6 +199,9 @@ struct WeeklyTaskListRow: View {
     let day: Int
     let viewModel: WeeklyScheduleViewModel
     let isToday: Bool
+    
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+    @State private var isPressed = false
     
     private var workoutIcon: String {
         switch task.workoutType {
@@ -138,96 +237,260 @@ struct WeeklyTaskListRow: View {
         viewModel.isTaskCompleted(task)
     }
     
+    private var animationValue: Animation? {
+        reduceMotion ? .none : .spring(response: 0.3, dampingFraction: 0.7)
+    }
+    
     var body: some View {
-        HStack(spacing: 12) {
-            // アイコン
+        HStack(spacing: Spacing.listItemSpacing.value) {
+            // Apple Reminders-style checkbox
+            RemindersStyleCheckbox(
+                isCompleted: isCompleted,
+                action: { viewModel.toggleTaskCompletion(task) },
+                style: .workout
+            )
+            
+            // ワークアウトアイコン
             Image(systemName: workoutIcon)
                 .font(.title3)
                 .foregroundColor(workoutColor)
-                .frame(width: 30, height: 30)
+                .frame(width: 28, height: 28)
                 .background(workoutColor.opacity(0.1))
                 .clipShape(Circle())
             
             // タスク情報
             VStack(alignment: .leading, spacing: 4) {
                 Text(task.title)
-                    .font(.subheadline)
+                    .font(Typography.bodyMedium.font)
                     .fontWeight(.medium)
-                    .strikethrough(isCompleted, color: .secondary)
-                    .foregroundColor(isCompleted ? .secondary : .primary)
+                    .strikethrough(isCompleted, pattern: .solid, color: SemanticColor.secondaryText.color)
+                    .foregroundColor(isCompleted ? SemanticColor.secondaryText.color : SemanticColor.primaryText.color)
+                    .animation(animationValue, value: isCompleted)
                 
                 if let description = task.taskDescription, !description.isEmpty {
                     Text(description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText.color)
+                        .lineLimit(2)
                 }
                 
-                // 詳細情報
+                // 詳細情報をよりコンパクトに表示
                 if let details = task.targetDetails {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         switch task.workoutType {
                         case .cycling:
                             if let duration = details.duration {
-                                Label("\(duration)分", systemImage: "clock")
+                                CompactDetailLabel(icon: "clock.fill", text: "\(duration)分")
                             }
                             if let intensity = details.intensity {
-                                Label(intensity.displayName, systemImage: "bolt")
+                                CompactDetailLabel(icon: "bolt.fill", text: intensity.displayName)
                             }
                         case .strength:
                             if let sets = details.targetSets, let reps = details.targetReps {
-                                Label("\(sets)セット×\(reps)回", systemImage: "repeat")
+                                CompactDetailLabel(icon: "repeat", text: "\(sets)×\(reps)")
                             }
-                        case .flexibility:
+                        case .flexibility, .pilates, .yoga:
                             if let duration = details.targetDuration {
-                                Label("\(duration)分", systemImage: "clock")
-                            }
-                        case .pilates:
-                            if let duration = details.targetDuration {
-                                Label("\(duration)分", systemImage: "clock")
-                            }
-                        case .yoga:
-                            if let duration = details.targetDuration {
-                                Label("\(duration)分", systemImage: "clock")
+                                CompactDetailLabel(icon: "clock.fill", text: "\(duration)分")
                             }
                         }
                     }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 }
             }
             
             Spacer()
             
-            // 完了ボタン（今日のタスクのみ）
-            if isToday {
-                if isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.green)
-                } else {
-                    Button(action: {
-                        let _ = viewModel.quickCompleteTask(task)
-                        
-                        // Haptic feedback
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                        impactFeedback.impactOccurred()
-                    }) {
-                        Image(systemName: "circle")
-                            .font(.title3)
-                            .foregroundColor(workoutColor)
-                    }
+            // ステータスインジケーター
+            VStack {
+                if isToday && !isCompleted {
+                    Circle()
+                        .fill(workoutColor)
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(isPressed ? 1.2 : 1.0)
+                        .animation(animationValue, value: isPressed)
+                } else if task.isFlexible {
+                    Image(systemName: "arrow.left.arrow.right.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(SemanticColor.secondaryText.color)
                 }
-            } else if task.isFlexible {
-                Image(systemName: "arrow.left.arrow.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                
+                Spacer()
             }
         }
-        .padding(.vertical, 4)
-        .opacity(isCompleted ? 0.6 : 1.0)
+        .padding(.vertical, Spacing.sm.value)
+        .background(SemanticColor.cardBackground.color.opacity(isPressed ? 0.5 : 0.0))
+        .cornerRadius(CornerRadius.medium)
+        .opacity(isCompleted ? 0.7 : 1.0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(animationValue, value: isCompleted)
+        .animation(animationValue, value: isPressed)
+        .contentShape(Rectangle()) // Ensure entire row is tappable
+        .onTapGesture {
+            withAnimation(animationValue) {
+                isPressed = true
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(animationValue) {
+                    isPressed = false
+                }
+                viewModel.toggleTaskCompletion(task)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(taskAccessibilityLabel)
+        .accessibilityValue(isCompleted ? "完了済み" : "未完了")
+        .accessibilityActions {
+            Button("完了切り替え") {
+                viewModel.toggleTaskCompletion(task)
+            }
+            Button("編集") {
+                viewModel.startEditingTask(task)
+            }
+            Button("削除") {
+                viewModel.confirmDeleteTask(task)
+            }
+        }
+    }
+    
+    private var taskAccessibilityLabel: String {
+        var label = task.title
+        if let description = task.taskDescription, !description.isEmpty {
+            label += "、\(description)"
+        }
+        return label
     }
 }
+
+struct CompactDetailLabel: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .medium))
+            Text(text)
+                .font(.system(size: 11, weight: .medium))
+        }
+        .foregroundColor(SemanticColor.secondaryText.color)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(SemanticColor.surfaceBackground.color)
+        .cornerRadius(CornerRadius.small)
+    }
+}
+
+// MARK: - Helper Types
+
+struct IdentifiableTask: Identifiable {
+    let id = UUID()
+    let task: DailyTask
+    
+    init(task: DailyTask) {
+        self.task = task
+    }
+}
+
+// MARK: - Task Move Sheet
+
+struct TaskMoveSheet: View {
+    let task: DailyTask
+    let viewModel: WeeklyScheduleViewModel
+    @Environment(\.dismiss) private var dismiss
+    
+    private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
+    private let dayColors: [Color] = [.red, .gray, .gray, .gray, .gray, .gray, .blue]
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(0..<7, id: \.self) { day in
+                        Button(action: {
+                            viewModel.moveTask(task, toDay: day)
+                            dismiss()
+                        }) {
+                            HStack {
+                                Circle()
+                                    .fill(dayColors[day])
+                                    .frame(width: 12, height: 12)
+                                
+                                Text("\(dayNames[day])曜日")
+                                    .font(Typography.bodyMedium.font)
+                                    .foregroundColor(SemanticColor.primaryText.color)
+                                
+                                Spacer()
+                                
+                                if day == task.dayOfWeek {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(SemanticColor.primaryAction.color)
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(day == task.dayOfWeek)
+                    }
+                } header: {
+                    Text("移動先を選択")
+                }
+            }
+            .navigationTitle("タスクを移動")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("キャンセル") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Task Drop Delegate
+
+struct TaskDropDelegate: DropDelegate {
+    let task: DailyTask
+    let day: Int
+    let viewModel: WeeklyScheduleViewModel
+    
+    func performDrop(info: DropInfo) -> Bool {
+        guard let itemProvider = info.itemProviders(for: [.text]).first else {
+            return false
+        }
+        
+        itemProvider.loadObject(ofClass: NSString.self) { (data, error) in
+            guard let draggedData = data as? String,
+                  draggedData.hasPrefix("task:") else {
+                return
+            }
+            
+            let draggedTaskIdString = String(draggedData.dropFirst(5))
+            
+            DispatchQueue.main.async {
+                viewModel.moveTaskToPosition(
+                    draggedTaskId: draggedTaskIdString,
+                    targetTask: task,
+                    targetDay: day
+                )
+                HapticManager.shared.trigger(.impact(.light))
+            }
+        }
+        
+        return true
+    }
+    
+    func dropEntered(info: DropInfo) {
+        HapticManager.shared.trigger(.selection)
+    }
+}
+
+// MARK: - Preview
 
 #Preview {
     WeeklyScheduleListView(viewModel: WeeklyScheduleViewModel(modelContext: {

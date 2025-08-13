@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 // MARK: - Header Configuration
 
@@ -325,8 +326,8 @@ extension UnifiedHeaderConfiguration {
             UnifiedHeaderComponent(
                 configuration: .history(
                     title: "FTP履歴",
-                    onAdd: { print("Add tapped") },
-                    onEdit: { print("Edit tapped") }
+                    onAdd: { Logger.debug.debug("Add tapped") },
+                    onEdit: { Logger.debug.debug("Edit tapped") }
                 )
             )
             
@@ -334,7 +335,7 @@ extension UnifiedHeaderConfiguration {
             UnifiedHeaderComponent(
                 configuration: .settings(
                     title: "設定",
-                    onDone: { print("Done tapped") }
+                    onDone: { Logger.debug.debug("Done tapped") }
                 )
             )
             
@@ -343,8 +344,8 @@ extension UnifiedHeaderConfiguration {
                 configuration: .detail(
                     title: "ワークアウト詳細",
                     subtitle: "2025年8月13日",
-                    onBack: { print("Back tapped") },
-                    onAction: { print("Action tapped") }
+                    onBack: { Logger.debug.debug("Back tapped") },
+                    onAction: { Logger.debug.debug("Action tapped") }
                 )
             )
             
@@ -355,7 +356,7 @@ extension UnifiedHeaderConfiguration {
                 primaryAction: HeaderAction(
                     icon: "heart",
                     label: "お気に入り",
-                    action: { print("Favorite tapped") }
+                    action: { Logger.debug.debug("Favorite tapped") }
                 ),
                 style: .prominent
             )

@@ -10,6 +10,11 @@ class WeeklyScheduleViewModel {
     var quickRecordTask: DailyTask?
     var quickRecordWorkout: WorkoutRecord?
     
+    // MARK: - Apple Reminders-style State Management
+    var editingTasks: Set<PersistentIdentifier> = []
+    var showingMoveTask: DailyTask?
+    var showingDeleteConfirmation: DailyTask?
+    
     private var modelContext: ModelContext
     private var taskSuggestionManager: TaskSuggestionManager
     private var progressAnalyzer: ProgressAnalyzer
@@ -199,6 +204,198 @@ class WeeklyScheduleViewModel {
             Logger.error.error("Error moving task: \(error.localizedDescription)")
             // エラーが発生した場合は元に戻す
             task.dayOfWeek = originalDay
+        }
+    }
+    
+    // MARK: - Apple Reminders-style Interaction Methods
+    
+    func toggleTaskCompletion(_ task: DailyTask) {
+        if isTaskCompleted(task) {
+            markTaskAsIncomplete(task)
+            HapticManager.shared.trigger(.impact(.light))
+        } else {
+            let _ = quickCompleteTask(task)
+            HapticManager.shared.trigger(.impact(.medium))
+        }
+    }
+    
+    func startEditingTask(_ task: DailyTask) {
+        editingTasks.insert(task.id)
+        HapticManager.shared.trigger(.selection)
+    }
+    
+    func finishEditingTask(_ task: DailyTask) {
+        editingTasks.remove(task.id)
+        saveTaskChanges(task)
+    }
+    
+    func isTaskEditing(_ task: DailyTask) -> Bool {
+        return editingTasks.contains(task.id)
+    }
+    
+    func duplicateTask(_ task: DailyTask) {
+        let duplicatedTask = DailyTask(
+            dayOfWeek: task.dayOfWeek,
+            workoutType: task.workoutType,
+            title: task.title + " (コピー)",
+            description: task.taskDescription,
+            targetDetails: task.targetDetails,
+            isFlexible: task.isFlexible
+        )
+        
+        // ソート順序を設定（元のタスクの次）
+        if let template = task.template {
+            let sameDayTasks = template.tasksForDay(task.dayOfWeek)
+            duplicatedTask.sortOrder = task.sortOrder + 1
+            
+            // 後続タスクのソート順序を更新
+            for laterTask in sameDayTasks where laterTask.sortOrder > task.sortOrder {
+                laterTask.sortOrder += 1
+            }
+            
+            template.addTask(duplicatedTask)
+        }
+        
+        modelContext.insert(duplicatedTask)
+        
+        do {
+            try modelContext.save()
+            HapticManager.shared.trigger(.notification(.success))
+            Logger.general.info("Task duplicated successfully: \(duplicatedTask.title)")
+        } catch {
+            Logger.error.error("Error duplicating task: \(error.localizedDescription)")
+            HapticManager.shared.trigger(.notification(.error))
+        }
+    }
+    
+    func deleteTask(_ task: DailyTask) {
+        // 完了記録も削除
+        let recordDescriptor = FetchDescriptor<WorkoutRecord>()
+        
+        do {
+            let allRecords = try modelContext.fetch(recordDescriptor)
+            let relatedRecords = allRecords.filter { $0.templateTask?.id == task.id }
+            
+            for record in relatedRecords {
+                modelContext.delete(record)
+            }
+            
+            modelContext.delete(task)
+            completedTasks.remove(task.id)
+            editingTasks.remove(task.id)
+            
+            try modelContext.save()
+            HapticManager.shared.trigger(.notification(.warning))
+            Logger.general.info("Task deleted successfully: \(task.title)")
+        } catch {
+            Logger.error.error("Error deleting task: \(error.localizedDescription)")
+            HapticManager.shared.trigger(.notification(.error))
+        }
+    }
+    
+    func showMoveTaskSheet(_ task: DailyTask) {
+        showingMoveTask = task
+        HapticManager.shared.trigger(.impact(.medium))
+    }
+    
+    func confirmDeleteTask(_ task: DailyTask) {
+        showingDeleteConfirmation = task
+        HapticManager.shared.trigger(.impact(.heavy))
+    }
+    
+    private func saveTaskChanges(_ task: DailyTask) {
+        do {
+            try modelContext.save()
+            HapticManager.shared.trigger(.notification(.success))
+            Logger.general.info("Task changes saved: \(task.title)")
+        } catch {
+            Logger.error.error("Error saving task changes: \(error.localizedDescription)")
+            HapticManager.shared.trigger(.notification(.error))
+        }
+    }
+    
+    // MARK: - Drag & Drop Support
+    
+    func moveTasksInDay(_ day: Int, from source: IndexSet, to destination: Int) {
+        // Find active template
+        let templateDescriptor = FetchDescriptor<WeeklyTemplate>(
+            predicate: #Predicate<WeeklyTemplate> { $0.isActive }
+        )
+        
+        do {
+            let activeTemplates = try modelContext.fetch(templateDescriptor)
+            guard let template = activeTemplates.first else { return }
+            
+            var tasks = template.tasksForDay(day).sorted { $0.sortOrder < $1.sortOrder }
+            tasks.move(fromOffsets: source, toOffset: destination)
+            
+            // Update sort orders
+            for (index, task) in tasks.enumerated() {
+                task.sortOrder = index
+            }
+            
+            try modelContext.save()
+            HapticManager.shared.trigger(.impact(.medium))
+            Logger.general.info("Tasks reordered in day \(day)")
+        } catch {
+            Logger.error.error("Error reordering tasks: \(error.localizedDescription)")
+            HapticManager.shared.trigger(.notification(.error))
+        }
+    }
+    
+    func moveTaskToPosition(draggedTaskId: String, targetTask: DailyTask, targetDay: Int) {
+        
+        // Find the dragged task
+        let taskDescriptor = FetchDescriptor<DailyTask>()
+        
+        do {
+            let allTasks = try modelContext.fetch(taskDescriptor)
+            guard let draggedTask = allTasks.first(where: { "\($0.id)" == draggedTaskId }) else {
+                Logger.error.error("Could not find dragged task with ID: \(draggedTaskId)")
+                return
+            }
+            
+            let oldDay = draggedTask.dayOfWeek
+            let newDay = targetDay
+            
+            // If moving to different day
+            if oldDay != newDay {
+                // Update day of week
+                draggedTask.dayOfWeek = newDay
+                
+                // Reorder tasks in old day
+                if let template = draggedTask.template {
+                    let oldDayTasks = template.tasksForDay(oldDay)
+                        .filter { $0.id != draggedTask.id }
+                        .sorted { $0.sortOrder < $1.sortOrder }
+                    
+                    for (index, task) in oldDayTasks.enumerated() {
+                        task.sortOrder = index
+                    }
+                }
+            }
+            
+            // Set new sort order (insert before target task)
+            draggedTask.sortOrder = targetTask.sortOrder
+            
+            // Update sort orders for tasks after the target
+            if let template = targetTask.template {
+                let newDayTasks = template.tasksForDay(newDay)
+                    .filter { $0.sortOrder >= targetTask.sortOrder && $0.id != draggedTask.id }
+                    .sorted { $0.sortOrder < $1.sortOrder }
+                
+                for (index, task) in newDayTasks.enumerated() {
+                    task.sortOrder = targetTask.sortOrder + index + 1
+                }
+            }
+            
+            try modelContext.save()
+            HapticManager.shared.trigger(.notification(.success))
+            Logger.general.info("Task '\(draggedTask.title)' moved from day \(oldDay) to day \(newDay)")
+            
+        } catch {
+            Logger.error.error("Error moving task: \(error.localizedDescription)")
+            HapticManager.shared.trigger(.notification(.error))
         }
     }
 }

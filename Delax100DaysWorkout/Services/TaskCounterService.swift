@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import OSLog
 
 /// タスク完了回数カウンター管理サービス
 @MainActor
@@ -25,7 +26,7 @@ class TaskCounterService: ObservableObject {
                 return existingCounter
             }
         } catch {
-            print("Error fetching counter: \(error)")
+            Logger.database.error("Error fetching counter: \(error.localizedDescription)")
         }
         
         // 新規作成
@@ -44,9 +45,9 @@ class TaskCounterService: ObservableObject {
         
         do {
             try modelContext.save()
-            print("Counter updated for \(taskType): \(counter.completionCount)")
+            Logger.database.info("Counter updated for \(taskType): \(counter.completionCount)")
         } catch {
-            print("Error saving counter update: \(error)")
+            Logger.database.error("Error saving counter update: \(error.localizedDescription)")
         }
     }
     
@@ -59,9 +60,9 @@ class TaskCounterService: ObservableObject {
         
         do {
             try modelContext.save()
-            print("Counter updated for \(taskType): \(counter.completionCount)")
+            Logger.database.info("Counter updated for \(taskType): \(counter.completionCount)")
         } catch {
-            print("Error saving counter update: \(error)")
+            Logger.database.error("Error saving counter update: \(error.localizedDescription)")
         }
     }
     
@@ -77,7 +78,7 @@ class TaskCounterService: ObservableObject {
             let counters = try modelContext.fetch(descriptor)
             return counters.first
         } catch {
-            print("Error fetching counter info: \(error)")
+            Logger.database.error("Error fetching counter info: \(error.localizedDescription)")
             return nil
         }
     }
@@ -97,9 +98,9 @@ class TaskCounterService: ObservableObject {
         
         do {
             try modelContext.save()
-            print("Target updated for \(taskType): \(counter.currentTarget)")
+            Logger.database.info("Target updated for \(taskType): \(counter.currentTarget)")
         } catch {
-            print("Error saving target update: \(error)")
+            Logger.database.error("Error saving target update: \(error.localizedDescription)")
         }
     }
     
@@ -111,9 +112,9 @@ class TaskCounterService: ObservableObject {
         
         do {
             try modelContext.save()
-            print("Custom target set for \(taskType): \(counter.currentTarget)")
+            Logger.database.info("Custom target set for \(taskType): \(counter.currentTarget)")
         } catch {
-            print("Error saving custom target: \(error)")
+            Logger.database.error("Error saving custom target: \(error.localizedDescription)")
         }
     }
     
@@ -151,14 +152,14 @@ class TaskCounterService: ObservableObject {
                     counter.isTargetAchieved = true
                 }
                 
-                print("Migrated \(taskType): \(count) completions")
+                Logger.database.info("Migrated \(taskType): \(count) completions")
             }
             
             try modelContext.save()
-            print("History migration completed successfully")
+            Logger.database.info("History migration completed successfully")
             
         } catch {
-            print("Error during history migration: \(error)")
+            Logger.database.error("Error during history migration: \(error.localizedDescription)")
         }
     }
     
@@ -174,7 +175,7 @@ class TaskCounterService: ObservableObject {
             let counters = try modelContext.fetch(descriptor)
             return counters.map { (taskType: $0.taskType, counter: $0) }
         } catch {
-            print("Error fetching counter stats: \(error)")
+            Logger.database.error("Error fetching counter stats: \(error.localizedDescription)")
             return []
         }
     }
@@ -191,7 +192,7 @@ class TaskCounterService: ObservableObject {
         do {
             return try modelContext.fetch(descriptor)
         } catch {
-            print("Error fetching achieved counters: \(error)")
+            Logger.database.error("Error fetching achieved counters: \(error.localizedDescription)")
             return []
         }
     }
@@ -208,7 +209,7 @@ class TaskCounterService: ObservableObject {
         do {
             return try modelContext.fetch(descriptor)
         } catch {
-            print("Error fetching active counters: \(error)")
+            Logger.database.error("Error fetching active counters: \(error.localizedDescription)")
             return []
         }
     }
@@ -226,9 +227,9 @@ class TaskCounterService: ObservableObject {
             
             do {
                 try modelContext.save()
-                print("Counter reset for \(taskType)")
+                Logger.database.info("Counter reset for \(taskType)")
             } catch {
-                print("Error resetting counter: \(error)")
+                Logger.database.error("Error resetting counter: \(error.localizedDescription)")
             }
         }
     }
@@ -248,9 +249,9 @@ class TaskCounterService: ObservableObject {
             }
             
             try modelContext.save()
-            print("All counters reset successfully")
+            Logger.database.info("All counters reset successfully")
         } catch {
-            print("Error resetting all counters: \(error)")
+            Logger.database.error("Error resetting all counters: \(error.localizedDescription)")
         }
     }
 }

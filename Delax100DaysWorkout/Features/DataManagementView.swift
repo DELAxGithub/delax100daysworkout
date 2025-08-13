@@ -1,6 +1,48 @@
 import SwiftUI
 import SwiftData
 
+enum EditableModel: String, CaseIterable {
+    case workoutRecords = "WorkoutRecords"
+    case ftpHistory = "FTPHistory"
+    case dailyMetrics = "DailyMetrics"
+    case dailyTasks = "DailyTasks"
+    case weeklyTemplates = "WeeklyTemplates"
+    case userProfiles = "UserProfiles"
+    
+    var displayName: String {
+        switch self {
+        case .workoutRecords: return "ワークアウト記録"
+        case .ftpHistory: return "FTP記録"
+        case .dailyMetrics: return "体重・メトリクス"
+        case .dailyTasks: return "タスク記録"
+        case .weeklyTemplates: return "週間テンプレート"
+        case .userProfiles: return "ユーザープロファイル"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .workoutRecords: return "figure.run"
+        case .ftpHistory: return "bolt.fill"
+        case .dailyMetrics: return "scalemass.fill"
+        case .dailyTasks: return "checkmark.circle.fill"
+        case .weeklyTemplates: return "calendar"
+        case .userProfiles: return "person.circle.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .workoutRecords: return .green
+        case .ftpHistory: return .blue
+        case .dailyMetrics: return .orange
+        case .dailyTasks: return .purple
+        case .weeklyTemplates: return .indigo
+        case .userProfiles: return .pink
+        }
+    }
+}
+
 struct DataManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -10,6 +52,7 @@ struct DataManagementView: View {
     @Query private var dailyMetrics: [DailyMetric]
     @Query private var dailyTasks: [DailyTask]
     @Query private var weeklyTemplates: [WeeklyTemplate]
+    @Query private var userProfiles: [UserProfile]
     
     @State private var showingResetAlert = false
     @State private var showingWorkoutDeleteAlert = false
@@ -17,13 +60,41 @@ struct DataManagementView: View {
     @State private var showingMetricsDeleteAlert = false
     @State private var showingTasksDeleteAlert = false
     @State private var showingTemplatesDeleteAlert = false
+    @State private var showingProfileDeleteAlert = false
+    
+    @State private var showingDemoDataOptions = false
+    @State private var selectedEditModel: EditableModel?
     
     var totalDataCount: Int {
-        workoutRecords.count + ftpHistory.count + validDailyMetrics.count + dailyTasks.count + weeklyTemplates.count
+        workoutRecords.count + ftpHistory.count + validDailyMetrics.count + dailyTasks.count + weeklyTemplates.count + userProfiles.count
     }
     
     var validDailyMetrics: [DailyMetric] {
         dailyMetrics.filter { $0.hasAnyData }
+    }
+    
+    // MARK: - CRUD Engine Helper Methods
+    
+    private func getModelCount(_ model: EditableModel) -> Int {
+        switch model {
+        case .workoutRecords: return workoutRecords.count
+        case .ftpHistory: return ftpHistory.count
+        case .dailyMetrics: return validDailyMetrics.count
+        case .dailyTasks: return dailyTasks.count
+        case .weeklyTemplates: return weeklyTemplates.count
+        case .userProfiles: return userProfiles.count
+        }
+    }
+    
+    private func showDeleteAlert(for model: EditableModel) {
+        switch model {
+        case .workoutRecords: showingWorkoutDeleteAlert = true
+        case .ftpHistory: showingFTPDeleteAlert = true
+        case .dailyMetrics: showingMetricsDeleteAlert = true
+        case .dailyTasks: showingTasksDeleteAlert = true
+        case .weeklyTemplates: showingTemplatesDeleteAlert = true
+        case .userProfiles: showingProfileDeleteAlert = true
+        }
     }
     
     var body: some View {
@@ -51,45 +122,46 @@ struct DataManagementView: View {
                 }
                 
                 Section("データ種別") {
-                    DataTypeRow(
-                        title: "ワークアウト記録",
-                        count: workoutRecords.count,
-                        icon: "figure.run",
-                        color: .green,
-                        action: { showingWorkoutDeleteAlert = true }
-                    )
-                    
-                    DataTypeRow(
-                        title: "FTP記録",
-                        count: ftpHistory.count,
-                        icon: "bolt.fill",
-                        color: .blue,
-                        action: { showingFTPDeleteAlert = true }
-                    )
-                    
-                    DataTypeRow(
-                        title: "体重・メトリクス",
-                        count: validDailyMetrics.count,
-                        icon: "scalemass.fill",
-                        color: .orange,
-                        action: { showingMetricsDeleteAlert = true }
-                    )
-                    
-                    DataTypeRow(
-                        title: "タスク記録",
-                        count: dailyTasks.count,
-                        icon: "checkmark.circle.fill",
-                        color: .purple,
-                        action: { showingTasksDeleteAlert = true }
-                    )
-                    
-                    DataTypeRow(
-                        title: "週間テンプレート",
-                        count: weeklyTemplates.count,
-                        icon: "calendar",
-                        color: .indigo,
-                        action: { showingTemplatesDeleteAlert = true }
-                    )
+                    // Enhanced CRUD Engine Integration
+                    ForEach(EditableModel.allCases, id: \.rawValue) { model in
+                        CRUDDataTypeRow(
+                            model: model,
+                            count: getModelCount(model),
+                            editAction: { selectedEditModel = model },
+                            deleteAction: { showDeleteAlert(for: model) }
+                        )
+                    }
+                }
+                
+                Section("デモデータ管理") {
+                    BaseCard(style: DefaultCardStyle()) {
+                        Button(action: {
+                            showingDemoDataOptions = true
+                        }) {
+                            HStack {
+                                Image(systemName: "theatermasks")
+                                    .foregroundColor(.blue)
+                                    .font(Typography.headlineMedium.font)
+                                    .frame(width: 24)
+                                
+                                VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                                    Text("デモデータ管理")
+                                        .font(Typography.bodyMedium.font)
+                                        .foregroundColor(SemanticColor.primaryText)
+                                    
+                                    Text("デモデータの生成・削除・リセット")
+                                        .font(Typography.captionMedium.font)
+                                        .foregroundColor(SemanticColor.secondaryText)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(SemanticColor.secondaryText)
+                                    .font(Typography.captionMedium.font)
+                            }
+                        }
+                    }
                 }
                 
                 Section("危険な操作") {
@@ -168,6 +240,28 @@ struct DataManagementView: View {
             } message: {
                 Text("全ての週間テンプレート（\(weeklyTemplates.count)件）を削除してもよろしいですか？")
             }
+            .alert("プロファイル削除", isPresented: $showingProfileDeleteAlert) {
+                Button("削除", role: .destructive) {
+                    deleteUserProfiles()
+                }
+                Button("キャンセル", role: .cancel) { }
+            } message: {
+                Text("全てのユーザープロファイル（\(userProfiles.count)件）を削除してもよろしいですか？")
+            }
+            .sheet(item: $selectedEditModel) { model in
+                NavigationStack {
+                    GenericCRUDModelView(editableModel: model)
+                        .environment(\.modelContext, modelContext)
+                }
+            }
+            .alert("デモデータ生成", isPresented: $showingDemoDataOptions) {
+                Button("生成") {
+                    DemoDataManager.generateJuly2025DemoData(modelContext: modelContext)
+                }
+                Button("キャンセル", role: .cancel) { }
+            } message: {
+                Text("July 2025のリアルなデモデータを生成しますか？")
+            }
         }
     }
     
@@ -189,6 +283,9 @@ struct DataManagementView: View {
                 modelContext.delete(record)
             }
             for record in weeklyTemplates {
+                modelContext.delete(record)
+            }
+            for record in userProfiles {
                 modelContext.delete(record)
             }
             
@@ -241,6 +338,15 @@ struct DataManagementView: View {
             try? modelContext.save()
         }
     }
+    
+    private func deleteUserProfiles() {
+        withAnimation {
+            for record in userProfiles {
+                modelContext.delete(record)
+            }
+            try? modelContext.save()
+        }
+    }
 }
 
 struct DataTypeRow: View {
@@ -287,7 +393,289 @@ struct DataTypeRow: View {
     }
 }
 
+// MARK: - CRUD Data Type Row
+
+struct CRUDDataTypeRow: View {
+    let model: EditableModel
+    let count: Int
+    let editAction: () -> Void
+    let deleteAction: () -> Void
+    
+    var body: some View {
+        BaseCard(style: DefaultCardStyle()) {
+            HStack {
+                Image(systemName: model.iconName)
+                    .foregroundColor(model.color)
+                    .font(Typography.headlineMedium.font)
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                    Text(model.displayName)
+                        .font(Typography.bodyMedium.font)
+                        .foregroundColor(SemanticColor.primaryText)
+                    
+                    Text("\(count) 件")
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                }
+                
+                Spacer()
+                
+                if count > 0 {
+                    Button(action: editAction) {
+                        Image(systemName: "pencil")
+                            .foregroundColor(SemanticColor.primaryAction)
+                            .font(Typography.bodyMedium.font)
+                    }
+                    .padding(.trailing, Spacing.sm.value)
+                    
+                    Button(action: deleteAction) {
+                        Image(systemName: "trash")
+                            .foregroundColor(SemanticColor.errorAction)
+                            .font(Typography.bodyMedium.font)
+                    }
+                } else {
+                    Text("データなし")
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                }
+            }
+            .padding(Spacing.md.value)
+        }
+    }
+}
+
+// MARK: - Enhanced Data Type Row (Legacy)
+
+struct EnhancedDataTypeRow: View {
+    let title: String
+    let count: Int
+    let icon: String
+    let color: Color
+    let editAction: () -> Void
+    let deleteAction: () -> Void
+    
+    var body: some View {
+        BaseCard(style: DefaultCardStyle()) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                    .font(Typography.headlineMedium.font)
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                    Text(title)
+                        .font(Typography.bodyMedium.font)
+                        .foregroundColor(SemanticColor.primaryText)
+                    
+                    Text("\(count) 件")
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                }
+                
+                Spacer()
+                
+                if count > 0 {
+                    Button(action: editAction) {
+                        Image(systemName: "pencil")
+                            .foregroundColor(SemanticColor.primaryAction)
+                            .font(Typography.bodyMedium.font)
+                    }
+                    .padding(.trailing, Spacing.sm.value)
+                    
+                    Button(action: deleteAction) {
+                        Image(systemName: "trash")
+                            .foregroundColor(SemanticColor.errorAction)
+                            .font(Typography.bodyMedium.font)
+                    }
+                } else {
+                    Text("データなし")
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(SemanticColor.secondaryText)
+                }
+            }
+            .padding(Spacing.md.value)
+        }
+    }
+}
+
+// MARK: - Simple Record List View
+
+struct SimpleRecordListView: View {
+    let modelType: EditableModel
+    let modelContext: ModelContext
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedRecord: Any?
+    
+    var body: some View {
+        List {
+            switch modelType {
+            case .ftpHistory:
+                let records = (try? modelContext.fetch(FetchDescriptor<FTPHistory>())) ?? []
+                ForEach(records, id: \.id) { record in
+                    NavigationLink(destination: FTPEditSheet(ftpRecord: record)) {
+                        VStack(alignment: .leading) {
+                            Text("\(record.ftpValue) W")
+                            Text(record.formattedDate).font(.caption).foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        modelContext.delete(records[index])
+                    }
+                    try? modelContext.save()
+                }
+            case .dailyMetrics:
+                let records = (try? modelContext.fetch(FetchDescriptor<DailyMetric>())) ?? []
+                ForEach(records.filter { $0.hasAnyData }, id: \.id) { record in
+                    VStack(alignment: .leading) {
+                        Text(record.formattedWeight ?? "No weight")
+                        Text(record.formattedDate).font(.caption).foregroundColor(.secondary)
+                    }
+                }
+                .onDelete { indexSet in
+                    let validRecords = records.filter { $0.hasAnyData }
+                    for index in indexSet {
+                        modelContext.delete(validRecords[index])
+                    }
+                    try? modelContext.save()
+                }
+            case .workoutRecords:
+                let records = (try? modelContext.fetch(FetchDescriptor<WorkoutRecord>())) ?? []
+                ForEach(records, id: \.id) { record in
+                    VStack(alignment: .leading) {
+                        Text(record.summary)
+                        Text(record.workoutType.rawValue).font(.caption).foregroundColor(.secondary)
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        modelContext.delete(records[index])
+                    }
+                    try? modelContext.save()
+                }
+            case .dailyTasks:
+                let records = (try? modelContext.fetch(FetchDescriptor<DailyTask>())) ?? []
+                ForEach(records, id: \.id) { record in
+                    VStack(alignment: .leading) {
+                        Text(record.title)
+                        Text(record.dayName).font(.caption).foregroundColor(.secondary)
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        modelContext.delete(records[index])
+                    }
+                    try? modelContext.save()
+                }
+            case .weeklyTemplates:
+                let records = (try? modelContext.fetch(FetchDescriptor<WeeklyTemplate>())) ?? []
+                ForEach(records, id: \.id) { record in
+                    VStack(alignment: .leading) {
+                        Text(record.name)
+                        Text("\(record.dailyTasks.count) tasks").font(.caption).foregroundColor(.secondary)
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        modelContext.delete(records[index])
+                    }
+                    try? modelContext.save()
+                }
+            case .userProfiles:
+                let records = (try? modelContext.fetch(FetchDescriptor<UserProfile>())) ?? []
+                ForEach(records, id: \.id) { record in
+                    VStack(alignment: .leading) {
+                        Text("Profile")
+                        Text("Goal: \(record.goalWeightKg)kg").font(.caption).foregroundColor(.secondary)
+                    }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        modelContext.delete(records[index])
+                    }
+                    try? modelContext.save()
+                }
+            }
+        }
+        .navigationTitle(modelType.displayName)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("閉じる") { dismiss() }
+            }
+        }
+    }
+}
+
+extension EditableModel: Identifiable {
+    var id: String { rawValue }
+}
+
+// MARK: - Generic CRUD Model View Wrapper
+
+struct GenericCRUDModelView: View {
+    let editableModel: EditableModel
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        Group {
+            switch editableModel {
+            case .workoutRecords:
+                GenericCRUDView(
+                    modelType: WorkoutRecord.self,
+                    displayName: editableModel.displayName,
+                    icon: editableModel.iconName,
+                    color: editableModel.color
+                )
+            case .ftpHistory:
+                GenericCRUDView(
+                    modelType: FTPHistory.self,
+                    displayName: editableModel.displayName,
+                    icon: editableModel.iconName,
+                    color: editableModel.color
+                )
+            case .dailyMetrics:
+                GenericCRUDView(
+                    modelType: DailyMetric.self,
+                    displayName: editableModel.displayName,
+                    icon: editableModel.iconName,
+                    color: editableModel.color
+                )
+            case .dailyTasks:
+                GenericCRUDView(
+                    modelType: DailyTask.self,
+                    displayName: editableModel.displayName,
+                    icon: editableModel.iconName,
+                    color: editableModel.color
+                )
+            case .weeklyTemplates:
+                GenericCRUDView(
+                    modelType: WeeklyTemplate.self,
+                    displayName: editableModel.displayName,
+                    icon: editableModel.iconName,
+                    color: editableModel.color
+                )
+            case .userProfiles:
+                GenericCRUDView(
+                    modelType: UserProfile.self,
+                    displayName: editableModel.displayName,
+                    icon: editableModel.iconName,
+                    color: editableModel.color
+                )
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("閉じる") { dismiss() }
+            }
+        }
+    }
+}
+
 #Preview {
     DataManagementView()
-        .modelContainer(for: [WorkoutRecord.self, FTPHistory.self, DailyMetric.self, DailyTask.self, WeeklyTemplate.self])
+        .modelContainer(for: [WorkoutRecord.self, FTPHistory.self, DailyMetric.self, DailyTask.self, WeeklyTemplate.self, UserProfile.self])
 }

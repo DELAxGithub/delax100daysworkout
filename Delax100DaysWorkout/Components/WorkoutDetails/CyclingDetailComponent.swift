@@ -132,7 +132,7 @@ private struct IntensityPickerRow: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(label): \(selection.displayName)")
-        .accessibilityHint("タップして強度を選択してください")
+        .accessibilityHint(Text("タップして強度を選択してください"))
         .accessibilityAddTraits(.isButton)
     }
 }

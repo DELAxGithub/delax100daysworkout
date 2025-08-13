@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 // MARK: - Main View
 
@@ -115,7 +116,7 @@ struct WorkoutHistoryView: View {
                 } else {
                     List {
                         ForEach(filteredWorkouts) { workout in
-                            WorkoutHistoryRow(
+                            DraggableWorkoutHistoryRow(
                                 workout: workout,
                                 isEditMode: isEditMode,
                                 isSelected: selectedWorkouts.contains(workout.id),
@@ -133,10 +134,14 @@ struct WorkoutHistoryView: View {
                                     } else {
                                         selectedWorkouts.remove(workout.id)
                                     }
+                                },
+                                onMove: { draggedWorkout, targetWorkout in
+                                    moveWorkout(draggedWorkout, to: targetWorkout)
                                 }
                             )
                         }
                         .onDelete(perform: isEditMode ? nil : deleteWorkouts)
+                        .onMove(perform: isEditMode ? nil : moveWorkouts)
                     }
                     .listStyle(.plain)
                 }
@@ -264,6 +269,44 @@ struct WorkoutHistoryView: View {
             }
             try? modelContext.save()
         }
+    }
+    
+    // MARK: - Drag & Drop Support
+    
+    private func moveWorkouts(from source: IndexSet, to destination: Int) {
+        // For now, we'll just update the dates to maintain order
+        // This is a simple approach for workout history reordering
+        var workouts = filteredWorkouts
+        workouts.move(fromOffsets: source, toOffset: destination)
+        
+        // Update dates to maintain the new order
+        let baseDate = Date()
+        for (index, workout) in workouts.enumerated() {
+            let timeInterval = TimeInterval(-index * 60) // 1 minute intervals
+            workout.date = baseDate.addingTimeInterval(timeInterval)
+        }
+        
+        do {
+            try modelContext.save()
+            HapticManager.shared.trigger(.impact(.medium))
+        } catch {
+            Logger.error.error("Error reordering workouts: \(error.localizedDescription)")
+            HapticManager.shared.trigger(.notification(.error))
+        }
+    }
+    
+    private func moveWorkout(_ draggedWorkout: WorkoutRecord, to targetWorkout: WorkoutRecord) {
+        // Find indices
+        guard let draggedIndex = filteredWorkouts.firstIndex(of: draggedWorkout),
+              let targetIndex = filteredWorkouts.firstIndex(of: targetWorkout) else {
+            return
+        }
+        
+        // Move the workout
+        let sourceIndexSet = IndexSet(integer: draggedIndex)
+        let destinationIndex = targetIndex
+        
+        moveWorkouts(from: sourceIndexSet, to: destinationIndex)
     }
 }
 

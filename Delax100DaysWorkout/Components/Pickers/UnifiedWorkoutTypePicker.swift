@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 // MARK: - Unified Workout Type Picker
 
@@ -144,14 +145,14 @@ private struct WorkoutTypeOption: View {
         UnifiedWorkoutTypePicker(
             selectedType: .constant(.cycling),
             onSelectionChanged: { type in
-                print("Selected: \(type.rawValue)")
+                Logger.debug.debug("Selected: \(type.rawValue)")
             }
         )
         
         UnifiedWorkoutTypePicker(
             selectedType: .constant(.pilates),
             onSelectionChanged: { type in
-                print("Selected: \(type.rawValue)")
+                Logger.debug.debug("Selected: \(type.rawValue)")
             }
         )
         

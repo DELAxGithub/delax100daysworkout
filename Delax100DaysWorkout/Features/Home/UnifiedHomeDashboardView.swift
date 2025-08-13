@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import OSLog
 
 struct UnifiedHomeDashboardView: View {
     @Environment(\.modelContext) private var modelContext
@@ -8,6 +9,8 @@ struct UnifiedHomeDashboardView: View {
     @StateObject private var healthKitService = HealthKitService()
     @State private var progressViewModel: ProgressChartViewModel? = nil
     @State private var dashboardViewModel: DashboardViewModel? = nil
+    @State private var homeDashboardViewModel: HomeDashboardViewModel? = nil
+    @State private var scheduleViewModel: WeeklyScheduleViewModel? = nil
     @State private var latestWeight: Double? = nil
     @State private var isHealthKitSyncing = false
     
@@ -22,40 +25,24 @@ struct UnifiedHomeDashboardView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    // Header Summary Cards
-                    VStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            SummaryCard(
-                                title: "現在のFTP",
-                                value: "\(sstViewModel.currentFTP ?? 0)W",
-                                subtitle: sstViewModel.formattedFTPChange ?? "データなし",
-                                color: .blue,
-                                icon: "bolt.fill"
-                            )
-                            
-                            SummaryCard(
-                                title: "今週の進捗",
-                                value: "\(progressViewModel?.thisWeekWorkouts ?? 0)",
-                                subtitle: "ワークアウト完了",
-                                color: .green,
-                                icon: "checkmark.circle.fill"
-                            )
+                    // Progress Integration View (Issue #56: Training Manager)
+                    ProgressIntegrationView()
+                    
+                    // Premium Dashboard Cards
+                    if let homeDashboardViewModel = homeDashboardViewModel {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+                            ForEach(Array(homeDashboardViewModel.summaryCards.prefix(4)), id: \.title) { config in
+                                InteractiveSummaryCard(
+                                    configuration: config,
+                                    onTap: { handleCardTap(config) }
+                                )
+                            }
                         }
                         
-                        // 体重カード
-                        SummaryCard(
-                            title: "最新体重",
-                            value: {
-                                if let weight = latestWeight {
-                                    return String(format: "%.1f kg", weight)
-                                } else {
-                                    return "未測定"
-                                }
-                            }(),
-                            subtitle: isHealthKitSyncing ? "同期中..." : (healthKitService.isAuthorized ? "Apple Health" : "手動入力"),
-                            color: .orange,
-                            icon: "figure.stand"
-                        )
+                        // Today's Tasks Widget
+                        if let scheduleViewModel = scheduleViewModel {
+                            TodayTasksWidget(scheduleViewModel: scheduleViewModel)
+                        }
                     }
                     
                     // FTP Section
@@ -374,6 +361,8 @@ struct UnifiedHomeDashboardView: View {
         sstViewModel.setModelContext(modelContext)
         progressViewModel = ProgressChartViewModel(modelContext: modelContext)
         dashboardViewModel = DashboardViewModel(modelContext: modelContext)
+        homeDashboardViewModel = HomeDashboardViewModel(modelContext: modelContext)
+        scheduleViewModel = WeeklyScheduleViewModel(modelContext: modelContext)
     }
     
     private func loadAllData() {
@@ -386,11 +375,18 @@ struct UnifiedHomeDashboardView: View {
         sstViewModel.refreshData()
         progressViewModel?.fetchData()
         dashboardViewModel?.refreshData()
+        homeDashboardViewModel?.refreshAllData()
+        scheduleViewModel?.refreshCompletedTasks()
         
         // HealthKitデータも更新
         Task {
             await syncHealthKitData()
         }
+    }
+    
+    private func handleCardTap(_ config: SummaryCardConfiguration) {
+        HapticManager.shared.trigger(.impact(.medium))
+        // Handle card tap based on configuration
     }
     
     // MARK: - HealthKit Methods
@@ -401,7 +397,7 @@ struct UnifiedHomeDashboardView: View {
             do {
                 try await healthKitService.requestAuthorization()
             } catch {
-                print("HealthKit認証エラー: \(error.localizedDescription)")
+                Logger.error.error("HealthKit認証エラー: \(error.localizedDescription)")
                 return
             }
         }
@@ -429,7 +425,7 @@ struct UnifiedHomeDashboardView: View {
             await loadLatestWeight()
             
         } catch {
-            print("HealthKitデータ同期エラー: \(error.localizedDescription)")
+            Logger.error.error("HealthKitデータ同期エラー: \(error.localizedDescription)")
         }
         
         await MainActor.run {
@@ -448,7 +444,7 @@ struct UnifiedHomeDashboardView: View {
             let metrics = try modelContext.fetch(descriptor)
             latestWeight = metrics.first?.weightKg
         } catch {
-            print("体重データ取得エラー: \(error.localizedDescription)")
+            Logger.error.error("体重データ取得エラー: \(error.localizedDescription)")
         }
     }
 }

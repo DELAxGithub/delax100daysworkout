@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct AddCustomTaskSheet: View {
     let selectedDay: Int
@@ -365,10 +366,10 @@ struct AddCustomTaskSheet: View {
     AddCustomTaskSheet(
         selectedDay: 2,
         onSave: { task in
-            print("Saved task: \(task.title) for \(task.workoutType.rawValue)")
+            Logger.ui.info("Saved task: \(task.title) for \(task.workoutType.rawValue)")
         },
         onCancel: {
-            print("Cancelled")
+            Logger.ui.info("Task creation cancelled")
         }
     )
     .preferredColorScheme(.light)
