@@ -10,6 +10,9 @@ class HealthKitService: ObservableObject {
     private let healthStore = HKHealthStore()
     @Published var isAuthorized = false
     @Published var authorizationStatus: HKAuthorizationStatus = .notDetermined
+    @Published var lastAutoSyncDate: Date?
+    @Published var lastSyncDataCount: Int = 0
+    @Published var isAutoSyncing = false
     
     // MARK: - HealthKit Types
     
@@ -24,6 +27,18 @@ class HealthKitService: ObservableObject {
     
     init() {
         checkAuthorizationStatus()
+        loadLastSyncDate()
+    }
+    
+    // MARK: - UserDefaults Management
+    
+    private func loadLastSyncDate() {
+        lastAutoSyncDate = UserDefaults.standard.object(forKey: "HealthKit_LastAutoSyncDate") as? Date
+    }
+    
+    private func saveLastSyncDate(_ date: Date) {
+        UserDefaults.standard.set(date, forKey: "HealthKit_LastAutoSyncDate")
+        lastAutoSyncDate = date
     }
     
     // MARK: - Authorization
@@ -109,6 +124,57 @@ class HealthKitService: ObservableObject {
                 await MainActor.run {
                     self.isAuthorized = false
                 }
+            }
+        }
+    }
+    
+    // MARK: - Auto Sync on App Launch
+    
+    func autoSyncOnAppLaunch(modelContext: ModelContext) async {
+        guard isAuthorized else { 
+            print("HealthKit not authorized, skipping auto sync")
+            return 
+        }
+        
+        await MainActor.run {
+            isAutoSyncing = true
+            lastSyncDataCount = 0
+        }
+        
+        do {
+            let startDate = lastAutoSyncDate ?? Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+            let endDate = Date()
+            
+            print("HealthKit auto sync: checking for new data since \(startDate)")
+            
+            // 並行して全データを同期
+            async let weightMetrics = syncWeightData(from: startDate, modelContext: modelContext)
+            async let heartRateMetrics = syncHeartRateData(from: startDate, modelContext: modelContext)
+            async let workouts = syncCyclingWorkouts(from: startDate)
+            
+            let (weight, heartRate, cycling) = await (
+                try? weightMetrics ?? [],
+                try? heartRateMetrics ?? [],
+                try? workouts ?? []
+            )
+            
+            let totalCount = (weight?.count ?? 0) + (heartRate?.count ?? 0) + (cycling?.count ?? 0)
+            
+            await MainActor.run {
+                self.lastSyncDataCount = totalCount
+                self.isAutoSyncing = false
+                if totalCount > 0 {
+                    print("HealthKit auto sync completed: \(totalCount) new data items")
+                    self.saveLastSyncDate(endDate)
+                } else {
+                    print("HealthKit auto sync: no new data found")
+                }
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.isAutoSyncing = false
+                print("HealthKit auto sync failed: \(error.localizedDescription)")
             }
         }
     }

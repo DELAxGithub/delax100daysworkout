@@ -99,7 +99,7 @@ struct WorkoutHistoryRow: View {
             }
         }
         .sheet(isPresented: $showingEditSheet) {
-            WorkoutHistoryEditSheet(workout: workout, onSave: onEdit)
+            WorkoutEditSheet(workoutRecord: workout)
         }
     }
 }

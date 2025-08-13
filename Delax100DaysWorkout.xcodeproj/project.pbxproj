@@ -8,6 +8,8 @@
 
 /* Begin PBXFileReference section */
 		DE85A22B2E368E6700E742CF /* Delax100DaysWorkout.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Delax100DaysWorkout.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF0C31B88F3844FCACBA6B4E /* PilatesDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilatesDetail.swift; sourceTree = "<group>"; };
+		F6ECFBFEFB9A44AF918CDCEB /* YogaDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YogaDetail.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */

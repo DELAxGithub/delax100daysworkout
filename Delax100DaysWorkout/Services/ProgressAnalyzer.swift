@@ -54,6 +54,12 @@ class ProgressAnalyzer {
             return Achievement.checkForPR(newRecord: newRecord, history: history)
         case .flexibility:
             return detectFlexibilityPR(newRecord: newRecord, history: history)
+        case .pilates:
+            // ピラティスPR検出は後で実装
+            return nil
+        case .yoga:
+            // ヨガPR検出は後で実装
+            return nil
         }
     }
     
@@ -258,6 +264,16 @@ class ProgressAnalyzer {
             averageMetric = angles.isEmpty ? 0 : angles.reduce(0, +) / Double(angles.count)
             if angles.count >= 2 && angles.last! > angles.first! {
                 improvements.append("柔軟性が向上")
+            }
+        case .pilates:
+            averageMetric = Double(typeRecords.count)
+            if typeRecords.count >= 2 {
+                improvements.append("継続的に実施")
+            }
+        case .yoga:
+            averageMetric = Double(typeRecords.count)
+            if typeRecords.count >= 2 {
+                improvements.append("継続的に実施")
             }
         }
         

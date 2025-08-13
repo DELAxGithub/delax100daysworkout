@@ -112,6 +112,10 @@ struct WeeklyTaskListRow: View {
             return "figure.strengthtraining.traditional"
         case .flexibility:
             return "figure.flexibility"
+        case .pilates:
+            return "figure.pilates"
+        case .yoga:
+            return "figure.yoga"
         }
     }
     
@@ -123,6 +127,10 @@ struct WeeklyTaskListRow: View {
             return .orange
         case .flexibility:
             return .green
+        case .pilates:
+            return .purple
+        case .yoga:
+            return .mint
         }
     }
     
@@ -171,6 +179,14 @@ struct WeeklyTaskListRow: View {
                                 Label("\(sets)セット×\(reps)回", systemImage: "repeat")
                             }
                         case .flexibility:
+                            if let duration = details.targetDuration {
+                                Label("\(duration)分", systemImage: "clock")
+                            }
+                        case .pilates:
+                            if let duration = details.targetDuration {
+                                Label("\(duration)分", systemImage: "clock")
+                            }
+                        case .yoga:
                             if let duration = details.targetDuration {
                                 Label("\(duration)分", systemImage: "clock")
                             }

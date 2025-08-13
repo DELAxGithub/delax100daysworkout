@@ -64,6 +64,12 @@ class TaskSuggestionManager {
             adjustStrengthTask(task: adjustedTask, performance: performance)
         case .flexibility:
             adjustFlexibilityTask(task: adjustedTask, performance: performance)
+        case .pilates:
+            // ピラティス調整は後で実装
+            break
+        case .yoga:
+            // ヨガ調整は後で実装
+            break
         }
         
         return adjustedTask
@@ -140,6 +146,12 @@ class TaskSuggestionManager {
             // 柔軟性の改善度で計算
             let angles = records.compactMap { $0.flexibilityDetail?.averageSplitAngle }
             return angles.isEmpty ? 1.0 : angles.reduce(0, +) / Double(angles.count)
+        case .pilates:
+            // ピラティス強度計算は後で実装
+            return 1.0
+        case .yoga:
+            // ヨガ強度計算は後で実装
+            return 1.0
         }
     }
     
@@ -267,6 +279,10 @@ class TaskSuggestionManager {
         case .flexibility:
             // 柔軟性は既に軽いので変更なし
             return originalTask
+        case .pilates:
+            return originalTask
+        case .yoga:
+            return originalTask
         }
     }
     
@@ -293,6 +309,10 @@ class TaskSuggestionManager {
             )
         case .flexibility:
             alternative.targetDetails = TargetDetails(targetDuration: 10)
+        case .pilates:
+            alternative.targetDetails = TargetDetails(targetDuration: 15)
+        case .yoga:
+            alternative.targetDetails = TargetDetails(targetDuration: 15)
         }
         
         return alternative

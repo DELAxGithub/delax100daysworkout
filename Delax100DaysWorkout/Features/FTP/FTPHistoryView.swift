@@ -10,18 +10,42 @@ struct FTPHistoryView: View {
     @State private var showingChart = true
     @State private var showingBulkDeleteAlert = false
     @State private var isEditMode = false
+    @State private var selectedRecord: FTPHistory?
+    @State private var showingEditSheet = false
+    
+    // Search functionality
+    @State private var searchViewModel = HistorySearchViewModel<FTPHistory>()
+    @State private var showingSearchResults = false
     
     var body: some View {
-        NavigationStack {
-            VStack {
-                if ftpHistory.isEmpty {
-                    ContentUnavailableView(
-                        "FTP記録なし",
-                        systemImage: "chart.bar.xaxis.ascending",
-                        description: Text("右上の「+」ボタンでFTPを記録しましょう")
-                    )
-                } else {
-                    VStack(spacing: Spacing.lg.value) {
+        VStack(spacing: 0) {
+            // Unified Header
+            UnifiedHeaderComponent(
+                configuration: .history(
+                    title: "FTP履歴",
+                    onAdd: {
+                        showingEntrySheet = true
+                    },
+                    onEdit: ftpHistory.isEmpty ? nil : {
+                        withAnimation {
+                            isEditMode.toggle()
+                        }
+                    },
+                    isEditMode: isEditMode
+                )
+            )
+            .padding(.horizontal)
+            .padding(.top, Spacing.sm.value)
+            
+            // Content
+            if ftpHistory.isEmpty {
+                ContentUnavailableView(
+                    "FTP記録なし",
+                    systemImage: "chart.bar.xaxis.ascending",
+                    description: Text("ヘッダーの「+」ボタンでFTPを記録しましょう")
+                )
+            } else {
+                VStack(spacing: Spacing.lg.value) {
                         // Chart Section
                         if showingChart {
                             BaseCard(style: ElevatedCardStyle()) {
@@ -113,55 +137,53 @@ struct FTPHistoryView: View {
                         // History List
                         List {
                             ForEach(ftpHistory) { record in
-                                FTPRecordRow(record: record)
+                                FTPRecordRow(
+                                    record: record,
+                                    onEdit: {
+                                        selectedRecord = record
+                                        showingEditSheet = true
+                                        HapticManager.shared.trigger(.selection)
+                                    }
+                                )
                             }
                             .onDelete(perform: deleteRecords)
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            
+            // Edit Mode Actions
+            if isEditMode && !ftpHistory.isEmpty {
+                BaseCard(style: OutlinedCardStyle()) {
+                    Button(action: {
+                        showingBulkDeleteAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "trash")
+                                .foregroundColor(SemanticColor.destructiveAction)
+                            Text("一括削除")
+                                .font(Typography.labelMedium)
+                                .foregroundColor(SemanticColor.destructiveAction)
                         }
-                        .listStyle(.plain)
+                        .frame(maxWidth: .infinity)
+                        .padding(Spacing.md.value)
                     }
                 }
+                .padding(.horizontal)
+                .padding(.bottom, Spacing.md.value)
             }
-            .navigationTitle("FTP履歴")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    if !ftpHistory.isEmpty {
-                        Button(isEditMode ? "完了" : "編集") {
-                            withAnimation {
-                                isEditMode.toggle()
-                            }
-                        }
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        if isEditMode && !ftpHistory.isEmpty {
-                            Button("一括削除") {
-                                showingBulkDeleteAlert = true
-                            }
-                            .foregroundColor(.red)
-                        }
-                        
-                        Button(action: {
-                            showingEntrySheet = true
-                        }) {
-                            Image(systemName: "plus")
-                        }
-                    }
-                }
+        }
+        .sheet(isPresented: $showingEntrySheet) {
+            FTPEntryView()
+        }
+        .alert("一括削除", isPresented: $showingBulkDeleteAlert) {
+            Button("全て削除", role: .destructive) {
+                deleteAllFTPRecords()
+                isEditMode = false
             }
-            .sheet(isPresented: $showingEntrySheet) {
-                FTPEntryView()
-            }
-            .alert("一括削除", isPresented: $showingBulkDeleteAlert) {
-                Button("全て削除", role: .destructive) {
-                    deleteAllFTPRecords()
-                    isEditMode = false
-                }
-                Button("キャンセル", role: .cancel) { }
-            } message: {
-                Text("\(ftpHistory.count)件のFTP記録を全て削除してもよろしいですか？この操作は取り消せません。")
-            }
+            Button("キャンセル", role: .cancel) { }
+        } message: {
+            Text("\(ftpHistory.count)件のFTP記録を全て削除してもよろしいですか？この操作は取り消せません。")
         }
     }
     
@@ -186,6 +208,7 @@ struct FTPHistoryView: View {
 
 struct FTPRecordRow: View {
     let record: FTPHistory
+    let onEdit: () -> Void
     
     var body: some View {
         BaseCard(style: DefaultCardStyle()) {
@@ -225,6 +248,13 @@ struct FTPRecordRow: View {
                         .padding(.top, Spacing.xs.value)
                 }
             }
+            
+            // Edit button overlay
+            Button(action: onEdit) {
+                Color.clear
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
         }
         .padding(.vertical, Spacing.xs.value)
     }
@@ -233,4 +263,12 @@ struct FTPRecordRow: View {
 #Preview {
     FTPHistoryView()
         .modelContainer(for: [FTPHistory.self])
+}
+
+#Preview("FTPRecordRow") {
+    List {
+        FTPRecordRow(record: FTPHistory.sample, onEdit: {})
+    }
+    .listStyle(.plain)
+    .modelContainer(for: [FTPHistory.self])
 }

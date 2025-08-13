@@ -35,6 +35,16 @@ struct HistoryManagementView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Unified Header
+            UnifiedHeaderComponent(
+                configuration: UnifiedHeaderConfiguration(
+                    title: "履歴管理",
+                    subtitle: selectedTab.rawValue
+                )
+            )
+            .padding(.horizontal)
+            .padding(.top, Spacing.sm.value)
+            
             // Tab Picker
             Picker("履歴タイプ", selection: $selectedTab) {
                 ForEach(HistoryTab.allCases, id: \.self) { tab in

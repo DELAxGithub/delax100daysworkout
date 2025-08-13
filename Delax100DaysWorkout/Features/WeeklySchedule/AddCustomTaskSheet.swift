@@ -26,205 +26,227 @@ struct AddCustomTaskSheet: View {
     @State private var targetForwardBend: Double = 0
     @State private var targetSplitAngle: Double = 120
     
+    // ピラティス詳細
+    @State private var pilatesExerciseType: String = ""
+    @State private var pilatesRepetitions: Int = 12
+    @State private var pilatesHoldTime: Int = 30
+    @State private var pilatesDifficulty: PilatesDifficulty = .beginner
+    @State private var coreEngagement: Double = 5.0
+    @State private var posturalAlignment: Double = 5.0
+    @State private var breathControl: Double = 5.0
+    
+    // ヨガ詳細
+    @State private var yogaStyle: YogaStyle = .hatha
+    @State private var poses: [String] = [""]
+    @State private var breathingTechnique: String = ""
+    @State private var flexibility: Double = 5.0
+    @State private var balance: Double = 5.0
+    @State private var mindfulness: Double = 5.0
+    @State private var meditation: Bool = false
+    
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
     private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section("基本情報") {
-                    HStack {
-                        Text("曜日")
-                        Spacer()
-                        Text("\(dayNames[selectedDay])曜日")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Picker("種目", selection: $workoutType) {
-                        ForEach(WorkoutType.allCases, id: \.self) { type in
-                            HStack {
-                                Image(systemName: type.iconName)
-                                    .foregroundColor(type.iconColor)
-                                Text(type.rawValue)
-                            }
-                            .tag(type)
-                        }
-                    }
-                    
-                    TextField("タイトル", text: $title)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    TextField("説明（任意）", text: $taskDescription, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(3)
-                    
-                    Toggle("フレキシブルタスク", isOn: $isFlexible)
-                        .help("パフォーマンスに応じて目標が自動調整されます")
-                }
+        ScrollView {
+            VStack(spacing: Spacing.lg.value) {
+                // Header
+                UnifiedHeaderComponent(
+                    configuration: .detail(
+                        title: "カスタムタスク追加",
+                        subtitle: "\(dayNames[selectedDay])曜日",
+                        onBack: {
+                            HapticManager.shared.trigger(.impact(.light))
+                            onCancel()
+                        },
+                        onAction: {
+                            HapticManager.shared.trigger(.impact(.medium))
+                            saveTask()
+                        },
+                        actionIcon: "checkmark.circle.fill"
+                    )
+                )
+                .padding(.horizontal)
                 
-                // 種目別詳細セクション
-                switch workoutType {
-                case .cycling:
-                    cyclingDetailsSection
-                case .strength:
-                    strengthDetailsSection
-                case .flexibility:
-                    flexibilityDetailsSection
-                }
-            }
-            .navigationTitle("カスタムタスク追加")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("キャンセル") {
-                        onCancel()
-                    }
-                }
+                // Basic Information
+                basicInformationSection
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("追加") {
-                        saveTask()
+                // Workout Type Picker
+                UnifiedWorkoutTypePicker(
+                    selectedType: $workoutType,
+                    onSelectionChanged: { newType in
+                        setDefaultValues(for: newType)
                     }
-                    .fontWeight(.semibold)
-                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
+                )
+                .padding(.horizontal)
+                
+                // Workout Details
+                workoutDetailsSection
             }
+            .padding(.bottom, Spacing.xl.value)
         }
+        .background(SemanticColor.primaryBackground.color)
         .alert("入力エラー", isPresented: $showingAlert) {
             Button("OK") { }
         } message: {
             Text(alertMessage)
         }
         .onAppear {
-            setDefaultValues()
+            setDefaultValues(for: workoutType)
         }
     }
+    // MARK: - View Components
     
-    private var cyclingDetailsSection: some View {
-        Section("サイクリング詳細") {
-            HStack {
-                Text("時間")
-                Spacer()
-                TextField("分", value: $duration, format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("分")
-                    .foregroundColor(.secondary)
-            }
-            
-            Picker("強度", selection: $intensity) {
-                ForEach(CyclingIntensity.allCases, id: \.self) { intensity in
-                    Text(intensity.displayName).tag(intensity)
+    private var basicInformationSection: some View {
+        BaseCard(style: OutlinedCardStyle()) {
+            VStack(spacing: Spacing.md.value) {
+                HStack {
+                    Text("基本情報")
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(SemanticColor.primaryText.color)
+                    
+                    Spacer()
                 }
+                .padding(.bottom, Spacing.sm.value)
+                
+                TextInputRow(
+                    label: "タイトル",
+                    text: $title,
+                    placeholder: "タイトルを入力"
+                )
+                
+                Divider()
+                
+                TextInputRow(
+                    label: "説明（任意）",
+                    text: $taskDescription,
+                    placeholder: "詳細を入力"
+                )
+                
+                Divider()
+                
+                HStack {
+                    Text("フレキシブルタスク")
+                        .font(Typography.bodyLarge.font)
+                        .foregroundColor(SemanticColor.primaryText.color)
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: $isFlexible)
+                        .toggleStyle(SwitchToggleStyle())
+                        .accessibilityLabel("フレキシブルタスク")
+                        .accessibilityHint("パフォーマンスに応じて目標が自動調整されます")
+                }
+                .frame(minHeight: 44)
             }
-            
-            HStack {
-                Text("目標パワー")
-                Spacer()
-                TextField("W", value: $targetPower, format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("W")
-                    .foregroundColor(.secondary)
-            }
+            .padding(Spacing.md.value)
         }
+        .padding(.horizontal)
     }
     
-    private var strengthDetailsSection: some View {
-        Section("筋トレ詳細") {
-            ForEach(exercises.indices, id: \.self) { index in
-                TextField("エクササイズ \(index + 1)", text: $exercises[index])
-                    .textFieldStyle(.roundedBorder)
-            }
-            .onDelete(perform: deleteExercise)
-            
-            Button("エクササイズを追加") {
-                exercises.append("")
-            }
-            .foregroundColor(.blue)
-            
-            HStack {
-                Text("目標セット")
-                Spacer()
-                TextField("回", value: $targetSets, format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("セット")
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text("目標レップ")
-                Spacer()
-                TextField("回", value: $targetReps, format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("回")
-                    .foregroundColor(.secondary)
-            }
-        }
-    }
-    
-    private var flexibilityDetailsSection: some View {
-        Section("柔軟性詳細") {
-            HStack {
-                Text("時間")
-                Spacer()
-                TextField("分", value: $targetDuration, format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("分")
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text("目標前屈")
-                Spacer()
-                TextField("cm", value: $targetForwardBend, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("cm")
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text("目標開脚")
-                Spacer()
-                TextField("度", value: $targetSplitAngle, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(.roundedBorder)
-                Text("°")
-                    .foregroundColor(.secondary)
-            }
-        }
-    }
-    
-    private func setDefaultValues() {
+    @ViewBuilder
+    private var workoutDetailsSection: some View {
         switch workoutType {
         case .cycling:
-            if title.isEmpty {
-                title = getDefaultTitle(for: workoutType)
-            }
+            CyclingDetailComponent(
+                duration: $duration,
+                intensity: $intensity,
+                targetPower: $targetPower
+            )
+            .padding(.horizontal)
+            
         case .strength:
-            if title.isEmpty {
-                title = getDefaultTitle(for: workoutType)
-            }
+            StrengthDetailComponent(
+                exercises: $exercises,
+                targetSets: $targetSets,
+                targetReps: $targetReps
+            )
+            .padding(.horizontal)
+            
+        case .flexibility:
+            FlexibilityDetailComponent(
+                targetDuration: $targetDuration,
+                targetForwardBend: $targetForwardBend,
+                targetSplitAngle: $targetSplitAngle
+            )
+            .padding(.horizontal)
+            
+        case .pilates:
+            PilatesDetailComponent(
+                duration: $targetDuration,
+                exerciseType: $pilatesExerciseType,
+                repetitions: $pilatesRepetitions,
+                holdTime: $pilatesHoldTime,
+                difficulty: $pilatesDifficulty,
+                coreEngagement: $coreEngagement,
+                posturalAlignment: $posturalAlignment,
+                breathControl: $breathControl
+            )
+            .padding(.horizontal)
+            
+        case .yoga:
+            YogaDetailComponent(
+                duration: $targetDuration,
+                yogaStyle: $yogaStyle,
+                poses: $poses,
+                breathingTechnique: $breathingTechnique,
+                flexibility: $flexibility,
+                balance: $balance,
+                mindfulness: $mindfulness,
+                meditation: $meditation
+            )
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func setDefaultValues(for type: WorkoutType) {
+        if title.isEmpty {
+            title = getDefaultTitle(for: type)
+        }
+        
+        switch type {
+        case .cycling:
+            duration = 60
+            intensity = .endurance
+            targetPower = 200
+            
+        case .strength:
             if exercises.isEmpty || exercises == [""] {
                 exercises = [""]
             }
+            targetSets = 3
+            targetReps = 10
+            
         case .flexibility:
-            if title.isEmpty {
-                title = getDefaultTitle(for: workoutType)
+            targetDuration = 20
+            targetForwardBend = 0
+            targetSplitAngle = 120
+            
+        case .pilates:
+            targetDuration = 45
+            pilatesExerciseType = ""
+            pilatesRepetitions = 12
+            pilatesHoldTime = 30
+            pilatesDifficulty = .beginner
+            coreEngagement = 5.0
+            posturalAlignment = 5.0
+            breathControl = 5.0
+            
+        case .yoga:
+            targetDuration = 60
+            yogaStyle = .hatha
+            if poses.isEmpty || poses == [""] {
+                poses = [""]
             }
+            breathingTechnique = ""
+            flexibility = 5.0
+            balance = 5.0
+            mindfulness = 5.0
+            meditation = false
         }
     }
     
@@ -236,20 +258,19 @@ struct AddCustomTaskSheet: View {
             return "カスタム筋トレ"
         case .flexibility:
             return "カスタム柔軟"
+        case .pilates:
+            return "カスタムピラティス"
+        case .yoga:
+            return "カスタムヨガ"
         }
     }
     
-    private func deleteExercise(at offsets: IndexSet) {
-        exercises.remove(atOffsets: offsets)
-        if exercises.isEmpty {
-            exercises.append("")
-        }
-    }
     
     private func saveTask() {
         guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             alertMessage = "タイトルを入力してください"
             showingAlert = true
+            HapticManager.shared.trigger(.notification(.error))
             return
         }
         
@@ -287,6 +308,41 @@ struct AddCustomTaskSheet: View {
                     targetSplitAngle: targetSplitAngle > 0 ? targetSplitAngle : nil
                 )
             }
+            
+        case .pilates:
+            if targetDuration > 0 {
+                // Create enhanced pilates target details with all new properties
+                targetDetails = TargetDetails(
+                    targetDuration: targetDuration,
+                    exerciseType: pilatesExerciseType.isEmpty ? nil : pilatesExerciseType,
+                    repetitions: pilatesRepetitions > 0 ? pilatesRepetitions : nil,
+                    holdTime: pilatesHoldTime > 0 ? pilatesHoldTime : nil,
+                    difficulty: pilatesDifficulty,
+                    coreEngagement: coreEngagement,
+                    posturalAlignment: posturalAlignment,
+                    breathControl: breathControl
+                )
+            }
+            
+        case .yoga:
+            if targetDuration > 0 {
+                let validPoses = poses.compactMap { pose in
+                    let trimmed = pose.trimmingCharacters(in: .whitespacesAndNewlines)
+                    return trimmed.isEmpty ? nil : trimmed
+                }
+                
+                // Create enhanced yoga target details with all new properties
+                targetDetails = TargetDetails(
+                    targetDuration: targetDuration,
+                    yogaStyle: yogaStyle,
+                    poses: validPoses.isEmpty ? nil : validPoses,
+                    breathingTechnique: breathingTechnique.isEmpty ? nil : breathingTechnique,
+                    flexibility: flexibility,
+                    balance: balance,
+                    mindfulness: mindfulness,
+                    meditation: meditation
+                )
+            }
         }
         
         let task = DailyTask(
@@ -298,14 +354,22 @@ struct AddCustomTaskSheet: View {
             isFlexible: isFlexible
         )
         
+        HapticManager.shared.trigger(.notification(.success))
         onSave(task)
     }
 }
 
-#Preview {
+// MARK: - Preview
+
+#Preview("AddCustomTaskSheet") {
     AddCustomTaskSheet(
         selectedDay: 2,
-        onSave: { _ in },
-        onCancel: { }
+        onSave: { task in
+            print("Saved task: \(task.title) for \(task.workoutType.rawValue)")
+        },
+        onCancel: {
+            print("Cancelled")
+        }
     )
+    .preferredColorScheme(.light)
 }

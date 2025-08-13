@@ -261,4 +261,11 @@ extension CardConfiguration {
     static let loading = CardConfiguration(
         loading: CardLoading(isLoading: true)
     )
+    
+    static let header = CardConfiguration(
+        style: OutlinedCardStyle(),
+        accessibility: CardAccessibility(
+            traits: [.isHeader]
+        )
+    )
 }

@@ -4,6 +4,7 @@ import SwiftData
 struct MainView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var selectedTab = 0
+    @StateObject private var healthKitService = HealthKitService()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -35,6 +36,12 @@ struct MainView: View {
                     Label("設定", systemImage: "gear")
                 }
                 .tag(3)
+        }
+        .onAppear {
+            // アプリ起動時にHealthKitの自動同期を実行
+            Task {
+                await healthKitService.autoSyncOnAppLaunch(modelContext: modelContext)
+            }
         }
     }
 }

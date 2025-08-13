@@ -236,6 +236,10 @@ struct WeeklyTaskCard: View {
             return "figure.strengthtraining.traditional"
         case .flexibility:
             return "figure.flexibility"
+        case .pilates:
+            return "figure.pilates"
+        case .yoga:
+            return "figure.yoga"
         }
     }
     
@@ -247,6 +251,10 @@ struct WeeklyTaskCard: View {
             return .orange
         case .flexibility:
             return .green
+        case .pilates:
+            return .purple
+        case .yoga:
+            return .mint
         }
     }
     
@@ -332,6 +340,14 @@ struct WeeklyTaskCard: View {
                         StrengthDetailsView(details: details)
                     case .flexibility:
                         FlexibilityDetailsView(details: details)
+                    case .pilates:
+                        Text("ピラティス詳細は後で実装")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                    case .yoga:
+                        Text("ヨガ詳細は後で実装")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
                     }
                 }
             }

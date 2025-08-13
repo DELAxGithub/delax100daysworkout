@@ -218,15 +218,46 @@ class SettingsViewModel {
     }
     
     var lastHealthKitSyncDate: String {
-        guard let lastSync = lastHealthKitSync else {
+        // 自動同期の日時を優先して表示
+        let autoSyncDate = healthKitService.lastAutoSyncDate
+        let manualSyncDate = lastHealthKitSync
+        
+        let lastSyncDate: Date?
+        let syncType: String
+        
+        if let autoSync = autoSyncDate, let manualSync = manualSyncDate {
+            if autoSync > manualSync {
+                lastSyncDate = autoSync
+                syncType = "自動"
+            } else {
+                lastSyncDate = manualSync
+                syncType = "手動"
+            }
+        } else if let autoSync = autoSyncDate {
+            lastSyncDate = autoSync
+            syncType = "自動"
+        } else if let manualSync = manualSyncDate {
+            lastSyncDate = manualSync
+            syncType = "手動"
+        } else {
             return "未同期"
         }
+        
+        guard let date = lastSyncDate else { return "未同期" }
         
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         formatter.locale = Locale(identifier: "ja_JP")
-        return formatter.string(from: lastSync)
+        
+        let dateString = formatter.string(from: date)
+        let dataCount = healthKitService.lastSyncDataCount
+        
+        if dataCount > 0 {
+            return "\(dateString) (\(syncType)・\(dataCount)件)"
+        } else {
+            return "\(dateString) (\(syncType))"
+        }
     }
     
     func requestHealthKitAuthorization() async {
@@ -260,15 +291,20 @@ class SettingsViewModel {
             let startDate = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
             
             // 体重データを同期
-            let _ = try await healthKitService.syncWeightData(from: startDate, modelContext: modelContext)
+            let weightData = try await healthKitService.syncWeightData(from: startDate, modelContext: modelContext)
             
             // 心拍数データを同期
-            let _ = try await healthKitService.syncHeartRateData(from: startDate, modelContext: modelContext)
+            let heartRateData = try await healthKitService.syncHeartRateData(from: startDate, modelContext: modelContext)
+            
+            // 同期したデータ数をHealthKitServiceに反映
+            await MainActor.run {
+                healthKitService.lastSyncDataCount = weightData.count + heartRateData.count
+            }
             
             lastHealthKitSync = Date()
             saveHealthKitSyncDate()
             
-            Logger.general.info("HealthKitデータ同期完了")
+            Logger.general.info("HealthKitデータ手動同期完了: \(weightData.count + heartRateData.count)件")
             
         } catch {
             Logger.error.error("HealthKitデータ同期エラー: \(error.localizedDescription)")

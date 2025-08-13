@@ -277,6 +277,70 @@ extension DailyMetric {
     }
 }
 
+// MARK: - Search Integration Extension
+
+extension DailyMetric: Searchable {
+    var searchableText: String {
+        var components: [String] = []
+        
+        // Add formatted date
+        components.append(formattedDate)
+        components.append(shortDateString)
+        
+        // Add data source
+        components.append(dataSource.displayName)
+        components.append(dataSource.rawValue)
+        
+        // Add values
+        if let weight = weightKg {
+            components.append(String(format: "%.1f", weight))
+            components.append("体重")
+            components.append("kg")
+        }
+        
+        if let restingHR = restingHeartRate {
+            components.append("\(restingHR)")
+            components.append("安静時心拍数")
+            components.append("bpm")
+        }
+        
+        if let maxHR = maxHeartRate {
+            components.append("\(maxHR)")
+            components.append("最大心拍数")
+            components.append("max")
+        }
+        
+        // Add measurement types
+        if weightKg != nil {
+            components.append("weight")
+            components.append("体重")
+        }
+        if restingHeartRate != nil {
+            components.append("heart")
+            components.append("heartrate")
+            components.append("心拍数")
+        }
+        
+        return components.joined(separator: " ")
+    }
+    
+    var searchableDate: Date {
+        return date
+    }
+    
+    var searchableValue: Double {
+        // Primary value for sorting - use weight if available, otherwise use resting HR
+        if let weight = weightKg {
+            return weight
+        } else if let restingHR = restingHeartRate {
+            return Double(restingHR)
+        } else if let maxHR = maxHeartRate {
+            return Double(maxHR)
+        }
+        return 0.0
+    }
+}
+
 // MARK: - WPR Integration Extension
 
 extension DailyMetric {

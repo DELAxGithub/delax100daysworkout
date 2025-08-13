@@ -106,6 +106,12 @@ class WPRTrainingSavingsIntegration: ObservableObject {
             await updateVolumeSavings(from: workout)
         case .flexibility:
             await updateFlexibilityStreaks(from: workout)
+        case .pilates:
+            // ピラティス節約は後で実装
+            break
+        case .yoga:
+            // ヨガ節約は後で実装
+            break
         }
     }
     
@@ -191,6 +197,12 @@ class WPRTrainingSavingsIntegration: ObservableObject {
             updateWPRFromStrength(workout, system: wprSystem)
         case .flexibility:
             updateWPRFromFlexibility(workout, system: wprSystem)
+        case .pilates:
+            // ピラティスWPR更新は後で実装
+            break
+        case .yoga:
+            // ヨガWPR更新は後で実装
+            break
         }
     }
     
@@ -239,6 +251,12 @@ class WPRTrainingSavingsIntegration: ObservableObject {
             await updateVolumeLoadMetrics(from: workout)
         case .flexibility:
             await updateROMMetrics(from: workout)
+        case .pilates:
+            // ピラティス科学指標更新は後で実装
+            break
+        case .yoga:
+            // ヨガ科学指標更新は後で実装
+            break
         }
     }
     

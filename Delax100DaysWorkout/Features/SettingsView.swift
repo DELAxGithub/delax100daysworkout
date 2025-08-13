@@ -1,7 +1,10 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
+    @Environment(\.modelContext) private var modelContext
+    @State private var isMigratingCounters = false
 
     var body: some View {
         NavigationStack {
@@ -78,13 +81,21 @@ struct SettingsView: View {
                                 }
                             }
                             .buttonStyle(.bordered)
-                            .disabled(viewModel.isHealthKitSyncing)
+                            .disabled(viewModel.isHealthKitSyncing || viewModel.healthKitService.isAutoSyncing)
                             
                             if viewModel.isHealthKitSyncing {
                                 HStack {
                                     ProgressView()
                                         .scaleEffect(0.8)
-                                    Text("同期中...")
+                                    Text("手動同期中...")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            } else if viewModel.healthKitService.isAutoSyncing {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text("自動同期中...")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -222,6 +233,57 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section(header: Text("回数カウンター管理")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("履歴からカウンター移行")
+                                    .font(.headline)
+                                Text("既存のワークアウト履歴から回数を自動集計し、カウンターを更新します（8月1日以降）")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                        
+                        HStack {
+                            Text(isMigratingCounters ? "移行中..." : "準備完了")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                Task {
+                                    await migrateCounters()
+                                }
+                            }) {
+                                HStack {
+                                    if isMigratingCounters {
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                    }
+                                    Text(isMigratingCounters ? "移行中..." : "履歴移行を実行")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isMigratingCounters)
+                        }
+                        
+                        // カウンター統計表示
+                        ForEach(getAllCounterStats(), id: \.taskType) { stat in
+                            HStack {
+                                Text(TaskIdentificationUtils.getDisplayName(for: stat.taskType))
+                                    .font(.caption)
+                                Spacer()
+                                Text("\(stat.counter.completionCount)回 / \(stat.counter.currentTarget)回")
+                                    .font(.caption)
+                                    .foregroundColor(stat.counter.isTargetAchieved ? .green : .secondary)
+                            }
+                        }
+                    }
+                }
+                
                 Section(header: Text("AI分析実行")) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -278,5 +340,22 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func migrateCounters() async {
+        isMigratingCounters = true
+        
+        TaskCounterService.shared.migrateFromHistory(
+            startDate: Calendar.current.date(from: DateComponents(year: 2024, month: 8, day: 1)) ?? Date(),
+            in: modelContext
+        )
+        
+        isMigratingCounters = false
+    }
+    
+    private func getAllCounterStats() -> [(taskType: String, counter: TaskCompletionCounter)] {
+        return TaskCounterService.shared.getAllCounterStats(in: modelContext)
     }
 }

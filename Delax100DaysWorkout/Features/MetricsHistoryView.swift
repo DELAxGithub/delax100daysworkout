@@ -18,17 +18,42 @@ struct MetricsHistoryView: View {
     @State private var showingBulkDeleteAlert = false
     @State private var isEditMode = false
     
+    // Search functionality
+    @State private var searchText = ""
+    @State private var selectedSort: SearchConfiguration.SortOption = .dateNewest
+    @State private var isSearchActive = false
+    private let searchViewModel = HistorySearchViewModel<DailyMetric>()
+    
     private var filteredMetrics: [DailyMetric] {
         var filtered = dailyMetrics
         
-        // フィルター適用
+        // Apply data source filter
         if let selectedSource = selectedDataSource {
             filtered = filtered.filter { $0.dataSource == selectedSource }
         }
         
+        // Apply date range filter
         filtered = filtered.filter { $0.date >= startDate && $0.date <= endDate }
         
-        return filtered.filter { $0.hasAnyData }
+        // Filter out metrics without data
+        filtered = filtered.filter { $0.hasAnyData }
+        
+        // Update search view model and apply search/sort
+        searchViewModel.updateRecords(filtered)
+        
+        if isSearchActive && !searchText.isEmpty {
+            return HistorySearchEngine.filterRecords(
+                filtered,
+                searchText: searchText,
+                sortOption: selectedSort
+            )
+        } else {
+            return HistorySearchEngine.filterRecords(
+                filtered,
+                searchText: "",
+                sortOption: selectedSort
+            )
+        }
     }
     
     private var metricsWithWeight: [DailyMetric] {
@@ -36,7 +61,32 @@ struct MetricsHistoryView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            // Unified Header
+            UnifiedHeaderComponent(
+                configuration: UnifiedHeaderConfiguration(
+                    title: "メトリクス履歴",
+                    primaryAction: HeaderAction(
+                        icon: "line.3.horizontal.decrease.circle",
+                        label: "フィルター",
+                        action: {
+                            showingFilterSheet = true
+                        }
+                    ),
+                    secondaryAction: !filteredMetrics.isEmpty ? HeaderAction(
+                        icon: isEditMode ? "checkmark" : "pencil",
+                        label: isEditMode ? "完了" : "編集",
+                        action: {
+                            withAnimation {
+                                isEditMode.toggle()
+                            }
+                        }
+                    ) : nil
+                )
+            )
+            .padding(.horizontal)
+            .padding(.top, Spacing.sm.value)
+            
             VStack(spacing: 0) {
                 // Quick Weight Entry
                 QuickWeightEntry()
@@ -45,6 +95,26 @@ struct MetricsHistoryView: View {
                 
                 Divider()
                     .padding(.vertical, 8)
+                
+                // Unified Search Bar
+                UnifiedSearchBar(
+                    searchText: $searchText,
+                    selectedSort: $selectedSort,
+                    isSearchActive: $isSearchActive,
+                    configuration: .metricsHistory,
+                    onClear: {
+                        searchText = ""
+                        isSearchActive = false
+                    }
+                )
+                .padding(.horizontal)
+                .onChange(of: searchText) { _, newValue in
+                    searchViewModel.searchText = newValue
+                    isSearchActive = !newValue.isEmpty
+                }
+                .onChange(of: selectedSort) { _, newValue in
+                    searchViewModel.selectedSort = newValue
+                }
                 // Chart Toggle
                 BaseCard(style: DefaultCardStyle()) {
                     HStack {
@@ -169,36 +239,28 @@ struct MetricsHistoryView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("メトリクス履歴")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    if !filteredMetrics.isEmpty {
-                        Button(isEditMode ? "完了" : "編集") {
-                            withAnimation {
-                                isEditMode.toggle()
-                            }
+            
+            // Edit Mode Actions
+            if isEditMode && !filteredMetrics.isEmpty {
+                BaseCard(style: OutlinedCardStyle()) {
+                    Button(action: {
+                        showingBulkDeleteAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "trash")
+                                .foregroundColor(SemanticColor.destructiveAction)
+                            Text("一括削除")
+                                .font(Typography.labelMedium)
+                                .foregroundColor(SemanticColor.destructiveAction)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding(Spacing.md.value)
                     }
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        if isEditMode && !filteredMetrics.isEmpty {
-                            Button("一括削除") {
-                                showingBulkDeleteAlert = true
-                            }
-                            .foregroundColor(.red)
-                        }
-                        
-                        Button(action: {
-                            showingFilterSheet = true
-                        }) {
-                            Image(systemName: "line.3.horizontal.decrease.circle")
-                        }
-                    }
-                }
+                .padding(.horizontal)
+                .padding(.bottom, Spacing.md.value)
             }
+        }
             .sheet(isPresented: $showingFilterSheet) {
                 MetricsFilterSheet(
                     selectedDataSource: $selectedDataSource,
@@ -208,12 +270,7 @@ struct MetricsHistoryView: View {
             }
             .sheet(isPresented: $showingEditSheet) {
                 if let metric = selectedMetric {
-                    MetricEditSheet(
-                        metric: metric,
-                        onSave: { editedMetric in
-                            updateMetric(metric, with: editedMetric)
-                        }
-                    )
+                    MetricEditSheet(metric: metric)
                 }
             }
             .alert("メトリクスを削除", isPresented: $showingDeleteAlert) {
@@ -238,7 +295,6 @@ struct MetricsHistoryView: View {
             } message: {
                 Text("表示中の\(filteredMetrics.count)件のメトリクスを全て削除してもよろしいですか？この操作は取り消せません。")
             }
-        }
     }
     
     // MARK: - Methods
@@ -252,15 +308,6 @@ struct MetricsHistoryView: View {
         return latest - earliest
     }
     
-    private func updateMetric(_ metric: DailyMetric, with editedMetric: DailyMetric) {
-        metric.weightKg = editedMetric.weightKg
-        metric.restingHeartRate = editedMetric.restingHeartRate
-        metric.maxHeartRate = editedMetric.maxHeartRate
-        metric.date = editedMetric.date
-        metric.updatedAt = Date()
-        
-        try? modelContext.save()
-    }
     
     private func deleteMetrics(offsets: IndexSet) {
         withAnimation {

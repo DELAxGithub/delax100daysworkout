@@ -74,6 +74,10 @@ struct QuickRecordSheet: View {
                                     strengthInputSection
                                 case .flexibility:
                                     flexibilityInputSection
+                                case .pilates:
+                                    pilatesInputSection
+                                case .yoga:
+                                    yogaInputSection
                                 }
                             }
                             .padding(.horizontal)
@@ -318,6 +322,38 @@ struct QuickRecordSheet: View {
         }
     }
     
+    private var pilatesInputSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label("ピラティス詳細", systemImage: "figure.pilates")
+                .font(.headline)
+            
+            VStack(spacing: 8) {
+                Text("ピラティス詳細入力は後で実装予定")
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+            }
+        }
+    }
+    
+    private var yogaInputSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label("ヨガ詳細", systemImage: "figure.yoga")
+                .font(.headline)
+            
+            VStack(spacing: 8) {
+                Text("ヨガ詳細入力は後で実装予定")
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+            }
+        }
+    }
+    
     // MARK: - Helper Methods
     
     private var quickPhrases: [String] {
@@ -328,6 +364,10 @@ struct QuickRecordSheet: View {
             return ["フォームを意識した", "限界まで追い込んだ", "軽めに調整した", "新記録！"]
         case .flexibility:
             return ["体が硬かった", "少し改善した", "痛みがあった", "調子良かった"]
+        case .pilates:
+            return ["コアを意識した", "呼吸に集中した", "バランスが難しかった", "スッキリした"]
+        case .yoga:
+            return ["心が落ち着いた", "体があたたまった", "集中できた", "リラックスできた"]
         }
     }
     
@@ -359,6 +399,12 @@ struct QuickRecordSheet: View {
                 leftSplit = detail.leftSplitAngle
                 rightSplit = detail.rightSplitAngle
             }
+        case .pilates:
+            // ピラティス初期値設定は後で実装
+            break
+        case .yoga:
+            // ヨガ初期値設定は後で実装
+            break
         }
     }
     
@@ -409,6 +455,16 @@ struct QuickRecordSheet: View {
                     // Add note to summary
                     workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
                 }
+            }
+        case .pilates:
+            // ピラティス詳細保存は後で実装
+            if let note = noteText {
+                workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
+            }
+        case .yoga:
+            // ヨガ詳細保存は後で実装
+            if let note = noteText {
+                workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
             }
         }
         

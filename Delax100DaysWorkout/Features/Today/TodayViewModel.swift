@@ -151,6 +151,12 @@ class TodayViewModel {
                 record.flexibilityDetail = detail
                 modelContext.insert(detail)
             }
+        case .pilates:
+            // ピラティス詳細は後で実装
+            break
+        case .yoga:
+            // ヨガ詳細は後で実装
+            break
         }
         
         // 保存

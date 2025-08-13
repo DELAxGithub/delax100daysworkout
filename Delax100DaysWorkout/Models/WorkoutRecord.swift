@@ -6,6 +6,8 @@ enum WorkoutType: String, Codable, CaseIterable {
     case cycling = "Cycling"
     case strength = "Strength"
     case flexibility = "Flexibility"
+    case pilates = "Pilates"
+    case yoga = "Yoga"
 
     var iconName: String {
         switch self {
@@ -15,6 +17,10 @@ enum WorkoutType: String, Codable, CaseIterable {
             return "figure.strengthtraining.traditional"
         case .flexibility:
             return "figure.flexibility"
+        case .pilates:
+            return "figure.pilates"
+        case .yoga:
+            return "figure.yoga"
         }
     }
 
@@ -23,6 +29,8 @@ enum WorkoutType: String, Codable, CaseIterable {
         case .cycling: return .blue
         case .strength: return .orange
         case .flexibility: return .green
+        case .pilates: return .purple
+        case .yoga: return .mint
         }
     }
 }
@@ -47,8 +55,17 @@ final class WorkoutRecord {
         self.isQuickRecord = isQuickRecord
     }
     
-    func markAsCompleted() {
+    func markAsCompleted(modelContext: ModelContext? = nil) {
         self.isCompleted = true
+        
+        // カウンターを自動更新
+        if let context = modelContext {
+            Task {
+                await MainActor.run {
+                    TaskCounterService.shared.incrementCounter(for: self, in: context)
+                }
+            }
+        }
     }
     
     static func fromDailyTask(_ task: DailyTask, date: Date = Date()) -> WorkoutRecord {

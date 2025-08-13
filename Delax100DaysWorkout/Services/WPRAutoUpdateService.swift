@@ -68,6 +68,12 @@ class WPRAutoUpdateService: @unchecked Sendable {
             updateFromStrengthRecord(record, system: system)
         case .flexibility:
             updateFromFlexibilityRecord(record, system: system)
+        case .pilates:
+            // ピラティス詳細は後で実装
+            break
+        case .yoga:
+            // ヨガ詳細は後で実装
+            break
         }
         
         // 全体的な進捗スコア再計算

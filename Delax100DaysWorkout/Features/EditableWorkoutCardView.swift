@@ -130,16 +130,7 @@ struct EditableWorkoutCardView: View {
             }
         }
         .sheet(isPresented: $showingEditSheet) {
-            WorkoutEditSheet(
-                workout: workout,
-                onSave: { editedWorkout in
-                    onEdit(editedWorkout)
-                    showingEditSheet = false
-                },
-                onCancel: {
-                    showingEditSheet = false
-                }
-            )
+            WorkoutEditSheet(workoutRecord: workout)
         }
     }
     

@@ -35,7 +35,9 @@ struct Delax100DaysWorkoutApp: App {
             DailyMetric.self,
             // Phase 2: WPR科学的トレーニング貯金システム
             WPRTrackingSystem.self,
-            TrainingSavings.self
+            TrainingSavings.self,
+            // Issue 52: タスク完了回数カウンター
+            TaskCompletionCounter.self
         ])
     }
 }

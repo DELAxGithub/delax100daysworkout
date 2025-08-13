@@ -13,27 +13,39 @@ struct WorkoutHistoryView: View {
     @State private var endDate = Date()
     @State private var showingDeleteAlert = false
     @State private var workoutToDelete: WorkoutRecord?
-    @State private var searchText = ""
     @State private var showingBulkDeleteAlert = false
     @State private var isEditMode = false
     @State private var selectedWorkouts: Set<WorkoutRecord.ID> = []
     
+    // Search functionality
+    @State private var searchText = ""
+    @State private var selectedSort: SearchConfiguration.SortOption = .dateNewest
+    @State private var isSearchActive = false
+    private let searchViewModel = HistorySearchViewModel<WorkoutRecord>()
+    
     private var filteredWorkouts: [WorkoutRecord] {
         var filtered = workoutRecords
         
-        // フィルター適用
+        // Update search view model with all records
+        searchViewModel.updateRecords(filtered)
+        
+        // Apply search if active
+        if isSearchActive && !searchText.isEmpty {
+            filtered = searchViewModel.filteredRecords
+        } else if !searchText.isEmpty {
+            // Fallback to basic search
+            filtered = HistorySearchEngine.filterRecords(filtered, searchText: searchText, sortOption: selectedSort)
+        } else {
+            // Apply manual sorting when no search
+            filtered = HistorySearchEngine.filterRecords(filtered, searchText: "", sortOption: selectedSort)
+        }
+        
+        // Apply additional filters
         if let selectedType = selectedWorkoutType {
             filtered = filtered.filter { $0.workoutType == selectedType }
         }
         
         filtered = filtered.filter { $0.date >= startDate && $0.date <= endDate }
-        
-        // 検索適用
-        if !searchText.isEmpty {
-            filtered = filtered.filter { 
-                $0.summary.localizedCaseInsensitiveContains(searchText)
-            }
-        }
         
         return filtered
     }
@@ -41,25 +53,27 @@ struct WorkoutHistoryView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Search Bar
-                BaseCard(style: DefaultCardStyle()) {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(SemanticColor.secondaryText)
-                        TextField("ワークアウト検索...", text: $searchText)
-                            .textFieldStyle(.plain)
-                            .font(Typography.bodyMedium.font)
-                        
-                        if !searchText.isEmpty {
-                            Button("クリア") {
-                                searchText = ""
-                            }
-                            .font(Typography.captionMedium.font)
-                            .foregroundColor(SemanticColor.primaryAction)
-                        }
+                // Unified Search Bar
+                UnifiedSearchBar(
+                    searchText: $searchText,
+                    selectedSort: $selectedSort,
+                    isSearchActive: $isSearchActive,
+                    configuration: .workoutHistory,
+                    onClear: {
+                        searchText = ""
+                        isSearchActive = false
+                        searchViewModel.clearSearch()
                     }
-                }
+                )
                 .padding(.horizontal)
+                .onChange(of: searchText) { _, newValue in
+                    searchViewModel.searchText = newValue
+                    searchViewModel.activateSearch()
+                    isSearchActive = !newValue.isEmpty
+                }
+                .onChange(of: selectedSort) { _, newValue in
+                    searchViewModel.selectedSort = newValue
+                }
                 
                 // Summary Cards
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -105,8 +119,9 @@ struct WorkoutHistoryView: View {
                                 workout: workout,
                                 isEditMode: isEditMode,
                                 isSelected: selectedWorkouts.contains(workout.id),
-                                onEdit: { editedWorkout in
-                                    updateWorkout(workout, with: editedWorkout)
+                                onEdit: { _ in
+                                    // onEdit callback kept for compatibility
+                                    // But actual editing is handled by WorkoutEditSheet directly
                                 },
                                 onDelete: { workoutToDelete in
                                     self.workoutToDelete = workoutToDelete
@@ -224,15 +239,6 @@ struct WorkoutHistoryView: View {
     }
     
     // MARK: - Methods
-    
-    private func updateWorkout(_ workout: WorkoutRecord, with editedWorkout: WorkoutRecord) {
-        workout.summary = editedWorkout.summary
-        workout.workoutType = editedWorkout.workoutType
-        workout.date = editedWorkout.date
-        workout.isCompleted = editedWorkout.isCompleted
-        
-        try? modelContext.save()
-    }
     
     private func deleteWorkouts(offsets: IndexSet) {
         withAnimation {

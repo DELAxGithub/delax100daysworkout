@@ -87,97 +87,229 @@ struct MetricHistoryRow: View {
 // MARK: - Metric Edit Sheet
 
 struct MetricEditSheet: View {
-    let metric: DailyMetric
-    let onSave: (DailyMetric) -> Void
-    
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @State private var editedWeight: String = ""
-    @State private var editedRestingHR: String = ""
-    @State private var editedMaxHR: String = ""
-    @State private var editedDate: Date = Date()
+    
+    let metric: DailyMetric
+    
+    @State private var weightValue: Double = 0.0
+    @State private var restingHRValue: Int = 0
+    @State private var maxHRValue: Int = 0
+    @State private var selectedDate: Date = Date()
+    @State private var selectedDataSource: MetricDataSource = .manual
+    @State private var showingDeleteAlert = false
+    @State private var showingValidationError = false
+    @State private var validationMessage = ""
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section("日時") {
-                    DatePicker("記録日時", selection: $editedDate)
-                }
-                
-                Section("体重") {
-                    HStack {
-                        TextField("体重", text: $editedWeight)
-                            .keyboardType(.decimalPad)
-                        Text("kg")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Section("心拍数") {
-                    HStack {
-                        TextField("安静時心拍数", text: $editedRestingHR)
-                            .keyboardType(.numberPad)
-                        Text("bpm")
-                            .foregroundColor(.secondary)
+            ScrollView {
+                VStack(spacing: Spacing.lg.value) {
+                    // Edit Form
+                    BaseCard(style: ElevatedCardStyle()) {
+                        VStack(spacing: Spacing.md.value) {
+                            // Weight Input
+                            DecimalInputRow(
+                                label: "体重",
+                                value: $weightValue,
+                                unit: "kg",
+                                placeholder: "70.0"
+                            )
+                            
+                            Divider()
+                            
+                            // Resting Heart Rate Input
+                            NumericInputRow(
+                                label: "安静時心拍数",
+                                value: $restingHRValue,
+                                unit: "bpm",
+                                placeholder: "50"
+                            )
+                            
+                            Divider()
+                            
+                            // Max Heart Rate Input
+                            NumericInputRow(
+                                label: "最大心拍数",
+                                value: $maxHRValue,
+                                unit: "bpm",
+                                placeholder: "180"
+                            )
+                            
+                            Divider()
+                            
+                            // Date Picker
+                            DatePicker(
+                                "記録日",
+                                selection: $selectedDate,
+                                displayedComponents: .date
+                            )
+                            .font(Typography.bodyLarge.font)
+                            .foregroundColor(SemanticColor.primaryText.color)
+                            .frame(minHeight: 44)
+                            
+                            Divider()
+                            
+                            // Data Source Picker
+                            VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                                Text("データソース")
+                                    .font(Typography.bodyLarge.font)
+                                    .foregroundColor(SemanticColor.primaryText.color)
+                                
+                                Picker("データソース", selection: $selectedDataSource) {
+                                    ForEach(MetricDataSource.allCases, id: \.self) { source in
+                                        Label(source.displayName, systemImage: source.iconName)
+                                            .tag(source)
+                                    }
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                                .frame(minHeight: 44)
+                            }
+                        }
+                        .padding(Spacing.md.value)
                     }
                     
-                    HStack {
-                        TextField("最大心拍数", text: $editedMaxHR)
-                            .keyboardType(.numberPad)
-                        Text("bpm")
-                            .foregroundColor(.secondary)
+                    // Helper Text Card
+                    BaseCard(style: OutlinedCardStyle()) {
+                        VStack(alignment: .leading, spacing: Spacing.sm.value) {
+                            Text("編集のヒント")
+                                .font(Typography.labelMedium.font)
+                                .foregroundColor(SemanticColor.primaryText.color)
+                                .fontWeight(.medium)
+                            
+                            VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                                Text("• 値を0にすると該当データが削除されます")
+                                Text("• 体重: 30.0 - 200.0 kg")
+                                Text("• 安静時心拍数: 40 - 100 bpm")
+                                Text("• 最大心拍数: 120 - 220 bpm")
+                            }
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText.color)
+                        }
+                        .padding(Spacing.md.value)
+                    }
+                    
+                    // Delete Button
+                    BaseCard(style: OutlinedCardStyle()) {
+                        Button(action: {
+                            showingDeleteAlert = true
+                            HapticManager.shared.trigger(.notification(.warning))
+                        }) {
+                            HStack {
+                                Image(systemName: "trash")
+                                    .foregroundColor(SemanticColor.destructiveAction.color)
+                                Text("この記録を削除")
+                                    .font(Typography.labelMedium.font)
+                                    .foregroundColor(SemanticColor.destructiveAction.color)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(Spacing.md.value)
+                        }
                     }
                 }
-                
-                Section {
-                    Text("※ 空欄にすると該当データが削除されます")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                .padding(.horizontal)
             }
+            .background(SemanticColor.primaryBackground.color)
             .navigationTitle("メトリクス編集")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") {
                         dismiss()
+                        HapticManager.shared.trigger(.selection)
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
                         saveChanges()
-                        dismiss()
                     }
+                    .fontWeight(.semibold)
+                    .disabled(!isValidInput)
                 }
             }
         }
         .onAppear {
-            editedWeight = metric.weightKg.map { String(format: "%.1f", $0) } ?? ""
-            editedRestingHR = metric.restingHeartRate.map { String($0) } ?? ""
-            editedMaxHR = metric.maxHeartRate.map { String($0) } ?? ""
-            editedDate = metric.date
+            loadMetricData()
+        }
+        .alert("メトリクス記録を削除", isPresented: $showingDeleteAlert) {
+            Button("削除", role: .destructive) {
+                deleteRecord()
+            }
+            Button("キャンセル", role: .cancel) { }
+        } message: {
+            Text("この記録を削除してもよろしいですか？この操作は取り消せません。")
+        }
+        .alert("入力エラー", isPresented: $showingValidationError) {
+            Button("OK") { }
+        } message: {
+            Text(validationMessage)
         }
     }
     
+    private var isValidInput: Bool {
+        let hasValidWeight = weightValue <= 0 || DailyMetric.isValidWeight(weightValue)
+        let hasValidRestingHR = restingHRValue <= 0 || DailyMetric.isValidRestingHeartRate(restingHRValue)
+        let hasValidMaxHR = maxHRValue <= 0 || DailyMetric.isValidMaxHeartRate(maxHRValue)
+        let hasValidDate = selectedDate <= Date()
+        let hasAnyData = weightValue > 0 || restingHRValue > 0 || maxHRValue > 0
+        
+        return hasValidWeight && hasValidRestingHR && hasValidMaxHR && hasValidDate && hasAnyData
+    }
+    
+    private func loadMetricData() {
+        weightValue = metric.weightKg ?? 0.0
+        restingHRValue = metric.restingHeartRate ?? 0
+        maxHRValue = metric.maxHeartRate ?? 0
+        selectedDate = metric.date
+        selectedDataSource = metric.dataSource
+    }
+    
     private func saveChanges() {
-        let editedMetric = DailyMetric(date: editedDate)
-        
-        // 体重
-        if !editedWeight.isEmpty, let weight = Double(editedWeight), DailyMetric.isValidWeight(weight) {
-            editedMetric.weightKg = weight
+        guard isValidInput else {
+            validationMessage = "入力値を確認してください。有効な範囲内で入力し、記録日は今日以前を選択してください。"
+            showingValidationError = true
+            return
         }
         
-        // 安静時心拍数
-        if !editedRestingHR.isEmpty, let restingHR = Int(editedRestingHR), DailyMetric.isValidRestingHeartRate(restingHR) {
-            editedMetric.restingHeartRate = restingHR
-        }
+        // Update the record
+        metric.weightKg = weightValue > 0 ? weightValue : nil
+        metric.restingHeartRate = restingHRValue > 0 ? restingHRValue : nil
+        metric.maxHeartRate = maxHRValue > 0 ? maxHRValue : nil
+        metric.date = selectedDate
+        metric.dataSource = selectedDataSource
+        metric.updatedAt = Date()
         
-        // 最大心拍数
-        if !editedMaxHR.isEmpty, let maxHR = Int(editedMaxHR), DailyMetric.isValidMaxHeartRate(maxHR) {
-            editedMetric.maxHeartRate = maxHR
+        do {
+            try modelContext.save()
+            
+            // Trigger WPR update if weight was updated
+            if let newWeight = metric.weightKg {
+                Task { @MainActor in
+                    metric.triggerWPRWeightUpdate(context: modelContext)
+                }
+            }
+            
+            HapticManager.shared.trigger(.notification(.success))
+            dismiss()
+        } catch {
+            validationMessage = "保存中にエラーが発生しました: \(error.localizedDescription)"
+            showingValidationError = true
         }
-        
-        onSave(editedMetric)
+    }
+    
+    private func deleteRecord() {
+        withAnimation {
+            modelContext.delete(metric)
+            do {
+                try modelContext.save()
+                HapticManager.shared.trigger(.notification(.success))
+                dismiss()
+            } catch {
+                validationMessage = "削除中にエラーが発生しました: \(error.localizedDescription)"
+                showingValidationError = true
+            }
+        }
     }
 }
 

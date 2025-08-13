@@ -1,12 +1,15 @@
 import SwiftUI
+import SwiftData
 
 struct TaskCardView: View {
     let task: DailyTask
     let onQuickComplete: () -> Void
     let onDetailTap: () -> Void
     
+    @Environment(\.modelContext) private var modelContext
     @State private var isCompleted = false
     @State private var showCheckmark = false
+    @State private var counterInfo: TaskCompletionCounter?
     
     var body: some View {
         BaseCard(
@@ -20,9 +23,17 @@ struct TaskCardView: View {
                     .font(Typography.headlineMedium.font)
                     .foregroundColor(SemanticColor.primaryAction.color)
                 
-                Text(task.title)
-                    .font(Typography.headlineMedium.font)
-                    .foregroundColor(SemanticColor.primaryText)
+                VStack(alignment: .leading, spacing: Spacing.xs.value) {
+                    Text(task.title)
+                        .font(Typography.headlineMedium.font)
+                        .foregroundColor(SemanticColor.primaryText)
+                    
+                    if let counter = counterInfo {
+                        Text(counter.displayText)
+                            .font(Typography.captionMedium.font)
+                            .foregroundColor(SemanticColor.secondaryText)
+                    }
+                }
                 
                 Spacer()
                 
@@ -41,6 +52,43 @@ struct TaskCardView: View {
                 Text(description)
                     .font(Typography.bodySmall.font)
                     .foregroundColor(SemanticColor.secondaryText)
+            }
+            
+            // 目標進捗表示
+            if let counter = counterInfo {
+                HStack {
+                    Text(counter.progressText)
+                        .font(Typography.captionMedium.font)
+                        .foregroundColor(counter.isTargetAchieved ? SemanticColor.successAction : SemanticColor.secondaryText)
+                    
+                    Spacer()
+                    
+                    // 目標達成時の「おかわり」ボタン
+                    if counter.isTargetAchieved && !isCompleted {
+                        Button("おかわり +50") {
+                            TaskCounterService.shared.addTarget(
+                                for: TaskIdentificationUtils.generateTaskType(from: task),
+                                additionalCount: 50,
+                                in: modelContext
+                            )
+                            loadCounterInfo()
+                        }
+                        .font(Typography.captionMedium.font)
+                        .padding(.horizontal, Spacing.sm.value)
+                        .padding(.vertical, 2)
+                        .background(SemanticColor.successAction.color.opacity(0.2))
+                        .foregroundColor(SemanticColor.successAction.color)
+                        .cornerRadius(CornerRadius.small.radius)
+                    }
+                }
+                
+                // プログレスバー
+                if !counter.isTargetAchieved {
+                    ProgressView(value: counter.progressRate)
+                        .progressViewStyle(LinearProgressViewStyle())
+                        .scaleEffect(x: 1, y: 0.5, anchor: .center)
+                        .accentColor(SemanticColor.primaryAction.color)
+                }
             }
             
             // 目標値
@@ -80,10 +128,17 @@ struct TaskCardView: View {
                     // バグ報告のトラッキング
                     BugReportManager.shared.trackButtonTap("やった", in: "TaskCardView")
                     
+                    // カウンターを更新
+                    TaskCounterService.shared.incrementCounter(for: task, in: modelContext)
+                    
                     withAnimation {
                         isCompleted = true
                         showCheckmark = true
                     }
+                    
+                    // カウンター情報を更新
+                    loadCounterInfo()
+                    
                     // 少し遅延してからコールバック実行
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         onQuickComplete()
@@ -122,6 +177,19 @@ struct TaskCardView: View {
                 
                 Spacer()
             }
+            }
+        }
+        .onAppear {
+            loadCounterInfo()
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func loadCounterInfo() {
+        Task {
+            await MainActor.run {
+                counterInfo = TaskCounterService.shared.getCounterInfo(for: task, in: modelContext)
             }
         }
     }
