@@ -74,17 +74,37 @@
 
 ### **IMMEDIATE PRIORITY (Critical)**
 
-#### **Issue #58** - 🧬 学術レベル相関分析システム: FTP向上要因の科学的解析
-**Status**: 📋 OPEN - 仕様書100%完成・実装準備完了  
+#### **Issue #72** - 🚨 ビルド安定性復旧・システム統合最適化
+**Status**: 📋 OPEN - 分析完了・実装準備完了  
+**Scope**: SwiftData統合修正・CRUD Engine安定化・Universal Edit Sheet復旧  
+**Priority**: Critical - 全開発ブロック中  
+**Estimated Effort**: 6-8日・段階的復旧戦略  
+
+**Critical Build Errors (分析済み)**:
+- 🚨 **ValidationEngine**: YogaDetail.intensityLevel未定義 (Line 277)
+- 🚨 **SwiftData Generic**: PersistentModel.init(backingData:)制約違反  
+- 🚨 **CRUD Engine**: performOperation重複宣言衝突
+- ⚠️ **ModelOperations**: Primary associated types制約問題
+- ⚠️ **Analytics Framework**: struct vs ObservableObject型違反
+
+**影響システム**:
+- ❌ **Universal Edit Sheet** (Issue #61): 機能停止
+- ❌ **CRUD Engine** (Issue #60/65): 統合不良
+- ❌ **Analytics Framework** (Issue #67): 型制約違反
+- ⚠️ **実機デモ**: 実行不可能
+- ⚠️ **新Issue開発**: 環境ブロック
+
+#### **Issue #58** - 🧬 学術レベル相関分析システム: FTP向上要因の科学的解析  
+**Status**: 📋 OPEN - 仕様書100%完成・**Issue #72完了後実装可能**  
 **Scope**: 統計分析エンジン・相関分析・重回帰分析・データエクスポート  
 **Academic Level**: 論文・研究発表レベル分析品質  
-**Prerequisite**: ✅ Issue #68完了・完全仕様書完成済み  
+**Prerequisite**: ⚠️ **Issue #72 (ビルド安定性)完了必須**  
 
 **実装準備完了要素**:
 - ✅ **Part1仕様書**: 概要・データモデル編 (SwiftData @Model完全定義)
 - ✅ **Part2仕様書**: 集計・解析・ダッシュボード編 (統計手法・UI仕様)  
 - ✅ **Part3仕様書**: API・品質保証・セキュリティ編 (テスト・運用仕様)
-- ✅ **技術基盤**: WPR分析・アナリティクスフレームワーク企業レベル完成
+- ⚠️ **技術基盤**: WPR分析完成済み・但しビルドエラーにより実行不可
 - ✅ **拡張Issue**: #69-#71準備完了・段階的実装可能
 
 ---
@@ -159,23 +179,30 @@
 - ✅ **統合計算エンジン**: WPROptimizationEngine・BottleneckDetectionSystem
 
 ### **コードベース成熟度**
-- **企業レベルコンポーネントシステム**: ✅ 完成済み
+- **企業レベルコンポーネントシステム**: ⚠️ 完成済み・但しビルドエラー発生中
 - **適切なログ基盤**: ✅ OSLog + Logger.swift
 - **クリーンアーキテクチャ**: ✅ 100+ Swift files
-- **最小限技術負債**: 12 TODO, 75 debug prints
+- **技術負債状況**: 11 TODO/FIXME/HACK files, ビルドエラー複数件
+
+### **ビルド状態 (Critical Issue)**
+- **ビルドステータス**: ❌ FAILED - 複数エラー
+- **影響範囲**: Universal Edit Sheet, CRUD Engine, Analytics Framework
+- **根本原因**: SwiftData統合・Generic型制約・Protocol設計衝突
 
 ---
 
 ## 🎯 **次セッション推奨アクション**
 
-### **Option 1: Issue #58 本格実装 (最推奨)**
-学術レベル相関分析システム・完全仕様書完成済み・YOLO実装可能
+### **Option 1: Issue #72 ビルド安定性復旧 (最優先・必須)**
+Critical Build Errors修正・システム統合最適化・実機デモ環境復旧
 
-### **Option 2: Issue #69-#71 いずれか着手**  
-Issue #58拡張機能・データ自動化・多人数解析・適応型閾値
+### **Option 2: Issue #58 学術分析 (Issue #72完了後)**  
+完全仕様書完成済み・但しビルド安定化必須前提
 
-### **Option 3: Issue #45/44 機能拡張**
-DataManagement・WorkoutHistory高度機能実装
+### **Option 3: Issue #45/44 機能拡張 (代替案)**
+ビルドエラー回避・安定コンポーネント活用開発
+
+**推奨判断**: Issue #72が全開発の前提条件・最優先実装必須
 
 ---
 
@@ -184,7 +211,10 @@ DataManagement・WorkoutHistory高度機能実装
 ### **今セッション成果**
 - **Issue #68完了**: 分析システム現状仕様完全調査・体系的ドキュメント化
 - **Issue #58仕様書**: 学術品質3部作完成・アナリスト要求100%満足
+- **Issue #69-#71作成**: Issue #58拡張機能3件・実装準備完了
+- **Issue #72作成**: ビルド安定性復旧・Critical分析完了・段階的復旧戦略
 - **セッション管理改善**: アーカイブシステム・進捗追跡・効率向上
+- **ビルドエラー解析**: 複合的互換性問題の根本原因特定・修正戦略策定
 
 ### **累積アーキテクチャ改善実績**
 - **Universal Edit Sheet**: 607行→1行統合 (**99.8%削減**)
@@ -195,11 +225,16 @@ DataManagement・WorkoutHistory高度機能実装
 ### **累積完了実績**
 - **17+ Critical Issues 完了**: Core systems + Analytics foundational完成
 - **統一システム構築**: エラー・CRUD・編集・デザイン・分析・ヘッダー完成
-- **技術負債最小化**: Expert Modular Architecture維持
 - **学術対応準備**: Issue #58完全仕様・拡張Issue #69-#71準備完了
+- **新Issue作成**: #69 (データ自動化), #70 (多人数解析), #71 (適応型閾値), #72 (ビルド安定性)
+
+### **現在の課題・次セッション重点**
+- **技術負債対応**: ビルドエラー修正・システム統合最適化 (Issue #72)
+- **SwiftData互換性**: Generic型制約・Protocol設計調整必要
+- **実機デモ準備**: ビルド安定化後実施可能
 
 ---
 
-*Last Updated: 2025-08-13 (Post Issue #68 & Session Script Cleanup)*  
-*Status: Analysis System Specification Complete - Issue #58 Ready for Implementation*  
-*Next Priority: Issue #58 Academic Statistical Analysis System (Full Specification Ready)*
+*Last Updated: 2025-08-13 (Post Build Error Analysis & Issue #72 Creation)*  
+*Status: ⚠️ Build Failed - Issue #72 Critical Priority for Next Session*  
+*Next Priority: Issue #72 Build Stability Restoration (Blocks All Development)*
