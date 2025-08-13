@@ -79,15 +79,15 @@ struct AnimationCatalog: View {
         ScrollView {
             VStack(spacing: Spacing.lg.value) {
                 CatalogSection("Basic Animations") {
-                    AnimationDemo("Quick", animation: AnimationStandards.quick, isAnimating: $isAnimating)
-                    AnimationDemo("Standard", animation: AnimationStandards.standard, isAnimating: $isAnimating)
-                    AnimationDemo("Smooth", animation: AnimationStandards.smooth, isAnimating: $isAnimating)
+                    AnimationDemo(name: "Quick", animation: AnimationStandards.quick, isAnimating: $isAnimating)
+                    AnimationDemo(name: "Standard", animation: AnimationStandards.standard, isAnimating: $isAnimating)
+                    AnimationDemo(name: "Smooth", animation: AnimationStandards.smooth, isAnimating: $isAnimating)
                 }
                 
                 CatalogSection("Spring Animations") {
-                    AnimationDemo("Bounce", animation: AnimationStandards.bounce, isAnimating: $isAnimating)
-                    AnimationDemo("Gentle", animation: AnimationStandards.gentle, isAnimating: $isAnimating)
-                    AnimationDemo("Snappy", animation: AnimationStandards.snappy, isAnimating: $isAnimating)
+                    AnimationDemo(name: "Bounce", animation: AnimationStandards.bounce, isAnimating: $isAnimating)
+                    AnimationDemo(name: "Gentle", animation: AnimationStandards.gentle, isAnimating: $isAnimating)
+                    AnimationDemo(name: "Snappy", animation: AnimationStandards.snappy, isAnimating: $isAnimating)
                 }
                 
                 Button(isAnimating ? "Stop Animations" : "Start Animations") {
@@ -137,19 +137,19 @@ struct HapticCatalog: View {
         ScrollView {
             VStack(spacing: Spacing.lg.value) {
                 CatalogSection("Impact Feedback") {
-                    HapticButton("Light Impact", haptic: .impact(.light))
-                    HapticButton("Medium Impact", haptic: .impact(.medium))
-                    HapticButton("Heavy Impact", haptic: .impact(.heavy))
+                    HapticButton(title: "Light Impact", haptic: .impact(.light))
+                    HapticButton(title: "Medium Impact", haptic: .impact(.medium))
+                    HapticButton(title: "Heavy Impact", haptic: .impact(.heavy))
                 }
                 
                 CatalogSection("Selection Feedback") {
-                    HapticButton("Selection", haptic: .selection)
+                    HapticButton(title: "Selection", haptic: .selection)
                 }
                 
                 CatalogSection("Notification Feedback") {
-                    HapticButton("Success", haptic: .notification(.success))
-                    HapticButton("Warning", haptic: .notification(.warning))
-                    HapticButton("Error", haptic: .notification(.error))
+                    HapticButton(title: "Success", haptic: .notification(.success))
+                    HapticButton(title: "Warning", haptic: .notification(.warning))
+                    HapticButton(title: "Error", haptic: .notification(.error))
                 }
                 
                 CatalogSection("Common Interactions") {

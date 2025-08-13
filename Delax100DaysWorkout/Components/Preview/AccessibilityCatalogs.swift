@@ -23,10 +23,10 @@ struct DynamicTypeCatalog: View {
                 
                 CatalogSection("Typography Scaling") {
                     VStack(spacing: Spacing.sm.value) {
-                        DynamicTypeExample("Display", typography: .displayMedium)
-                        DynamicTypeExample("Headline", typography: .headlineMedium)
-                        DynamicTypeExample("Body", typography: .bodyMedium)
-                        DynamicTypeExample("Caption", typography: .captionMedium)
+                        DynamicTypeExample(name: "Display", typography: .displayMedium)
+                        DynamicTypeExample(name: "Headline", typography: .headlineMedium)
+                        DynamicTypeExample(name: "Body", typography: .bodyMedium)
+                        DynamicTypeExample(name: "Caption", typography: .captionMedium)
                     }
                 }
                 
@@ -124,10 +124,10 @@ struct VoiceOverCatalog: View {
                                 .accessibilityAddTraits(.isHeader)
                             
                             VStack(alignment: .leading, spacing: Spacing.xs.value) {
-                                AccessibilityTip("Provide meaningful labels")
-                                AccessibilityTip("Include action hints")
-                                AccessibilityTip("Group related elements")
-                                AccessibilityTip("Test with VoiceOver enabled")
+                                AccessibilityTip(text: "Provide meaningful labels")
+                                AccessibilityTip(text: "Include action hints")
+                                AccessibilityTip(text: "Group related elements")
+                                AccessibilityTip(text: "Test with VoiceOver enabled")
                             }
                         }
                         .foregroundColor(SemanticColor.primaryText)
@@ -211,10 +211,10 @@ struct ReduceMotionCatalog: View {
                                 .font(Typography.headlineMedium.font)
                             
                             VStack(alignment: .leading, spacing: Spacing.xs.value) {
-                                AccessibilityTip("Always provide alternative static states")
-                                AccessibilityTip("Use AnimationStandards.adaptive() for animations")
-                                AccessibilityTip("Essential motion can be reduced but not removed")
-                                AccessibilityTip("Test with Reduce Motion enabled")
+                                AccessibilityTip(text: "Always provide alternative static states")
+                                AccessibilityTip(text: "Use AnimationStandards.adaptive() for animations")
+                                AccessibilityTip(text: "Essential motion can be reduced but not removed")
+                                AccessibilityTip(text: "Test with Reduce Motion enabled")
                             }
                         }
                         .foregroundColor(SemanticColor.primaryText)

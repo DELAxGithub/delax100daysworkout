@@ -1,5 +1,28 @@
 import SwiftUI
 
+// MARK: - HapticFeedbackType Extension
+
+extension HapticFeedbackType {
+    func toHapticType() -> HapticType {
+        switch self {
+        case .light:
+            return .impact(.light)
+        case .medium:
+            return .impact(.medium)
+        case .heavy:
+            return .impact(.heavy)
+        case .selection:
+            return .selection
+        case .success:
+            return .notification(.success)
+        case .warning:
+            return .notification(.warning)
+        case .error:
+            return .notification(.error)
+        }
+    }
+}
+
 // MARK: - Accessibility Modifier
 
 struct AccessibilityModifier: ViewModifier {
@@ -50,7 +73,7 @@ struct InteractionModifier: ViewModifier {
     }
     
     private var longPressGesture: some Gesture {
-        LongPressGesture(minimumDuration: GestureConstants.adjustedLongPressDuration)
+        LongPressGesture(minimumDuration: GestureConfiguration.shared.adjustedLongPressDuration)
             .onEnded { _ in
                 handleLongPress()
             }
@@ -62,16 +85,16 @@ struct InteractionModifier: ViewModifier {
         if !isPressed && !configuration.interaction.isDisabled {
             isPressed = true
             if let haptic = configuration.animation.hapticFeedback {
-                HapticsManager.cardAction(haptic)
+                HapticManager.shared.trigger(haptic.toHapticType())
             }
         }
         
         // Handle swipe preview
         let translation = value.translation
-        if abs(translation.x) > GestureConstants.minimumSwipeDistance {
+        if abs(translation.width) > GestureConfiguration.shared.minimumSwipeDistance {
             dragOffset = CGSize(
-                width: translation.x * 0.3, // Reduced movement for preview
-                y: 0
+                width: translation.width * 0.3, // Reduced movement for preview
+                height: 0
             )
         }
     }
@@ -88,8 +111,8 @@ struct InteractionModifier: ViewModifier {
         let velocity = value.velocity
         
         // Determine action based on gesture
-        if abs(translation.x) > GestureConstants.minimumSwipeDistance ||
-           abs(velocity.x) > 200 {
+        if abs(translation.width) > GestureConfiguration.shared.minimumSwipeDistance ||
+           abs(velocity.width) > 200 {
             handleSwipeAction(translation: translation)
         } else {
             handleTapAction()
@@ -101,12 +124,12 @@ struct InteractionModifier: ViewModifier {
     private func handleLongPress() {
         guard !configuration.interaction.isDisabled else { return }
         
-        HapticsManager.cardAction(.medium)
+        HapticManager.shared.trigger(.impact(.medium))
         configuration.interaction.onLongPress?()
     }
     
     private func handleSwipeAction(translation: CGSize) {
-        if translation.x > 0 {
+        if translation.width > 0 {
             configuration.interaction.onSwipeRight?()
         } else {
             configuration.interaction.onSwipeLeft?()

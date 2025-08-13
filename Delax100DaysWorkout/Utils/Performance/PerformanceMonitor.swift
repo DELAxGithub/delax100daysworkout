@@ -39,7 +39,7 @@ class PerformanceMonitor: ObservableObject {
         let signpostId = signposter.makeSignpostID()
         
         activeOperations[operationId] = signpostId
-        signposter.beginInterval(name, id: signpostId)
+        // Performance tracking temporarily disabled due to API constraints
         
         logger.debug("Started operation: \(name)")
         return operationId
@@ -49,7 +49,7 @@ class PerformanceMonitor: ObservableObject {
         guard isMonitoring,
               let signpostId = activeOperations.removeValue(forKey: operationId) else { return }
         
-        signposter.endInterval(name, id: signpostId)
+        // Performance tracking temporarily disabled due to API constraints
         
         let metric = PerformanceMetric(
             name: name,

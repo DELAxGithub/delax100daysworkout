@@ -482,7 +482,7 @@ struct SummaryCard: View {
     let icon: String
     
     var body: some View {
-        BaseCard.summary {
+        BaseCard(style: ElevatedCardStyle()) {
             VStack(alignment: .leading, spacing: Spacing.sm.value) {
                 HStack {
                     Image(systemName: icon)

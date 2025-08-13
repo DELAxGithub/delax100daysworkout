@@ -123,10 +123,10 @@ extension MigrationStatus {
 
 extension LegacyCardWrapper {
     // WorkoutCardView wrapper
-    static func workoutCard<Content: View>(
-        @ViewBuilder content: () -> Content
-    ) -> LegacyCardWrapper<Content> {
-        LegacyCardWrapper(
+    static func workoutCard<T: View>(
+        @ViewBuilder content: @escaping () -> T
+    ) -> LegacyCardWrapper<T> {
+        LegacyCardWrapper<T>(
             content: content,
             migrationMetadata: MigrationMetadata(
                 legacyCardType: "WorkoutCardView",
@@ -141,10 +141,10 @@ extension LegacyCardWrapper {
     }
     
     // TaskCardView wrapper
-    static func taskCard<Content: View>(
-        @ViewBuilder content: () -> Content
-    ) -> LegacyCardWrapper<Content> {
-        LegacyCardWrapper(
+    static func taskCard<T: View>(
+        @ViewBuilder content: @escaping () -> T
+    ) -> LegacyCardWrapper<T> {
+        LegacyCardWrapper<T>(
             content: content,
             migrationMetadata: MigrationMetadata(
                 legacyCardType: "TaskCardView",
@@ -159,10 +159,10 @@ extension LegacyCardWrapper {
     }
     
     // EditableWorkoutCardView wrapper
-    static func editableWorkoutCard<Content: View>(
-        @ViewBuilder content: () -> Content
-    ) -> LegacyCardWrapper<Content> {
-        LegacyCardWrapper(
+    static func editableWorkoutCard<T: View>(
+        @ViewBuilder content: @escaping () -> T
+    ) -> LegacyCardWrapper<T> {
+        LegacyCardWrapper<T>(
             content: content,
             migrationMetadata: MigrationMetadata(
                 legacyCardType: "EditableWorkoutCardView",
@@ -187,20 +187,20 @@ extension WorkoutCardView {
         title: String,
         summary: String
     ) -> some View {
-        BaseCard.workout {
+        BaseCard(onTap: {}) {
             HStack(spacing: Spacing.md.value) {
                 Image(systemName: workoutType.iconName)
                     .font(Typography.headlineLarge.font)
-                    .foregroundColor(SemanticColor.primaryAction)
+                    .foregroundColor(SemanticColor.primaryAction.color)
                     .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading) {
                     Text(title)
                         .font(Typography.headlineMedium.font)
-                        .foregroundColor(SemanticColor.primaryText)
+                        .foregroundColor(SemanticColor.primaryText.color)
                     Text(summary)
                         .font(Typography.bodySmall.font)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(SemanticColor.secondaryText.color)
                 }
                 Spacer()
             }

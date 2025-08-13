@@ -47,27 +47,27 @@ struct BaseCardCatalog: View {
                         SampleCardContent(title: "Default Card", subtitle: "Standard styling")
                     }
                     
-                    BaseCard.summary {
+                    BaseCard(style: ElevatedCardStyle()) {
                         SampleCardContent(title: "Summary Card", subtitle: "Elevated styling")
                     }
                 }
                 
                 CatalogSection("Interactive Cards") {
-                    BaseCard.workout(onTap: {}) {
+                    BaseCard(onTap: {}) {
                         SampleCardContent(title: "Workout Card", subtitle: "Tap to interact")
                     }
                     
-                    BaseCard.task(onTap: {}, onLongPress: {}) {
+                    BaseCard(onTap: {}, onLongPress: {}) {
                         SampleCardContent(title: "Task Card", subtitle: "Tap or long press")
                     }
                 }
                 
                 CatalogSection("Selectable Cards") {
-                    BaseCard.selectable(isSelected: false, onTap: {}) {
+                    BaseCard(onTap: {}) {
                         SampleCardContent(title: "Unselected", subtitle: "Tap to select")
                     }
                     
-                    BaseCard.selectable(isSelected: true, onTap: {}) {
+                    BaseCard(onTap: {}) {
                         SampleCardContent(title: "Selected", subtitle: "Currently selected")
                     }
                 }

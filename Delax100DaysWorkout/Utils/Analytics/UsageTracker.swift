@@ -140,7 +140,7 @@ class UsageTracker: ObservableObject {
         
         return UsageReport(
             generatedAt: Date(),
-            stats: stats,
+            stats: UsageStatsSnapshot(from: stats),
             topFeatures: getTopFeatures(),
             userJourney: getUserJourney(),
             recommendations: generateRecommendations()

@@ -6,21 +6,21 @@ struct ColorTokenCatalog: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Spacing.lg.value) {
-                ColorSection("Text Colors", colors: [
+                ColorSection(title: "Text Colors", colors: [
                     ("Primary Text", SemanticColor.primaryText),
                     ("Secondary Text", SemanticColor.secondaryText),
                     ("Tertiary Text", SemanticColor.tertiaryText),
                     ("Link Text", SemanticColor.linkText)
                 ])
                 
-                ColorSection("Background Colors", colors: [
+                ColorSection(title: "Background Colors", colors: [
                     ("Primary Background", SemanticColor.primaryBackground),
                     ("Secondary Background", SemanticColor.secondaryBackground),
                     ("Card Background", SemanticColor.cardBackground),
                     ("Surface Background", SemanticColor.surfaceBackground)
                 ])
                 
-                ColorSection("Action Colors", colors: [
+                ColorSection(title: "Action Colors", colors: [
                     ("Primary Action", SemanticColor.primaryAction),
                     ("Secondary Action", SemanticColor.secondaryAction),
                     ("Success Action", SemanticColor.successAction),
@@ -84,25 +84,25 @@ struct TypographyCatalog: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.lg.value) {
-                TypographySection("Display", fonts: [
+                TypographySection(title: "Display", fonts: [
                     ("Display Large", Typography.displayLarge),
                     ("Display Medium", Typography.displayMedium),
                     ("Display Small", Typography.displaySmall)
                 ])
                 
-                TypographySection("Headlines", fonts: [
+                TypographySection(title: "Headlines", fonts: [
                     ("Headline Large", Typography.headlineLarge),
                     ("Headline Medium", Typography.headlineMedium),
                     ("Headline Small", Typography.headlineSmall)
                 ])
                 
-                TypographySection("Body", fonts: [
+                TypographySection(title: "Body", fonts: [
                     ("Body Large", Typography.bodyLarge),
                     ("Body Medium", Typography.bodyMedium),
                     ("Body Small", Typography.bodySmall)
                 ])
                 
-                TypographySection("Labels & Captions", fonts: [
+                TypographySection(title: "Labels & Captions", fonts: [
                     ("Label Large", Typography.labelLarge),
                     ("Label Medium", Typography.labelMedium),
                     ("Caption Medium", Typography.captionMedium),
@@ -160,7 +160,7 @@ struct SpacingCatalog: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.lg.value) {
-                SpacingSection("Basic Spacing", spacings: [
+                SpacingSection(title: "Basic Spacing", spacings: [
                     ("XS (4pt)", Spacing.xs),
                     ("SM (8pt)", Spacing.sm),
                     ("MD (16pt)", Spacing.md),
@@ -169,7 +169,7 @@ struct SpacingCatalog: View {
                     ("XXL (48pt)", Spacing.xxl)
                 ])
                 
-                SpacingSection("Component Spacing", spacings: [
+                SpacingSection(title: "Component Spacing", spacings: [
                     ("Card Padding (16pt)", Spacing.cardPadding),
                     ("Card Spacing (20pt)", Spacing.cardSpacing),
                     ("Section Spacing (32pt)", Spacing.sectionSpacing),

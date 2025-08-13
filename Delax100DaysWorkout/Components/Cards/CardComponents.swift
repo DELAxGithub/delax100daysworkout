@@ -12,7 +12,12 @@ struct CardBackground: View {
         )
         .fill(style.backgroundColor.color)
         .overlay(borderOverlay)
-        .shadow(shadowConfiguration)
+        .shadow(
+            color: shadowConfiguration.color,
+            radius: shadowConfiguration.radius,
+            x: shadowConfiguration.x,
+            y: shadowConfiguration.y
+        )
     }
     
     @ViewBuilder

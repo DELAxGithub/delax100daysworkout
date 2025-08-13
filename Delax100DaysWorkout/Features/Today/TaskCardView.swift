@@ -9,8 +9,7 @@ struct TaskCardView: View {
     @State private var showCheckmark = false
     
     var body: some View {
-        BaseCard.task(
-            isCompleted: isCompleted,
+        BaseCard(
             onTap: onDetailTap,
             onLongPress: onQuickComplete
         ) {
@@ -19,7 +18,7 @@ struct TaskCardView: View {
             HStack {
                 Image(systemName: task.icon)
                     .font(Typography.headlineMedium.font)
-                    .foregroundColor(SemanticColor.primaryAction)
+                    .foregroundColor(SemanticColor.primaryAction.color)
                 
                 Text(task.title)
                     .font(Typography.headlineMedium.font)
@@ -98,9 +97,9 @@ struct TaskCardView: View {
                     .fontWeight(.medium)
                     .padding(.horizontal, Spacing.md.value)
                     .padding(.vertical, Spacing.sm.value)
-                    .background(isCompleted ? SemanticColor.successAction : SemanticColor.primaryAction)
+                    .background(isCompleted ? SemanticColor.successAction.color : SemanticColor.primaryAction.color)
                     .foregroundColor(.white)
-                    .cornerRadius(CornerRadius.large)
+                    .cornerRadius(CornerRadius.large.radius)
                 }
                 .disabled(isCompleted)
                 
@@ -117,7 +116,7 @@ struct TaskCardView: View {
                     .padding(.vertical, Spacing.sm.value)
                     .background(SemanticColor.secondaryAction.color.opacity(0.2))
                     .foregroundColor(SemanticColor.primaryText)
-                    .cornerRadius(CornerRadius.large)
+                    .cornerRadius(CornerRadius.large.radius)
                 }
                 .disabled(isCompleted)
                 

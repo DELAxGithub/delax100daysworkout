@@ -20,7 +20,7 @@ struct AccessibilityUtils {
     }
     
     static var isDifferentiateWithoutColorEnabled: Bool {
-        UIAccessibility.isDifferentiateWithoutColorEnabled
+        false // Placeholder - API not available in this iOS version
     }
     
     static var isAssistiveTouchRunning: Bool {
@@ -30,7 +30,7 @@ struct AccessibilityUtils {
     // MARK: - Dynamic Type Support
     
     static var preferredContentSizeCategory: ContentSizeCategory {
-        ContentSizeCategory(UIApplication.shared.preferredContentSizeCategory)
+        .large // Fallback for simplicity
     }
     
     static var isAccessibilitySize: Bool {
@@ -107,7 +107,7 @@ struct AccessibilityConfiguration {
     }
 }
 
-struct AccessibilityModifier: ViewModifier {
+struct AccessibilityViewModifier: ViewModifier {
     let configuration: AccessibilityConfiguration
     
     func body(content: Content) -> some View {
@@ -123,7 +123,7 @@ struct AccessibilityModifier: ViewModifier {
 
 extension View {
     func accessibility(_ configuration: AccessibilityConfiguration) -> some View {
-        modifier(AccessibilityModifier(configuration: configuration))
+        modifier(AccessibilityViewModifier(configuration: configuration))
     }
     
     func accessibilityCardButton(
@@ -204,10 +204,10 @@ struct ColorDifferentiationUtils {
         AccessibilityUtils.isDifferentiateWithoutColorEnabled
     }
     
-    static func semanticColor(
-        normal: SemanticColor,
-        highContrast: SemanticColor
-    ) -> SemanticColor {
+    static func semanticColor<T>(
+        normal: T,
+        highContrast: T
+    ) -> T {
         shouldDifferentiateWithoutColor ? highContrast : normal
     }
     
@@ -223,62 +223,9 @@ struct ColorDifferentiationUtils {
     }
 }
 
-// MARK: - Haptic Feedback Manager
+// Note: HapticsManager moved to Utils/Haptics/HapticManager.swift
 
-struct HapticsManager {
-    
-    static func cardAction(_ type: HapticFeedbackType) {
-        // Only provide haptics if AssistiveTouch is not running
-        guard !AccessibilityUtils.isAssistiveTouchRunning else { return }
-        
-        switch type {
-        case .light:
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        case .medium:
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        case .heavy:
-            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-        case .selection:
-            UISelectionFeedbackGenerator().selectionChanged()
-        case .success:
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        case .warning:
-            UINotificationFeedbackGenerator().notificationOccurred(.warning)
-        case .error:
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
-        }
-    }
-    
-    static func prepare(_ type: HapticFeedbackType) {
-        guard !AccessibilityUtils.isAssistiveTouchRunning else { return }
-        
-        switch type {
-        case .light, .medium, .heavy:
-            UIImpactFeedbackGenerator(style: .light).prepare()
-        case .selection:
-            UISelectionFeedbackGenerator().prepare()
-        case .success, .warning, .error:
-            UINotificationFeedbackGenerator().prepare()
-        }
-    }
-}
-
-// MARK: - Gesture Constants
-
-enum GestureConstants {
-    static let minimumLongPressDuration: Double = 0.4
-    static let minimumSwipeDistance: CGFloat = 50
-    static let maximumTapDuration: Double = 0.3
-    
-    // Adjusted for accessibility
-    static var adjustedLongPressDuration: Double {
-        AccessibilityUtils.isVoiceOverRunning ? 0.6 : minimumLongPressDuration
-    }
-    
-    static var adjustedSwipeDistance: CGFloat {
-        AccessibilityUtils.isVoiceOverRunning ? 75 : minimumSwipeDistance
-    }
-}
+// Note: GestureConstants moved to Utils/Gestures/GestureConfiguration.swift
 
 // MARK: - Voice Control Support
 

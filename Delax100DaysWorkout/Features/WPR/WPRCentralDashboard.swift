@@ -478,7 +478,7 @@ struct WPRMainCard: View {
                     
                     Text("WPR 4.5 達成への道のり")
                         .font(WPRFont.sectionTitle)
-                        .foregroundColor(SemanticColor.primaryText)
+                        .foregroundColor(WPRSemanticColor.primaryText)
                 }
                 
                 Spacer()
@@ -495,17 +495,17 @@ struct WPRMainCard: View {
                     } else {
                         Text("--")
                             .font(WPRFont.heroNumber)
-                            .foregroundColor(SemanticColor.secondaryText)
+                            .foregroundColor(WPRSemanticColor.secondaryText)
                         
                         Text("データを入力してください")
                             .font(.system(size: 10))
-                            .foregroundColor(SemanticColor.secondaryText)
+                            .foregroundColor(WPRSemanticColor.secondaryText)
                             .multilineTextAlignment(.center)
                     }
                     
                     Text("現在")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                 }
                 
                 Spacer()
@@ -523,15 +523,15 @@ struct WPRMainCard: View {
                         
                         Text("\(Int(animatedProgress * 100))%")
                             .font(WPRFont.mediumNumber)
-                            .foregroundColor(SemanticColor.primaryText)
+                            .foregroundColor(WPRSemanticColor.primaryText)
                             .contentTransition(.numericText())
                     } else {
-                        WPRProgressBar(progress: 0.0, color: SemanticColor.secondaryText.opacity(0.3))
+                        WPRProgressBar(progress: 0.0, color: WPRSemanticColor.secondaryText.opacity(0.3))
                             .frame(width: 120, height: 12)
                         
                         Text("0%")
                             .font(WPRFont.mediumNumber)
-                            .foregroundColor(SemanticColor.secondaryText)
+                            .foregroundColor(WPRSemanticColor.secondaryText)
                     }
                 }
                 
@@ -548,14 +548,14 @@ struct WPRMainCard: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(WPRColor.wprBlue)
                                 .padding(4)
-                                .background(SemanticColor.secondaryBackground)
+                                .background(WPRSemanticColor.secondaryBackground)
                                 .cornerRadius(6)
                         }
                     }
                     
                     Text(system.isCustomTargetSet ? "カスタム目標" : "デフォルト目標")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                 }
             }
             
@@ -565,13 +565,13 @@ struct WPRMainCard: View {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(SemanticColor.info)
+                        .foregroundColor(WPRSemanticColor.info)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         if currentWPR > 0, let days = daysRemaining, days > 0 {
                             Text("残り \(days)日")
                                 .font(WPRFont.metricLabel)
-                                .foregroundColor(SemanticColor.primaryText)
+                                .foregroundColor(WPRSemanticColor.primaryText)
                         } else if currentWPR > 0 {
                             Text("目標達成済み")
                                 .font(WPRFont.metricLabel)
@@ -579,7 +579,7 @@ struct WPRMainCard: View {
                         } else {
                             Text("データ待ち")
                                 .font(WPRFont.metricLabel)
-                                .foregroundColor(SemanticColor.secondaryText)
+                                .foregroundColor(WPRSemanticColor.secondaryText)
                         }
                     }
                 }
@@ -596,11 +596,11 @@ struct WPRMainCard: View {
                         if currentWPR > 0 {
                             Text("月間 +\(String(format: "%.1f", monthlyGain)) WPR")
                                 .font(WPRFont.metricLabel)
-                                .foregroundColor(SemanticColor.primaryText)
+                                .foregroundColor(WPRSemanticColor.primaryText)
                         } else {
                             Text("予測計算中")
                                 .font(WPRFont.metricLabel)
-                                .foregroundColor(SemanticColor.secondaryText)
+                                .foregroundColor(WPRSemanticColor.secondaryText)
                         }
                     }
                 }
@@ -617,7 +617,7 @@ struct WPRMainCard: View {
                     
                     Text("ボトルネック: \(currentBottleneck)")
                         .font(WPRFont.metricLabel)
-                        .foregroundColor(SemanticColor.primaryText)
+                        .foregroundColor(WPRSemanticColor.primaryText)
                     
                     Spacer()
                 }
@@ -630,7 +630,7 @@ struct WPRMainCard: View {
                         
                         Text("FTPと体重を記録してWPR計算を開始")
                             .font(WPRFont.metricLabel)
-                            .foregroundColor(SemanticColor.primaryText)
+                            .foregroundColor(WPRSemanticColor.primaryText)
                         
                         Spacer()
                     }
@@ -662,7 +662,7 @@ struct WPRMainCard: View {
             }
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(
             color: Color.black.opacity(0.1),
@@ -704,7 +704,7 @@ enum WPRColor {
     static let critical = Color(red: 1.0, green: 0.3, blue: 0.3)      // <30%
 }
 
-enum SemanticColor {
+enum WPRSemanticColor {
     static let success = WPRColor.wprGreen
     static let warning = Color(red: 1.0, green: 0.6, blue: 0.0)
     static let error = WPRColor.wprRed
@@ -852,7 +852,7 @@ struct ScientificMetricsSummaryCard: View {
             HStack {
                 Text("科学的指標概要")
                     .font(WPRFont.sectionTitle)
-                    .foregroundColor(SemanticColor.primaryText)
+                    .foregroundColor(WPRSemanticColor.primaryText)
                 
                 Spacer()
                 
@@ -880,7 +880,7 @@ struct ScientificMetricsSummaryCard: View {
             }
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(
             color: Color.black.opacity(0.1),
@@ -963,7 +963,7 @@ struct MetricRow: View {
                 Text(data.type.displayName)
                     .font(WPRFont.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(SemanticColor.secondaryText)
+                    .foregroundColor(WPRSemanticColor.secondaryText)
                     .lineLimit(1)
                 
                 Spacer()
@@ -984,14 +984,14 @@ struct MetricRow: View {
                 if !data.unit.isEmpty {
                     Text(data.unit)
                         .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                 }
                 
                 Spacer()
                 
                 Text("/ \(String(format: "%.1f", data.targetValue))")
                     .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(SemanticColor.secondaryText)
+                    .foregroundColor(WPRSemanticColor.secondaryText)
             }
             
             // プログレスバー
@@ -1013,7 +1013,7 @@ struct MetricRow: View {
             .frame(height: 4)
         }
         .padding(WPRSpacing.sm)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
@@ -1065,7 +1065,7 @@ struct TappableMetricRow: View {
                     Text(data.type.displayName)
                         .font(WPRFont.caption)
                         .fontWeight(.medium)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                         .lineLimit(1)
                     
                     Spacer()
@@ -1086,14 +1086,14 @@ struct TappableMetricRow: View {
                     if !data.unit.isEmpty {
                         Text(data.unit)
                             .font(.system(size: 12, weight: .regular))
-                            .foregroundColor(SemanticColor.secondaryText)
+                            .foregroundColor(WPRSemanticColor.secondaryText)
                     }
                     
                     Spacer()
                     
                     Text("/ \(String(format: "%.1f", data.targetValue))")
                         .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                 }
                 
                 // プログレスバー
@@ -1119,11 +1119,11 @@ struct TappableMetricRow: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(SemanticColor.secondaryText.opacity(0.6))
+                        .foregroundColor(WPRSemanticColor.secondaryText.opacity(0.6))
                 }
             }
             .padding(WPRSpacing.sm)
-            .background(SemanticColor.cardBackground)
+            .background(WPRSemanticColor.cardBackground)
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
@@ -1757,13 +1757,13 @@ struct MetricDetailHeaderCard: View {
                         if !data.unit.isEmpty {
                             Text(data.unit)
                                 .font(WPRFont.metricLabel)
-                                .foregroundColor(SemanticColor.secondaryText)
+                                .foregroundColor(WPRSemanticColor.secondaryText)
                         }
                     }
                     
                     Text("/ \(String(format: "%.1f", data.targetValue))")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                 }
             }
             
@@ -1772,7 +1772,7 @@ struct MetricDetailHeaderCard: View {
                 HStack {
                     Text("目標達成率")
                         .font(WPRFont.metricLabel)
-                        .foregroundColor(SemanticColor.primaryText)
+                        .foregroundColor(WPRSemanticColor.primaryText)
                     
                     Spacer()
                     
@@ -1788,11 +1788,11 @@ struct MetricDetailHeaderCard: View {
             
             Text(data.description)
                 .font(WPRFont.body)
-                .foregroundColor(SemanticColor.primaryText)
+                .foregroundColor(WPRSemanticColor.primaryText)
                 .multilineTextAlignment(.leading)
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
@@ -1805,13 +1805,13 @@ struct MetricProgressDetailCard: View {
         VStack(alignment: .leading, spacing: WPRSpacing.md) {
             Text("進捗詳細")
                 .font(WPRFont.sectionTitle)
-                .foregroundColor(SemanticColor.primaryText)
+                .foregroundColor(WPRSemanticColor.primaryText)
             
             HStack(spacing: WPRSpacing.lg) {
                 VStack(spacing: WPRSpacing.xs) {
                     Text("現在値")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                     
                     Text(String(format: "%.2f", data.currentValue))
                         .font(WPRFont.mediumNumber)
@@ -1821,28 +1821,28 @@ struct MetricProgressDetailCard: View {
                 VStack(spacing: WPRSpacing.xs) {
                     Text("目標値")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                     
                     Text(String(format: "%.2f", data.targetValue))
                         .font(WPRFont.mediumNumber)
-                        .foregroundColor(SemanticColor.primaryText)
+                        .foregroundColor(WPRSemanticColor.primaryText)
                 }
                 
                 VStack(spacing: WPRSpacing.xs) {
                     Text("残り")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                     
                     Text(String(format: "%.2f", max(0, data.targetValue - data.currentValue)))
                         .font(WPRFont.mediumNumber)
-                        .foregroundColor(SemanticColor.warning)
+                        .foregroundColor(WPRSemanticColor.warning)
                 }
                 
                 Spacer()
             }
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
@@ -1859,18 +1859,18 @@ struct MetricScientificBasisCard: View {
                 
                 Text("科学的根拠")
                     .font(WPRFont.sectionTitle)
-                    .foregroundColor(SemanticColor.primaryText)
+                    .foregroundColor(WPRSemanticColor.primaryText)
             }
             
             Text(data.scientificBasis)
                 .font(WPRFont.scientificNote)
-                .foregroundColor(SemanticColor.secondaryText)
+                .foregroundColor(WPRSemanticColor.secondaryText)
                 .padding(WPRSpacing.sm)
-                .background(SemanticColor.secondaryBackground)
+                .background(WPRSemanticColor.secondaryBackground)
                 .cornerRadius(8)
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
@@ -1887,7 +1887,7 @@ struct MetricImprovementTipsCard: View {
                 
                 Text("改善提案")
                     .font(WPRFont.sectionTitle)
-                    .foregroundColor(SemanticColor.primaryText)
+                    .foregroundColor(WPRSemanticColor.primaryText)
             }
             
             LazyVStack(spacing: WPRSpacing.sm) {
@@ -1902,7 +1902,7 @@ struct MetricImprovementTipsCard: View {
                         
                         Text(tip)
                             .font(WPRFont.body)
-                            .foregroundColor(SemanticColor.primaryText)
+                            .foregroundColor(WPRSemanticColor.primaryText)
                             .multilineTextAlignment(.leading)
                         
                         Spacer()
@@ -1911,7 +1911,7 @@ struct MetricImprovementTipsCard: View {
             }
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
@@ -1928,7 +1928,7 @@ struct MetricContributionCard: View {
                 
                 Text("WPR寄与度")
                     .font(WPRFont.sectionTitle)
-                    .foregroundColor(SemanticColor.primaryText)
+                    .foregroundColor(WPRSemanticColor.primaryText)
             }
             
             HStack {
@@ -1941,20 +1941,20 @@ struct MetricContributionCard: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("WPR全体への寄与")
                         .font(WPRFont.caption)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                     
                     Text("科学的エビデンス係数")
                         .font(WPRFont.footnote)
-                        .foregroundColor(SemanticColor.secondaryText)
+                        .foregroundColor(WPRSemanticColor.secondaryText)
                 }
             }
             
             Text("この指標の改善により、WPR全体の\(Int(data.coefficient * 100))%に相当する効果が期待されます。")
                 .font(WPRFont.footnote)
-                .foregroundColor(SemanticColor.secondaryText)
+                .foregroundColor(WPRSemanticColor.secondaryText)
         }
         .padding(WPRSpacing.cardPadding)
-        .background(SemanticColor.cardBackground)
+        .background(WPRSemanticColor.cardBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }

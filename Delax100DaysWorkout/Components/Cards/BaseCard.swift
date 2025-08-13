@@ -50,24 +50,24 @@ struct BaseCard<Content: View>: View {
 
 extension BaseCard {
     // Workout Card
-    static func workout<Content: View>(
+    static func workout<T: View>(
         onTap: (() -> Void)? = nil,
-        @ViewBuilder content: () -> Content
-    ) -> BaseCard<Content> {
-        BaseCard(
+        @ViewBuilder content: @escaping () -> T
+    ) -> BaseCard<T> {
+        BaseCard<T>(
             configuration: .tappable(action: onTap ?? {}),
             content: content
         )
     }
     
     // Task Card
-    static func task<Content: View>(
+    static func task<T: View>(
         isCompleted: Bool = false,
         onTap: (() -> Void)? = nil,
         onLongPress: (() -> Void)? = nil,
-        @ViewBuilder content: () -> Content
-    ) -> BaseCard<Content> {
-        BaseCard(
+        @ViewBuilder content: @escaping () -> T
+    ) -> BaseCard<T> {
+        BaseCard<T>(
             configuration: .editable(
                 onTap: onTap ?? {},
                 onLongPress: onLongPress ?? {}
@@ -77,22 +77,22 @@ extension BaseCard {
     }
     
     // Summary Card
-    static func summary<Content: View>(
-        @ViewBuilder content: () -> Content
-    ) -> BaseCard<Content> {
-        BaseCard(
+    static func summary<T: View>(
+        @ViewBuilder content: @escaping () -> T
+    ) -> BaseCard<T> {
+        BaseCard<T>(
             style: ElevatedCardStyle(),
             content: content
         )
     }
     
     // Selectable Card
-    static func selectable<Content: View>(
+    static func selectable<T: View>(
         isSelected: Bool,
         onTap: @escaping () -> Void,
-        @ViewBuilder content: () -> Content
-    ) -> BaseCard<Content> {
-        BaseCard(
+        @ViewBuilder content: @escaping () -> T
+    ) -> BaseCard<T> {
+        BaseCard<T>(
             configuration: .selectable(isSelected: isSelected),
             content: content
         )
@@ -116,7 +116,7 @@ extension BaseCard {
             }
             
             // Tappable Card
-            BaseCard.workout(onTap: { print("Workout tapped") }) {
+            BaseCard(onTap: { print("Workout tapped") }) {
                 HStack {
                     Image(systemName: "figure.strengthtraining.traditional")
                         .font(.title2)

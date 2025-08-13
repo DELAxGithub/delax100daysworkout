@@ -84,13 +84,13 @@ struct StandardSwipeGesture: ViewModifier {
         
         switch direction {
         case .left:
-            return translation.x < -config.adjustedSwipeDistance && abs(velocity.x) > config.minimumSwipeVelocity
+            return translation.width < -config.adjustedSwipeDistance && abs(velocity.width) > config.minimumSwipeVelocity
         case .right:
-            return translation.x > config.adjustedSwipeDistance && abs(velocity.x) > config.minimumSwipeVelocity
+            return translation.width > config.adjustedSwipeDistance && abs(velocity.width) > config.minimumSwipeVelocity
         case .up:
-            return translation.y < -config.adjustedSwipeDistance && abs(velocity.y) > config.minimumSwipeVelocity
+            return translation.height < -config.adjustedSwipeDistance && abs(velocity.height) > config.minimumSwipeVelocity
         case .down:
-            return translation.y > config.adjustedSwipeDistance && abs(velocity.y) > config.minimumSwipeVelocity
+            return translation.height > config.adjustedSwipeDistance && abs(velocity.height) > config.minimumSwipeVelocity
         }
     }
 }
