@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import SwiftData
 
 // MARK: - Analytics-Focused WPR Components (Issue #57)
 

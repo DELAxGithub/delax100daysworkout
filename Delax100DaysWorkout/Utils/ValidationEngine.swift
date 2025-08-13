@@ -155,7 +155,6 @@ extension WorkoutRecord: Validatable {
     func validate() -> ValidationResult {
         return ValidationEngine.combineValidations([
             ValidationEngine.validateRequired(summary.isEmpty ? nil : summary, fieldName: "Summary"),
-            ValidationEngine.validateWorkoutDuration(duration, fieldName: "Duration"),
             ValidationEngine.validateDate(date, before: Date().addingTimeInterval(86400), fieldName: "Date") // Can't be in future (with 1 day buffer)
         ])
     }
@@ -244,17 +243,9 @@ extension StrengthDetail: Validatable {
     func validate() -> ValidationResult {
         var validations: [ValidationResult] = []
         
-        if let weight = weightKg {
-            validations.append(ValidationEngine.validatePositive(weight, fieldName: "Weight"))
-        }
-        
-        if let reps = repetitions {
-            validations.append(ValidationEngine.validateRepetitions(reps))
-        }
-        
-        if let sets = sets {
-            validations.append(ValidationEngine.validateSets(sets))
-        }
+        validations.append(ValidationEngine.validatePositive(weight, fieldName: "Weight"))
+        validations.append(ValidationEngine.validateRepetitions(reps))
+        validations.append(ValidationEngine.validateSets(sets))
         
         return ValidationEngine.combineValidations(validations)
     }
@@ -264,13 +255,8 @@ extension CyclingDetail: Validatable {
     func validate() -> ValidationResult {
         var validations: [ValidationResult] = []
         
-        if let distance = distanceKm {
-            validations.append(ValidationEngine.validatePositive(distance, fieldName: "Distance"))
-        }
-        
-        if let avgSpeed = averageSpeedKmh {
-            validations.append(ValidationEngine.validateRange(avgSpeed, min: 1.0, max: 100.0, fieldName: "Average Speed"))
-        }
+        validations.append(ValidationEngine.validatePositive(distance, fieldName: "Distance"))
+        validations.append(ValidationEngine.validatePositive(Double(duration), fieldName: "Duration"))
         
         if let avgHR = averageHeartRate {
             validations.append(ValidationEngine.validateHeartRate(avgHR, fieldName: "Average Heart Rate"))
@@ -300,9 +286,8 @@ extension FlexibilityDetail: Validatable {
     func validate() -> ValidationResult {
         var validations: [ValidationResult] = []
         
-        if let duration = holdDurationSeconds {
-            validations.append(ValidationEngine.validateRange(duration, min: 1, max: 300, fieldName: "Hold Duration"))
-        }
+        validations.append(ValidationEngine.validateRange(Double(duration), min: 1, max: 300, fieldName: "Duration"))
+        validations.append(ValidationEngine.validateRange(forwardBendDistance, min: -50, max: 50, fieldName: "Forward Bend Distance"))
         
         return ValidationEngine.combineValidations(validations)
     }
@@ -312,8 +297,10 @@ extension PilatesDetail: Validatable {
     func validate() -> ValidationResult {
         var validations: [ValidationResult] = []
         
-        if let intensity = intensityLevel {
-            validations.append(ValidationEngine.validateRange(intensity, min: 1, max: 10, fieldName: "Intensity Level"))
+        validations.append(ValidationEngine.validateRange(Double(duration), min: 1, max: 180, fieldName: "Duration"))
+        
+        if let reps = repetitions {
+            validations.append(ValidationEngine.validateRepetitions(reps))
         }
         
         return ValidationEngine.combineValidations(validations)

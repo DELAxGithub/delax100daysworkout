@@ -182,24 +182,11 @@ private struct AnalyticsCardInsight: View {
             
             Image(systemName: "chevron.right")
                 .font(Typography.captionSmall)
-                .foregroundColor(SemanticColor.secondaryText.opacity(0.6))
+                .foregroundColor(Color(SemanticColor.secondaryText).opacity(0.6))
         }
     }
 }
 
-// MARK: - Analytics Card Style
-
-struct AnalyticsCardStyle: CardStyling {
-    let accentColor: Color
-    let isPressed: Bool
-    
-    var backgroundColor: SemanticColor { .cardBackground }
-    var cornerRadius: CornerRadius { .large }
-    var padding: Spacing { .md }
-    var shadow: ShadowStyle { .medium }
-    var borderColor: SemanticColor? { isPressed ? SemanticColor.focusBorder : nil }
-    var borderWidth: CGFloat { isPressed ? 2 : 0 }
-}
 
 // MARK: - Analytics Grid Layout
 

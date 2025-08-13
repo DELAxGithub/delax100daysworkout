@@ -135,7 +135,7 @@ extension FieldTypeDetector {
     
     // MARK: - Field Types
     
-    enum FieldType: Equatable {
+    indirect enum FieldType: Equatable {
         case string
         case int
         case double

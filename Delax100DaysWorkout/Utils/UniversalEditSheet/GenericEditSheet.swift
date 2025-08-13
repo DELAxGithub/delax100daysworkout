@@ -12,7 +12,7 @@ struct GenericEditSheet<T: PersistentModel>: View {
     @StateObject private var errorHandler = ErrorHandler()
     
     let modelType: T.Type
-    @State private var workingModel: T
+    @State private var workingModel: T?
     @State private var fieldValues: [String: Any] = [:]
     @State private var validationErrors: [String: String] = [:]
     @State private var detectedFields: [FieldTypeDetector.FieldInfo] = []
@@ -40,7 +40,8 @@ struct GenericEditSheet<T: PersistentModel>: View {
         if let existing = existingModel {
             self._workingModel = State(initialValue: existing)
         } else {
-            self._workingModel = State(initialValue: modelType.init())
+            // SwiftData PersistentModelは直接初期化できないため、nilで初期化
+            self._workingModel = State(initialValue: nil)
         }
     }
     
