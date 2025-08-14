@@ -1,0 +1,36 @@
+name: 🛡️ Quality Gates
+
+on:
+  workflow_call:
+
+jobs:
+  code-quality:
+    name: Code Analysis
+    runs-on: macos-14
+    timeout-minutes: 10
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: 📊 Analyze Code Metrics
+      run: |
+        SWIFT_FILES=$(find . -name "*.swift" -not -path "./build/*" | wc -l)
+        TOTAL_LINES=$(find . -name "*.swift" -not -path "./build/*" -exec wc -l {} + | tail -1 | awk '{print $1}')
+        
+        echo "📈 Metrics: $SWIFT_FILES files, $TOTAL_LINES lines"
+        echo "📈 Average: $((TOTAL_LINES / SWIFT_FILES)) lines/file"
+
+  security-scan:
+    name: Security Check
+    runs-on: macos-14
+    timeout-minutes: 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: 🔒 Security Analysis
+      run: |
+        # Check for hardcoded secrets
+        if grep -r -i "api.*key\|secret\|token\|password" --include="*.swift" . | grep -v "// "; then
+          echo "⚠️ Potential secrets detected"
+        else
+          echo "✅ No secrets found"
+        fi

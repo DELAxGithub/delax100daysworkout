@@ -18,18 +18,46 @@ mkdir -p "$HOOKS_DIR"
 cat > "$PRE_COMMIT_HOOK" << 'EOF'
 #!/bin/bash
 
-echo "🔍 Checking for secrets in staged files..."
+echo "🔍 Running enterprise pre-commit validation..."
 
-# Pythonスクリプトを実行
+# Phase 1: Security Check
+echo "🔒 Checking for secrets..."
 python3 scripts/check_secrets.py --staged-only
-
 if [ $? -ne 0 ]; then
-    echo "❌ Pre-commit check failed!"
-    echo "Please remove secrets before committing."
+    echo "❌ Security check failed!"
     exit 1
 fi
 
-echo "✅ Pre-commit check passed!"
+# Phase 2: Swift Syntax Check
+echo "🔨 Validating Swift syntax..."
+STAGED_SWIFT=$(git diff --cached --name-only --diff-filter=ACM | grep '\.swift$')
+if [ -n "$STAGED_SWIFT" ]; then
+    for file in $STAGED_SWIFT; do
+        if [ -f "$file" ]; then
+            # Quick syntax check
+            xcrun swiftc -typecheck "$file" 2>/dev/null
+            if [ $? -ne 0 ]; then
+                echo "❌ Swift syntax error in: $file"
+                exit 1
+            fi
+        fi
+    done
+    echo "✅ Swift syntax validation passed"
+fi
+
+# Phase 3: Build Safety Check (Quick)
+echo "🏗️ Quick build validation..."
+if [ -f "Delax100DaysWorkout.xcodeproj/project.pbxproj" ]; then
+    # Test if project can be parsed
+    xcodebuild -list -project Delax100DaysWorkout.xcodeproj >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "❌ Project configuration corrupted!"
+        exit 1
+    fi
+    echo "✅ Project structure validated"
+fi
+
+echo "✅ All pre-commit checks passed!"
 exit 0
 EOF
 
