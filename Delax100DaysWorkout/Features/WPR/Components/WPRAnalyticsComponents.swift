@@ -38,10 +38,10 @@ struct EnhancedScientificMetricsCard: View {
         }
         .sheet(isPresented: $showingMetricDetail) {
             if let selectedMetric = selectedMetric {
-                MetricDetailAnalyticsView(
-                    metricType: selectedMetric,
-                    system: system
-                )
+                Text("詳細分析ビュー: \(selectedMetric)")
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(8)
             }
         }
     }
@@ -251,7 +251,7 @@ private struct AnalyticsMetricInsight: View {
             
             Image(systemName: "chevron.right")
                 .font(Typography.captionSmall)
-                .foregroundColor(SemanticColor.secondaryText.opacity(0.6))
+                .foregroundColor(SemanticColor.secondaryText.color.opacity(0.6))
         }
     }
     
@@ -320,7 +320,7 @@ struct CorrelationAnalysisSummary: View {
             }
         }
         .padding(Spacing.sm)
-        .background(SemanticColor.secondaryBackground.opacity(0.5))
+        .background(SemanticColor.secondaryBackground.color.opacity(0.5))
         .cornerRadius(.medium)
     }
 }

@@ -284,17 +284,17 @@ struct CyclingDetailCard: View {
                 GridItem(.flexible()),
                 GridItem(.flexible())
             ], spacing: 8) {
-                MetricCard(title: "Distance", value: detail.formattedDistance, icon: "road.lanes")
-                MetricCard(title: "Duration", value: detail.formattedDuration, icon: "clock")
-                MetricCard(title: "Avg Power", value: detail.formattedAveragePower, icon: "bolt")
-                MetricCard(title: "Intensity", value: detail.intensity.description, icon: "speedometer")
+                WorkoutMetricCard(title: "Distance", value: detail.formattedDistance, icon: "road.lanes")
+                WorkoutMetricCard(title: "Duration", value: detail.formattedDuration, icon: "clock")
+                WorkoutMetricCard(title: "Avg Power", value: detail.formattedAveragePower, icon: "bolt")
+                WorkoutMetricCard(title: "Intensity", value: detail.intensity.description, icon: "speedometer")
                 
                 if let avgHR = detail.formattedAverageHeartRate {
-                    MetricCard(title: "Avg HR", value: avgHR, icon: "heart")
+                    WorkoutMetricCard(title: "Avg HR", value: avgHR, icon: "heart")
                 }
                 
                 if let maxPower = detail.formattedMaxPower {
-                    MetricCard(title: "Max Power", value: maxPower, icon: "bolt.fill")
+                    WorkoutMetricCard(title: "Max Power", value: maxPower, icon: "bolt.fill")
                 }
             }
             
@@ -318,7 +318,7 @@ struct CyclingDetailCard: View {
     }
 }
 
-struct MetricCard: View {
+struct WorkoutMetricCard: View {
     let title: String
     let value: String
     let icon: String

@@ -274,8 +274,18 @@ extension YogaDetail: Validatable {
     func validate() -> ValidationResult {
         var validations: [ValidationResult] = []
         
-        if let intensity = intensityLevel {
-            validations.append(ValidationEngine.validateRange(intensity, min: 1, max: 10, fieldName: "Intensity Level"))
+        validations.append(ValidationEngine.validateRange(Double(duration), min: 1, max: 180, fieldName: "Duration"))
+        
+        if let flexibility = flexibility {
+            validations.append(ValidationEngine.validateRange(flexibility, min: 0, max: 10, fieldName: "Flexibility"))
+        }
+        
+        if let balance = balance {
+            validations.append(ValidationEngine.validateRange(balance, min: 0, max: 10, fieldName: "Balance"))
+        }
+        
+        if let mindfulness = mindfulness {
+            validations.append(ValidationEngine.validateRange(mindfulness, min: 0, max: 10, fieldName: "Mindfulness"))
         }
         
         return ValidationEngine.combineValidations(validations)

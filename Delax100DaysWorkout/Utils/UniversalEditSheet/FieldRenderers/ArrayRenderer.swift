@@ -203,7 +203,7 @@ private struct ArrayItemRow: View {
         .padding(.vertical, Spacing.xs.value)
         .padding(.horizontal, Spacing.sm.value)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.small.value)
+            RoundedRectangle(cornerRadius: CornerRadius.small.radius)
                 .fill(SemanticColor.surfaceBackground.color.opacity(0.3))
         )
         .onAppear {

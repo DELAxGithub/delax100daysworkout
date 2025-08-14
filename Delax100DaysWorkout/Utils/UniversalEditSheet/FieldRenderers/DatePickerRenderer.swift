@@ -142,7 +142,7 @@ struct DatePickerRenderer {
         }
     }
     
-    static func getDatePickerStyle(for fieldName: String) -> DatePickerStyle {
+    static func getDatePickerStyle(for fieldName: String) -> any DatePickerStyle {
         switch fieldName.lowercased() {
         case "birthdate", "birthday":
             return .wheel // More precise for birth dates

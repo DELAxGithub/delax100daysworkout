@@ -4,12 +4,12 @@ import Foundation
 
 struct AdvancedFilteringEngine<T: PersistentModel> {
     
-    enum FilterCondition {
+    enum FilterCondition: Equatable {
         case text(property: String, operation: TextOperation, value: String)
         case number(property: String, operation: NumberOperation, value: Double)
         case date(property: String, operation: DateOperation, value: Date)
         case bool(property: String, value: Bool)
-        case enumeration(property: String, value: Any)
+        case enumeration(property: String, value: String)
         case isNull(property: String)
         case isNotNull(property: String)
         
@@ -49,16 +49,16 @@ struct AdvancedFilteringEngine<T: PersistentModel> {
         }
     }
     
-    enum LogicalOperator: String, CaseIterable {
+    enum LogicalOperator: String, CaseIterable, Equatable {
         case and = "AND"
         case or = "OR"
         
         var displayName: String { rawValue }
     }
     
-    struct FilterGroup {
+    struct FilterGroup: Equatable {
         var conditions: [FilterCondition] = []
-        var operator: LogicalOperator = .and
+        var logicalOperator: LogicalOperator = .and
         var nestedGroups: [FilterGroup] = []
         
         var isEmpty: Bool {
@@ -108,7 +108,7 @@ struct AdvancedFilteringEngine<T: PersistentModel> {
             return allPredicates[0]
         }
         
-        switch filterGroup.operator {
+        switch filterGroup.logicalOperator {
         case .and:
             return combinePredicatesWithAnd(allPredicates)
         case .or:
@@ -253,7 +253,7 @@ extension AdvancedFilteringEngine {
                         .date(property: "date", operation: .thisWeek, value: Date()),
                         .bool(property: "isCompleted", value: true)
                     ],
-                    operator: .and
+                    logicalOperator: .and
                 )
             ),
             FilterPreset(
@@ -264,7 +264,7 @@ extension AdvancedFilteringEngine {
                         .enumeration(property: "workoutType", value: WorkoutType.cycling),
                         .bool(property: "isCompleted", value: false)
                     ],
-                    operator: .and
+                    logicalOperator: .and
                 )
             ),
             FilterPreset(
@@ -275,7 +275,7 @@ extension AdvancedFilteringEngine {
                         .date(property: "date", operation: .thisMonth, value: Date()),
                         .enumeration(property: "workoutType", value: WorkoutType.strength)
                     ],
-                    operator: .and
+                    logicalOperator: .and
                 )
             )
         ]

@@ -57,7 +57,7 @@ struct RelationshipRenderer {
             .padding(.vertical, Spacing.sm.value)
             .padding(.horizontal, Spacing.md.value)
             .background(
-                RoundedRectangle(cornerRadius: CornerRadius.medium.value)
+                RoundedRectangle(cornerRadius: CornerRadius.medium.radius)
                     .fill(SemanticColor.surfaceBackground.color)
                     .stroke(SemanticColor.primaryBorder.color, lineWidth: 1)
             )
@@ -202,7 +202,7 @@ private struct RelationshipItemRow: View {
         .padding(.vertical, Spacing.xs.value)
         .padding(.horizontal, Spacing.sm.value)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.small.value)
+            RoundedRectangle(cornerRadius: CornerRadius.small.radius)
                 .fill(SemanticColor.surfaceBackground.color.opacity(0.5))
         )
     }

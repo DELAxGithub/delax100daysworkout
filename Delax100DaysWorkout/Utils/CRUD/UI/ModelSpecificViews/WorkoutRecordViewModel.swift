@@ -12,9 +12,9 @@ class WorkoutRecordViewModel: ObservableObject {
     private let crudEngine: CRUDEngine<WorkoutRecord>
     private let logger = Logger(subsystem: "Delax100DaysWorkout", category: "WorkoutRecordViewModel")
     
-    init() {
+    init(modelContext: ModelContext) {
         self.crudEngine = CRUDEngine<WorkoutRecord>(
-            modelContext: ModelContext(DataManager.shared.container),
+            modelContext: modelContext,
             errorHandler: ErrorHandler()
         )
     }
@@ -28,13 +28,14 @@ class WorkoutRecordViewModel: ObservableObject {
             sortBy: sortDescriptors
         )
         
-        logger.info("Loaded \(workoutRecords.count) workout records")
+        logger.info("Loaded \(self.workoutRecords.count) workout records")
     }
     
     private func createPredicate() -> Predicate<WorkoutRecord>? {
         var predicates: [Predicate<WorkoutRecord>] = []
         
         if !searchText.isEmpty {
+            let searchText = self.searchText
             let searchPredicate = #Predicate<WorkoutRecord> { record in
                 record.summary.localizedStandardContains(searchText)
             }
@@ -42,8 +43,9 @@ class WorkoutRecordViewModel: ObservableObject {
         }
         
         if let workoutType = selectedWorkoutType {
+            let selectedType = workoutType
             let typePredicate = #Predicate<WorkoutRecord> { record in
-                record.workoutType == workoutType
+                record.workoutType == selectedType
             }
             predicates.append(typePredicate)
         }

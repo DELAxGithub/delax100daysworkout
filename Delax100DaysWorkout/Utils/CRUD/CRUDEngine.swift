@@ -33,7 +33,7 @@ class CRUDEngine<T: PersistentModel>: ObservableObject {
     
     // MARK: - Core Operation Wrapper
     
-    private func performOperation<Result>(
+    internal func performOperation<Result>(
         _ operationName: String,
         operation: @escaping () throws -> Result
     ) async -> Result? {
@@ -54,7 +54,7 @@ class CRUDEngine<T: PersistentModel>: ObservableObject {
             
             errorHandler.handleSwiftDataError(error, context: operationName)
             lastOperationResult = .failure(appError)
-            logger.error("\(operationName) failed for \(String(describing: T.self)): \(error.localizedDescription)")
+            self.logger.error("\(operationName) failed for \(String(describing: T.self)): \(error.localizedDescription)")
             return nil
         }
     }
@@ -67,58 +67,58 @@ extension CRUDEngine {
     // MARK: - Create Operations
     
     func create(_ model: T) async -> Bool {
-        return await performOperation("Create") {
+        return await performOperation("Create") { [self] in
             var processedModel = model
             
-            if let ops = operations as? any ModelOperations<T> {
-                let validationResult = ops.validate(processedModel)
+            if let ops = self.self.operations as? any ModelOperations {
+                let validationResult = ops.validateModel(processedModel)
                 guard validationResult.isValid else {
                     throw AppError.invalidInput(validationResult.errorMessage ?? "Validation failed")
                 }
-                processedModel = ops.beforeCreate(processedModel)
+                processedModel = ops.beforeCreateModel(processedModel)
             }
             
-            modelContext.insert(processedModel)
-            try modelContext.save()
+            self.modelContext.insert(processedModel)
+            try self.modelContext.save()
             
-            if let ops = operations as? any ModelOperations<T> {
-                ops.afterCreate(processedModel)
+            if let ops = self.operations as? any ModelOperations {
+                ops.afterCreateModel(processedModel)
             }
             
-            logger.info("Successfully created \(String(describing: T.self))")
+            self.logger.info("Successfully created \(String(describing: T.self))")
             return true
         } ?? false
     }
     
     func createBatch(_ models: [T]) async -> Bool {
-        return await performOperation("Create Batch (\(models.count) items)") {
+        return await performOperation("Create Batch (\(models.count) items)") { [self] in
             var processedModels: [T] = []
             
             for model in models {
-                if let ops = operations as? any ModelOperations<T> {
-                    let validationResult = ops.validate(model)
+                if let ops = self.operations as? any ModelOperations {
+                    let validationResult = ops.validateModel(model)
                     guard validationResult.isValid else {
                         throw AppError.invalidInput("Batch validation failed: \(validationResult.errorMessage ?? "Unknown error")")
                     }
-                    processedModels.append(ops.beforeCreate(model))
+                    processedModels.append(ops.beforeCreateModel(model))
                 } else {
                     processedModels.append(model)
                 }
             }
             
             for model in processedModels {
-                modelContext.insert(model)
+                self.modelContext.insert(model)
             }
             
-            try modelContext.save()
+            try self.modelContext.save()
             
-            if let ops = operations as? any ModelOperations<T> {
+            if let ops = self.operations as? any ModelOperations {
                 for model in processedModels {
-                    ops.afterCreate(model)
+                    ops.afterCreateModel(model)
                 }
             }
             
-            logger.info("Successfully created batch of \(models.count) \(String(describing: T.self)) objects")
+            self.logger.info("Successfully created batch of \(models.count) \(String(describing: T.self)) objects")
             return true
         } ?? false
     }
@@ -130,7 +130,7 @@ extension CRUDEngine {
         sortBy: [SortDescriptor<T>] = [],
         limit: Int? = nil
     ) async -> [T] {
-        return await performOperation("Fetch") {
+        return await performOperation("Fetch") { [self] in
             var descriptor = FetchDescriptor<T>(
                 predicate: predicate,
                 sortBy: sortBy
@@ -140,67 +140,67 @@ extension CRUDEngine {
                 descriptor.fetchLimit = limit
             }
             
-            let results = try modelContext.fetch(descriptor)
-            logger.info("Successfully fetched \(results.count) \(String(describing: T.self)) objects")
+            let results = try self.modelContext.fetch(descriptor)
+            self.logger.info("Successfully fetched \(results.count) \(String(describing: T.self)) objects")
             return results
         } ?? []
     }
     
     func count(predicate: Predicate<T>? = nil) async -> Int {
-        return await performOperation("Count") {
+        return await performOperation("Count") { [self] in
             let descriptor = FetchDescriptor<T>(predicate: predicate)
-            return try modelContext.fetchCount(descriptor)
+            return try self.modelContext.fetchCount(descriptor)
         } ?? 0
     }
     
     // MARK: - Delete Operations
     
     func delete(_ model: T) async -> Bool {
-        return await performOperation("Delete") {
-            if let ops = operations as? any ModelOperations<T> {
-                guard ops.beforeDelete(model) else {
+        return await performOperation("Delete") { [self] in
+            if let ops = self.operations as? any ModelOperations {
+                guard ops.beforeDeleteModel(model) else {
                     throw AppError.databaseError("Pre-delete validation failed")
                 }
             }
             
-            modelContext.delete(model)
-            try modelContext.save()
+            self.modelContext.delete(model)
+            try self.modelContext.save()
             
-            if let ops = operations as? any ModelOperations<T> {
-                ops.afterDelete(model)
+            if let ops = self.operations as? any ModelOperations {
+                ops.afterDeleteModel(model)
             }
             
-            logger.info("Successfully deleted \(String(describing: T.self))")
+            self.logger.info("Successfully deleted \(String(describing: T.self))")
             return true
         } ?? false
     }
     
     func deleteAll(where predicate: Predicate<T>? = nil) async -> Bool {
-        return await performOperation("Delete All") {
+        return await performOperation("Delete All") { [self] in
             let descriptor = FetchDescriptor<T>(predicate: predicate)
-            let modelsToDelete = try modelContext.fetch(descriptor)
+            let modelsToDelete = try self.modelContext.fetch(descriptor)
             
-            if let ops = operations as? any ModelOperations<T> {
+            if let ops = self.operations as? any ModelOperations {
                 for model in modelsToDelete {
-                    guard ops.beforeDelete(model) else {
+                    guard ops.beforeDeleteModel(model) else {
                         throw AppError.databaseError("Delete all validation failed")
                     }
                 }
             }
             
             for model in modelsToDelete {
-                modelContext.delete(model)
+                self.modelContext.delete(model)
             }
             
-            try modelContext.save()
+            try self.modelContext.save()
             
-            if let ops = operations as? any ModelOperations<T> {
+            if let ops = self.operations as? any ModelOperations {
                 for model in modelsToDelete {
-                    ops.afterDelete(model)
+                    ops.afterDeleteModel(model)
                 }
             }
             
-            logger.info("Successfully deleted all \(modelsToDelete.count) \(String(describing: T.self)) objects")
+            self.logger.info("Successfully deleted all \(modelsToDelete.count) \(String(describing: T.self)) objects")
             return true
         } ?? false
     }

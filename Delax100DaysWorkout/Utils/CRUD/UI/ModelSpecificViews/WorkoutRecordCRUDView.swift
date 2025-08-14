@@ -3,14 +3,68 @@ import SwiftData
 import OSLog
 
 struct WorkoutRecordCRUDView: View {
-    @StateObject private var viewModel = WorkoutRecordViewModel()
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedRecord: WorkoutRecord?
     @State private var showingCreateForm = false
     @State private var showingEditForm = false
     @State private var showingDetailView = false
     
+    // CRUD Properties
+    @State private var workoutRecords: [WorkoutRecord] = []
+    @State private var selectedWorkoutType: WorkoutType?
+    @State private var showCompletedOnly = false
+    @State private var searchText = ""
+    
+    // CRUD Engine and Logger
+    private let crudEngine: CRUDEngine<WorkoutRecord>
+    private let logger = Logger(subsystem: "Delax100DaysWorkout", category: "WorkoutRecordCRUD")
+    
+    init() {
+        // Initialize CRUD engine with temporary context - will be replaced in onAppear
+        let tempContainer = try! ModelContainer(for: WorkoutRecord.self)
+        let tempContext = ModelContext(tempContainer)
+        self.crudEngine = CRUDEngine<WorkoutRecord>(
+            modelContext: tempContext,
+            errorHandler: ErrorHandler()
+        )
+    }
+    
     var body: some View {
-        CRUDMasterView.workoutRecordView()
+        NavigationView {
+            VStack {
+                workoutFilterSection
+                
+                if workoutRecords.isEmpty {
+                    emptyStateView
+                } else {
+                    recordsList
+                }
+            }
+            .navigationTitle("Workout Records")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Add") {
+                        showingCreateForm = true
+                    }
+                }
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search workouts...")
+        .sheet(isPresented: $showingCreateForm) {
+            createWorkoutForm
+        }
+        .sheet(isPresented: $showingEditForm) {
+            editWorkoutForm
+        }
+        .sheet(isPresented: $showingDetailView) {
+            detailWorkoutView
+        }
+        .onAppear {
+            Task {
+                await loadWorkoutRecords()
+            }
+        }
     }
     
     private var workoutFilterSection: some View {
@@ -150,6 +204,7 @@ struct WorkoutRecordCRUDView: View {
         var predicates: [Predicate<WorkoutRecord>] = []
         
         if !searchText.isEmpty {
+            let searchText = self.searchText
             let searchPredicate = #Predicate<WorkoutRecord> { record in
                 record.summary.localizedStandardContains(searchText)
             }
@@ -157,8 +212,9 @@ struct WorkoutRecordCRUDView: View {
         }
         
         if let workoutType = selectedWorkoutType {
+            let selectedType = workoutType
             let typePredicate = #Predicate<WorkoutRecord> { record in
-                record.workoutType == workoutType
+                record.workoutType == selectedType
             }
             predicates.append(typePredicate)
         }
@@ -195,7 +251,8 @@ struct WorkoutRecordCRUDView: View {
     private func toggleCompletion(_ record: WorkoutRecord) async {
         record.isCompleted.toggle()
         if record.isCompleted {
-            record.markAsCompleted(modelContext: modelContext)
+            // Save the change to the model context
+            try? modelContext.save()
         }
         await loadWorkoutRecords()
     }

@@ -309,8 +309,8 @@ private struct WPRSetupGuide: View {
                     Text("FTP記録")
                         .font(Typography.labelSmall)
                         .foregroundColor(.white)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.sm)
+                        .padding(.horizontal, Spacing.lg.value)
+                        .padding(.vertical, Spacing.sm.value)
                         .background(SemanticColor.primaryAction)
                         .cornerRadius(.medium)
                 }
@@ -319,8 +319,8 @@ private struct WPRSetupGuide: View {
                     Text("体重記録")
                         .font(Typography.labelSmall)
                         .foregroundColor(.white)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.sm)
+                        .padding(.horizontal, Spacing.lg.value)
+                        .padding(.vertical, Spacing.sm.value)
                         .background(SemanticColor.successAction)
                         .cornerRadius(.medium)
                 }

@@ -4,6 +4,7 @@ import Foundation
 // MARK: - CRUD Engine Factory
 
 struct CRUDEngineFactory {
+    @MainActor
     static func createEngine<T: PersistentModel>(
         for type: T.Type,
         modelContext: ModelContext,
@@ -19,6 +20,7 @@ struct CRUDEngineFactory {
     
     // MARK: - Predefined Engines for Common Models
     
+    @MainActor
     static func workoutRecordEngine(
         modelContext: ModelContext,
         errorHandler: ErrorHandler
@@ -30,6 +32,7 @@ struct CRUDEngineFactory {
         )
     }
     
+    @MainActor
     static func dailyMetricEngine(
         modelContext: ModelContext,
         errorHandler: ErrorHandler
@@ -41,6 +44,7 @@ struct CRUDEngineFactory {
         )
     }
     
+    @MainActor
     static func ftpHistoryEngine(
         modelContext: ModelContext,
         errorHandler: ErrorHandler

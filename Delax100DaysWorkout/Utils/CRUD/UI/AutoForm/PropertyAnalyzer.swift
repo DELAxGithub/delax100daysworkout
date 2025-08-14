@@ -4,19 +4,56 @@ import Foundation
 
 struct PropertyAnalyzer {
     
-    indirect enum PropertyType {
+    indirect enum PropertyType: Hashable {
         case string
         case int
         case double
         case bool
         case date
-        case enumeration(type: any CaseIterable.Type)
+        case enumeration(typeName: String)
         case relationship
         case optional(wrapped: PropertyType)
         case unknown
+        
+        func hash(into hasher: inout Hasher) {
+            switch self {
+            case .string:
+                hasher.combine("string")
+            case .int:
+                hasher.combine("int")
+            case .double:
+                hasher.combine("double")
+            case .bool:
+                hasher.combine("bool")
+            case .date:
+                hasher.combine("date")
+            case .enumeration(let typeName):
+                hasher.combine("enum_\(typeName)")
+            case .relationship:
+                hasher.combine("relationship")
+            case .optional(let wrapped):
+                hasher.combine("optional")
+                wrapped.hash(into: &hasher)
+            case .unknown:
+                hasher.combine("unknown")
+            }
+        }
+        
+        static func == (lhs: PropertyType, rhs: PropertyType) -> Bool {
+            switch (lhs, rhs) {
+            case (.string, .string), (.int, .int), (.double, .double), (.bool, .bool), (.date, .date), (.relationship, .relationship), (.unknown, .unknown):
+                return true
+            case (.enumeration(let lhsType), .enumeration(let rhsType)):
+                return lhsType == rhsType
+            case (.optional(let lhsWrapped), .optional(let rhsWrapped)):
+                return lhsWrapped == rhsWrapped
+            default:
+                return false
+            }
+        }
     }
     
-    struct PropertyInfo {
+    struct PropertyInfo: Hashable {
         let name: String
         let type: PropertyType
         let isOptional: Bool
@@ -105,7 +142,7 @@ struct PropertyAnalyzer {
         } else if typeString.contains("Date") {
             return .date
         } else if let enumType = value as? any CaseIterable {
-            return .enumeration(type: type(of: enumType) as! any CaseIterable.Type)
+            return .enumeration(typeName: String(describing: type(of: enumType)))
         } else if typeString.contains("Relationship") {
             return .relationship
         }

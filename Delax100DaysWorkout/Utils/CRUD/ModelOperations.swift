@@ -4,25 +4,23 @@ import Foundation
 // MARK: - Model Operations Protocol
 
 protocol ModelOperations {
-    associatedtype Model: PersistentModel
-    
-    func validate(_ model: Model) -> ValidationResult
-    func beforeCreate(_ model: Model) -> Model
-    func beforeUpdate(_ model: Model) -> Model
-    func beforeDelete(_ model: Model) -> Bool
-    func afterCreate(_ model: Model)
-    func afterUpdate(_ model: Model)
-    func afterDelete(_ model: Model)
+    func validateModel<T: PersistentModel>(_ model: T) -> ValidationResult
+    func beforeCreateModel<T: PersistentModel>(_ model: T) -> T
+    func beforeUpdateModel<T: PersistentModel>(_ model: T) -> T
+    func beforeDeleteModel<T: PersistentModel>(_ model: T) -> Bool
+    func afterCreateModel<T: PersistentModel>(_ model: T)
+    func afterUpdateModel<T: PersistentModel>(_ model: T)
+    func afterDeleteModel<T: PersistentModel>(_ model: T)
 }
 
 extension ModelOperations {
-    func validate(_ model: Model) -> ValidationResult { .success }
-    func beforeCreate(_ model: Model) -> Model { model }
-    func beforeUpdate(_ model: Model) -> Model { model }
-    func beforeDelete(_ model: Model) -> Bool { true }
-    func afterCreate(_ model: Model) {}
-    func afterUpdate(_ model: Model) {}
-    func afterDelete(_ model: Model) {}
+    func validateModel<T: PersistentModel>(_ model: T) -> ValidationResult { .success }
+    func beforeCreateModel<T: PersistentModel>(_ model: T) -> T { model }
+    func beforeUpdateModel<T: PersistentModel>(_ model: T) -> T { model }
+    func beforeDeleteModel<T: PersistentModel>(_ model: T) -> Bool { true }
+    func afterCreateModel<T: PersistentModel>(_ model: T) {}
+    func afterUpdateModel<T: PersistentModel>(_ model: T) {}
+    func afterDeleteModel<T: PersistentModel>(_ model: T) {}
 }
 
 // MARK: - Validation Result

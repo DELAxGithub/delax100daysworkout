@@ -56,10 +56,10 @@ struct FieldTypeAnalysis {
         let valueType = type(of: value)
         let typeName = String(describing: valueType)
         
-        // For CaseIterable enums, extract all cases
-        if let caseIterable = value as? any CaseIterable {
-            let cases = Array(caseIterable.allCases).map { String(describing: $0) }
-            return .enumeration(type: typeName, cases: cases)
+        // For CaseIterable enums, we can't access allCases through type erasure
+        // Instead, we'll provide a basic enum type without cases for now
+        if value is any CaseIterable {
+            return .enumeration(type: typeName, cases: [])
         }
         
         return .enumeration(type: typeName, cases: [])

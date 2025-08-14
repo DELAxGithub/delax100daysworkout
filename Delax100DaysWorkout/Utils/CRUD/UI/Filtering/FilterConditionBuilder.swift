@@ -62,7 +62,7 @@ struct FilterConditionBuilder<T: PersistentModel>: View {
             
             // Logical Operator Selection
             if filterGroup.conditions.count > 1 || !filterGroup.nestedGroups.isEmpty {
-                Picker("Operator", selection: $filterGroup.operator) {
+                Picker("Operator", selection: $filterGroup.logicalOperator) {
                     ForEach(AdvancedFilteringEngine<T>.LogicalOperator.allCases, id: \.self) { op in
                         Text(op.displayName).tag(op)
                     }
@@ -74,7 +74,7 @@ struct FilterConditionBuilder<T: PersistentModel>: View {
             if !filterGroup.conditions.isEmpty {
                 VStack(spacing: 8) {
                     ForEach(Array(filterGroup.conditions.enumerated()), id: \.offset) { index, condition in
-                        ConditionRow(
+                        ConditionRow<T>(
                             condition: condition,
                             onDelete: {
                                 filterGroup.conditions.remove(at: index)
@@ -130,8 +130,8 @@ struct FilterConditionBuilder<T: PersistentModel>: View {
     }
 }
 
-struct ConditionRow: View {
-    let condition: AdvancedFilteringEngine<WorkoutRecord>.FilterCondition
+struct ConditionRow<T: PersistentModel>: View {
+    let condition: AdvancedFilteringEngine<T>.FilterCondition
     let onDelete: () -> Void
     
     var body: some View {
@@ -204,6 +204,7 @@ struct AddConditionSheet<T: PersistentModel>: View {
     
     @State private var selectedProperty: PropertyAnalyzer.PropertyInfo?
     @State private var selectedOperation: Any?
+    @State private var selectedOperationIndex: Int = -1
     @State private var textValue = ""
     @State private var numberValue: Double = 0
     @State private var dateValue = Date()
@@ -259,17 +260,17 @@ struct AddConditionSheet<T: PersistentModel>: View {
     private func operationPicker(for property: PropertyAnalyzer.PropertyInfo) -> some View {
         let operations = filterEngine.getSupportedOperations(for: property.type)
         
-        Picker("Operation", selection: $selectedOperation) {
-            Text("Choose operation...").tag(nil as Any?)
+        Picker("Operation", selection: $selectedOperationIndex) {
+            Text("Choose operation...").tag(-1)
             ForEach(Array(operations.enumerated()), id: \.offset) { index, operation in
                 if let textOp = operation as? AdvancedFilteringEngine<T>.FilterCondition.TextOperation {
-                    Text(textOp.displayName).tag(textOp as Any?)
+                    Text(textOp.displayName).tag(index)
                 } else if let numberOp = operation as? AdvancedFilteringEngine<T>.FilterCondition.NumberOperation {
-                    Text(numberOp.displayName).tag(numberOp as Any?)
+                    Text(numberOp.displayName).tag(index)
                 } else if let dateOp = operation as? AdvancedFilteringEngine<T>.FilterCondition.DateOperation {
-                    Text(dateOp.displayName).tag(dateOp as Any?)
+                    Text(dateOp.displayName).tag(index)
                 } else {
-                    Text(String(describing: operation)).tag(operation as Any?)
+                    Text(String(describing: operation)).tag(index)
                 }
             }
         }

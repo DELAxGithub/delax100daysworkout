@@ -17,7 +17,7 @@ struct WPRTargetSettingsSheet: View {
     init(system: WPRTrackingSystem) {
         self.system = system
         _selectedTargetWPR = State(initialValue: system.targetWPR)
-        _selectedDays = State(initialValue: system.daysToTarget)
+        _selectedDays = State(initialValue: system.daysToTarget ?? 100)
         _isCustomTarget = State(initialValue: system.isCustomTargetSet)
         _customTargetDate = State(initialValue: system.targetDate ?? Calendar.current.date(byAdding: .day, value: 100, to: Date())!)
     }

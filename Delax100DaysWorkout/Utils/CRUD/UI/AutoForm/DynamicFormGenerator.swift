@@ -8,6 +8,7 @@ struct DynamicFormGenerator<T: PersistentModel>: View {
     @State private var fieldValues: [String: Any?] = [:]
     @State private var validationErrors: [String: String] = [:]
     @State private var properties: [PropertyAnalyzer.PropertyInfo] = []
+    @State private var validationTrigger: Bool = false
     
     let isEditing: Bool
     let onSave: ((T) -> Void)?
@@ -77,7 +78,7 @@ struct DynamicFormGenerator<T: PersistentModel>: View {
         .onAppear {
             initializeForm()
         }
-        .onChange(of: fieldValues) { _ in
+        .onChange(of: validationTrigger) { _ in
             validateForm()
         }
     }
@@ -93,7 +94,10 @@ struct DynamicFormGenerator<T: PersistentModel>: View {
     private func bindingForProperty(_ propertyName: String) -> Binding<Any?> {
         Binding(
             get: { fieldValues[propertyName] ?? nil },
-            set: { fieldValues[propertyName] = $0 }
+            set: { 
+                fieldValues[propertyName] = $0
+                validationTrigger.toggle()
+            }
         )
     }
     
@@ -168,20 +172,11 @@ struct DynamicFormGenerator<T: PersistentModel>: View {
     }
     
     private func createModelFromFields() throws -> T {
-        let newModel = modelType.init()
-        let mirror = Mirror(reflecting: newModel)
-        
-        for child in mirror.children {
-            guard let propertyName = child.label,
-                  let fieldValue = fieldValues[propertyName] else { continue }
-            
-            // This is a simplified approach. In a real implementation,
-            // you would need to use reflection or a more sophisticated
-            // property mapping system to set values on the model.
-            logger.debug("Setting property \(propertyName) to \(String(describing: fieldValue))")
-        }
-        
-        return newModel
+        // For SwiftData models, we need a more sophisticated approach
+        // This is a placeholder that should be replaced with model-specific factory methods
+        throw NSError(domain: "DynamicFormGenerator", code: 1, userInfo: [
+            NSLocalizedDescriptionKey: "Creating SwiftData models dynamically requires model-specific factory methods. Please use dedicated form components for each model type."
+        ])
     }
 }
 

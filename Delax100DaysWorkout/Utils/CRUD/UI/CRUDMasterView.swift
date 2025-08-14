@@ -4,29 +4,29 @@ import SwiftData
 struct CRUDMasterView<T: PersistentModel>: View {
     let modelType: T.Type
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var crudEngine: CRUDEngine<T>
-    @StateObject private var filterEngine: FilterEngine<T>
     
     @State private var items: [T] = []
     @State private var showingBulkOperations = false
     @State private var showingAnalytics = false
     @State private var showingCreateForm = false
+    @State private var crudEngine: CRUDEngine<T>?
+    @State private var filterEngine: FilterEngine<T>?
     
     init(modelType: T.Type) {
         self.modelType = modelType
-        self._crudEngine = StateObject(wrappedValue: CRUDEngine<T>(
-            modelContext: ModelContext(DataManager.shared.container),
-            errorHandler: ErrorHandler()
-        ))
-        self._filterEngine = StateObject(wrappedValue: FilterEngine<T>(modelType: modelType))
     }
     
     var body: some View {
         NavigationView {
             VStack {
                 // Filter Bar
-                FilterConditionBuilder(modelType: modelType, filterGroup: $filterEngine.activeFilter)
+                if let filterEngine = filterEngine {
+                    FilterConditionBuilder(modelType: modelType, filterGroup: Binding(
+                        get: { filterEngine.activeFilter },
+                        set: { filterEngine.activeFilter = $0 }
+                    ))
                     .padding(.horizontal)
+                }
                 
                 Divider()
                 
@@ -45,8 +45,10 @@ struct CRUDMasterView<T: PersistentModel>: View {
                 }
             }
             .navigationTitle(modelDisplayName)
+            .navigationBarTitleDisplayMode(.large)
+            .navigationBarBackButtonHidden(false)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button("Bulk Operations") { showingBulkOperations.toggle() }
                         Button("Analytics") { showingAnalytics = true }
@@ -72,9 +74,26 @@ struct CRUDMasterView<T: PersistentModel>: View {
                 }
             )
         }
-        .task { await loadItems() }
-        .onChange(of: filterEngine.activeFilter) { _ in
-            Task { await loadItems() }
+        .onAppear {
+            if crudEngine == nil {
+                crudEngine = CRUDEngine<T>(
+                    modelContext: modelContext,
+                    errorHandler: ErrorHandler()
+                )
+            }
+            if filterEngine == nil {
+                filterEngine = FilterEngine<T>(modelType: modelType)
+            }
+        }
+        .task { 
+            if crudEngine != nil && filterEngine != nil {
+                await loadItems() 
+            }
+        }
+        .onChange(of: filterEngine?.activeFilter) { _ in
+            if crudEngine != nil && filterEngine != nil {
+                Task { await loadItems() }
+            }
         }
     }
     
@@ -88,6 +107,9 @@ struct CRUDMasterView<T: PersistentModel>: View {
     
     @MainActor
     private func loadItems() async {
+        guard let filterEngine = filterEngine,
+              let crudEngine = crudEngine else { return }
+        
         let predicate = AdvancedFilteringEngine(modelType: modelType)
             .buildPredicate(from: filterEngine.activeFilter)
         
@@ -122,14 +144,14 @@ struct ItemsList<T: PersistentModel>: View {
 
 extension CRUDEngine {
     
-    override func performOperation<Result>(
+    func performOperationWithAnalytics<Result>(
         _ operationName: String,
         operation: @escaping () throws -> Result
     ) async -> Result? {
         let startTime = Date()
         
         // Perform original operation
-        let result = await super.performOperation(operationName, operation: operation)
+        let result = await performOperation(operationName, operation: operation)
         
         // Track analytics
         let duration = Date().timeIntervalSince(startTime) * 1000 // ms
@@ -159,16 +181,20 @@ extension CRUDEngine {
 
 // MARK: - Model-Specific Master Views
 
-extension CRUDMasterView {
-    static func workoutRecordView() -> some View {
-        CRUDMasterView(modelType: WorkoutRecord.self)
+extension CRUDMasterView where T == WorkoutRecord {
+    static func workoutRecordView() -> CRUDMasterView<WorkoutRecord> {
+        CRUDMasterView<WorkoutRecord>(modelType: WorkoutRecord.self)
     }
-    
-    static func userProfileView() -> some View {
-        CRUDMasterView(modelType: UserProfile.self)
+}
+
+extension CRUDMasterView where T == UserProfile {
+    static func userProfileView() -> CRUDMasterView<UserProfile> {
+        CRUDMasterView<UserProfile>(modelType: UserProfile.self)
     }
-    
-    static func ftpHistoryView() -> some View {
-        CRUDMasterView(modelType: FTPHistory.self)
+}
+
+extension CRUDMasterView where T == FTPHistory {
+    static func ftpHistoryView() -> CRUDMasterView<FTPHistory> {
+        CRUDMasterView<FTPHistory>(modelType: FTPHistory.self)
     }
 }

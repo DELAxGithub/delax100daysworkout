@@ -129,40 +129,35 @@ struct WPRTestRunner {
     private static func testRealDataIntegration(_ testResults: inout [String], modelContext: ModelContext, wprSystem: WPRTrackingSystem) {
         testResults.append("\n🔗 実データ統合テスト")
         
-        Task {
-            do {
-                let testWPRSystem = WPRTrackingSystem()
-                testWPRSystem.setBaseline(ftp: 250, weight: 70.0, ef: 1.2)
-                testWPRSystem.updateCurrentMetrics(ftp: 265, weight: 69.0)
-                modelContext.insert(testWPRSystem)
-                
-                let testFTP = FTPHistory(
-                    date: Date(),
-                    ftpValue: 265,
-                    measurementMethod: .twentyMinuteTest,
-                    notes: "機能テスト用"
-                )
-                modelContext.insert(testFTP)
-                
-                let testWeight = DailyMetric(
-                    date: Date(),
-                    weightKg: 69.0,
-                    restingHeartRate: 48,
-                    maxHeartRate: 185
-                )
-                modelContext.insert(testWeight)
-                
-                try modelContext.save()
-                
-                await MainActor.run {
-                    testResults.append("✅ 実データ統合テスト: 全データ保存完了")
-                    testResults.append("✅ WPRシステム、FTP、体重記録作成成功")
-                }
-            } catch {
-                await MainActor.run {
-                    testResults.append("❌ 実データ統合テストエラー: \(error.localizedDescription)")
-                }
-            }
+        // Synchronous test only - async operations would require different architecture
+        do {
+            let testWPRSystem = WPRTrackingSystem()
+            testWPRSystem.setBaseline(ftp: 250, weight: 70.0, ef: 1.2)
+            testWPRSystem.updateCurrentMetrics(ftp: 265, weight: 69.0)
+            modelContext.insert(testWPRSystem)
+            
+            let testFTP = FTPHistory(
+                date: Date(),
+                ftpValue: 265,
+                measurementMethod: .twentyMinuteTest,
+                notes: "機能テスト用"
+            )
+            modelContext.insert(testFTP)
+            
+            let testWeight = DailyMetric(
+                date: Date(),
+                weightKg: 69.0,
+                restingHeartRate: 48,
+                maxHeartRate: 185
+            )
+            modelContext.insert(testWeight)
+            
+            try modelContext.save()
+            
+            testResults.append("✅ 実データ統合テスト: 全データ保存完了")
+            testResults.append("✅ WPRシステム、FTP、体重記録作成成功")
+        } catch {
+            testResults.append("❌ 実データ統合テストエラー: \(error.localizedDescription)")
         }
     }
 }

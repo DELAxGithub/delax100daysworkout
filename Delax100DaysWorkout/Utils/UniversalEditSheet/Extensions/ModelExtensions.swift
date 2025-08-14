@@ -35,10 +35,14 @@ extension PersistentModel {
         )
     }
     
-    /// Get the appropriate customization for a model type
-    private static func getModelCustomization<T: PersistentModel>(
-        for modelType: T.Type
-    ) -> EditableModelProtocol {
+}
+
+// MARK: - Global Helper Function
+
+/// Get the appropriate customization for a model type
+func getModelCustomization<T: PersistentModel>(
+    for modelType: T.Type
+) -> EditableModelProtocol {
         switch String(describing: modelType) {
         case "WorkoutRecord":
             return WorkoutModelCustomization()
@@ -53,7 +57,6 @@ extension PersistentModel {
         default:
             return SimpleModelCustomization()
         }
-    }
 }
 
 // MARK: - Specific Model Customizations
@@ -287,10 +290,11 @@ extension View {
         onSave: ((T) -> Void)? = nil
     ) -> some View {
         sheet(isPresented: isPresented) {
-            PersistentModel.editSheet(
-                for: modelType,
+            GenericEditSheet(
+                modelType: modelType,
                 existingModel: existingModel,
-                onSave: onSave
+                onSave: onSave,
+                customizations: getModelCustomization(for: modelType)
             )
         }
     }
@@ -301,7 +305,12 @@ extension View {
         isPresented: Binding<Bool>
     ) -> some View {
         sheet(isPresented: isPresented) {
-            PersistentModel.viewSheet(for: model)
+            GenericEditSheet(
+                modelType: T.self,
+                existingModel: model,
+                isEditing: false,
+                customizations: getModelCustomization(for: T.self)
+            )
         }
     }
 }

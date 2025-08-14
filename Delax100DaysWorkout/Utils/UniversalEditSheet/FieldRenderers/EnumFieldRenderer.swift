@@ -10,7 +10,7 @@ struct EnumFieldRenderer {
         value: Binding<Any>,
         isEditing: Bool
     ) -> some View {
-        if case .enumeration(let type, let cases) = field.type {
+        if case .enumeration(_, let cases) = field.type {
             if cases.count <= 4 && !cases.isEmpty {
                 segmentedPicker(cases: cases, value: value, isEditing: isEditing)
             } else {
@@ -28,7 +28,7 @@ struct EnumFieldRenderer {
         value: Binding<Any>,
         isEditing: Bool
     ) -> some View {
-        Picker("", selection: Binding(
+        Picker("", selection: Binding<String>(
             get: { 
                 let currentValue = String(describing: value.wrappedValue)
                 return cases.contains(currentValue) ? currentValue : (cases.first ?? "")
@@ -75,7 +75,7 @@ struct EnumFieldRenderer {
             .padding(.vertical, Spacing.sm.value)
             .padding(.horizontal, Spacing.md.value)
             .background(
-                RoundedRectangle(cornerRadius: CornerRadius.medium.value)
+                RoundedRectangle(cornerRadius: CornerRadius.medium.radius)
                     .fill(SemanticColor.surfaceBackground.color)
                     .stroke(SemanticColor.primaryBorder.color, lineWidth: 1)
             )

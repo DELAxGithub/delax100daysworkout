@@ -20,7 +20,7 @@ struct WorkoutHistoryView: View {
     
     // Search functionality
     @State private var searchText = ""
-    @State private var selectedSort: SearchConfiguration.SortOption = .dateNewest
+    @State private var selectedSort: HistorySearchConfiguration.SortOption = .dateNewest
     @State private var isSearchActive = false
     private let searchViewModel = HistorySearchViewModel<WorkoutRecord>()
     

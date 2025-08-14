@@ -61,7 +61,7 @@ struct UniversalEditSheetDemo: View {
             for: UserProfile.self,
             isPresented: $showingProfileEdit
         ) { savedProfile in
-            testResults.append("✅ UserProfile saved: \(savedProfile.name ?? "Unnamed")")
+            testResults.append("✅ UserProfile saved: \(savedProfile.id)")
         }
         .onAppear {
             setupTestData()
@@ -255,7 +255,7 @@ struct FeatureBadge: View {
         .padding(.vertical, Spacing.xs.value)
         .padding(.horizontal, Spacing.sm.value)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.small.value)
+            RoundedRectangle(cornerRadius: CornerRadius.small.radius)
                 .fill(color.opacity(0.1))
                 .stroke(color.opacity(0.3), lineWidth: 1)
         )
@@ -291,7 +291,7 @@ struct ModelTestButton: View {
             .frame(maxWidth: .infinity)
             .padding(Spacing.md.value)
             .background(
-                RoundedRectangle(cornerRadius: CornerRadius.medium.value)
+                RoundedRectangle(cornerRadius: CornerRadius.medium.radius)
                     .fill(SemanticColor.surfaceBackground.color)
                     .stroke(color.opacity(0.3), lineWidth: 1)
             )
@@ -312,12 +312,12 @@ struct CodeExample: View {
                 .foregroundColor(SemanticColor.primaryText.color)
             
             Text(code)
-                .font(.system(size: 12, family: .monospaced))
+                .font(.system(size: 12, design: .monospaced))
                 .foregroundColor(SemanticColor.secondaryText.color)
                 .padding(.horizontal, Spacing.sm.value)
                 .padding(.vertical, Spacing.xs.value)
                 .background(
-                    RoundedRectangle(cornerRadius: CornerRadius.small.value)
+                    RoundedRectangle(cornerRadius: CornerRadius.small.radius)
                         .fill(SemanticColor.surfaceBackground.color.opacity(0.5))
                 )
         }

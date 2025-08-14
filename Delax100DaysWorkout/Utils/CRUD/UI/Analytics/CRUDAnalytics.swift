@@ -104,12 +104,15 @@ struct CRUDMetrics {
     }
 }
 
-struct RealtimeStats: ObservableObject {
-    @Published var operationsPerSecond: Double = 0
-    @Published var activeOperations: Int = 0
-    @Published var currentErrors: Int = 0
+@Observable
+class RealtimeStats {
+    var operationsPerSecond: Double = 0
+    var activeOperations: Int = 0
+    var currentErrors: Int = 0
     
     private var recentOperations: [Date] = []
+    
+    init() {}
     
     func update(with metric: OperationMetric) {
         recentOperations.append(metric.timestamp)
@@ -193,10 +196,10 @@ struct CRUDAnalyticsDashboard: View {
                 let stats = analytics.metrics.getStats(for: selectedTimeRange)
                 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    MetricCard(title: "Operations", value: "\(stats.totalOperations)", icon: "chart.bar")
-                    MetricCard(title: "Success Rate", value: "\(Int(stats.successRate * 100))%", icon: "checkmark.circle")
-                    MetricCard(title: "Avg Duration", value: "\(Int(stats.averageDuration))ms", icon: "clock")
-                    MetricCard(title: "Error Rate", value: "\(Int(stats.errorRate * 100))%", icon: "exclamationmark.triangle")
+                    MetricCard(title: "Operations", value: "\(stats.totalOperations)", subtitle: "total", color: .blue)
+                    MetricCard(title: "Success Rate", value: "\(Int(stats.successRate * 100))", subtitle: "%", color: .green)
+                    MetricCard(title: "Avg Duration", value: "\(Int(stats.averageDuration))", subtitle: "ms", color: .orange)
+                    MetricCard(title: "Error Rate", value: "\(Int(stats.errorRate * 100))", subtitle: "%", color: .red)
                 }
                 
                 // Operation Breakdown
@@ -212,7 +215,7 @@ struct CRUDAnalyticsDashboard: View {
 }
 
 struct RealtimeStatsCard: View {
-    @ObservedObject var stats: RealtimeStats
+    var stats: RealtimeStats
     
     var body: some View {
         VStack(spacing: 8) {

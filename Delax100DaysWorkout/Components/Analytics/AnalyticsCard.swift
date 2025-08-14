@@ -182,7 +182,7 @@ private struct AnalyticsCardInsight: View {
             
             Image(systemName: "chevron.right")
                 .font(Typography.captionSmall)
-                .foregroundColor(Color(SemanticColor.secondaryText).opacity(0.6))
+                .foregroundColor(SemanticColor.secondaryText.color.opacity(0.6))
         }
     }
 }

@@ -190,19 +190,31 @@ struct GenericEditSheet<T: PersistentModel>: View {
     }
     
     private func initializeForm() {
-        detectedFields = FieldTypeDetector.analyzeModel(workingModel)
+        if let model = workingModel {
+            detectedFields = FieldTypeDetector.analyzeModel(model)
+        } else {
+            // For new models, we'll have empty fields until we can create a default instance
+            detectedFields = []
+        }
         populateFieldValues()
         validateAllFields()
         logger.info("Initialized form for \(String(describing: modelType)) with \(detectedFields.count) fields")
     }
     
     private func populateFieldValues() {
-        let mirror = Mirror(reflecting: workingModel)
-        
-        for field in detectedFields {
-            if let child = mirror.children.first(where: { $0.label == field.name }) {
-                fieldValues[field.name] = child.value
-            } else {
+        if let model = workingModel {
+            let mirror = Mirror(reflecting: model)
+            
+            for field in detectedFields {
+                if let child = mirror.children.first(where: { $0.label == field.name }) {
+                    fieldValues[field.name] = child.value
+                } else {
+                    fieldValues[field.name] = field.defaultValue
+                }
+            }
+        } else {
+            // For new models, populate with default values
+            for field in detectedFields {
                 fieldValues[field.name] = field.defaultValue
             }
         }
@@ -239,20 +251,29 @@ struct GenericEditSheet<T: PersistentModel>: View {
         }
         
         do {
-            try applyFieldValuesToModel()
+            // Create or get the working model
+            let modelToSave: T
+            if let existingModel = workingModel {
+                try applyFieldValuesToModel(existingModel)
+                modelToSave = existingModel
+            } else {
+                // Create new model with field values
+                modelToSave = try createModelFromFieldValues()
+                workingModel = modelToSave
+            }
             
             if let customValidation = customizations?.customValidation {
-                let result = customValidation(workingModel)
+                let result = customValidation(modelToSave)
                 if !result.isValid {
                     errorHandler.handle(AppError.invalidInput(result.errorMessage ?? "カスタムバリデーションエラー"), style: .inline)
                     return
                 }
             }
             
-            modelContext.insert(workingModel)
+            modelContext.insert(modelToSave)
             try modelContext.save()
             
-            onSave?(workingModel)
+            onSave?(modelToSave)
             logger.info("Successfully saved \(String(describing: modelType))")
             
             HapticManager.shared.trigger(.notification(.success))
@@ -264,16 +285,24 @@ struct GenericEditSheet<T: PersistentModel>: View {
         }
     }
     
-    private func applyFieldValuesToModel() throws {
+    private func applyFieldValuesToModel(_ model: T) throws {
         // This is a simplified approach - in production, you'd need proper reflection
         // or code generation to handle property setting safely
         for field in detectedFields {
             if let value = fieldValues[field.name] {
                 // Custom field application logic would go here
                 // For now, this is a placeholder that demonstrates the concept
-                logger.debug("Applying field \(field.name) with value \(String(describing: value))")
+                logger.debug("Applying field \(field.name) with value \(String(describing: value)) to existing model")
             }
         }
+    }
+    
+    private func createModelFromFieldValues() throws -> T {
+        // For SwiftData models, we need specific factory methods per model type
+        // This is a placeholder - in practice, each model would need its own factory
+        throw NSError(domain: "GenericEditSheet", code: 2, userInfo: [
+            NSLocalizedDescriptionKey: "Creating new SwiftData models requires model-specific factory methods. Please use dedicated creation workflows for new models."
+        ])
     }
 }
 
