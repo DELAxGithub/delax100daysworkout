@@ -30,13 +30,11 @@ protocol ErrorHandling {
 
 /// Model validation and lifecycle hooks
 protocol ModelOperations {
-    associatedtype Model
-    
-    func validateModel(_ model: Model) -> ValidationResult
-    func beforeCreateModel(_ model: Model) -> Model
-    func afterCreateModel(_ model: Model)
-    func beforeDeleteModel(_ model: Model) -> Bool
-    func afterDeleteModel(_ model: Model)
+    func validateModel<T: PersistentModel>(_ model: T) -> FieldValidationEngine.ValidationResult
+    func beforeCreateModel<T: PersistentModel>(_ model: T) -> T
+    func afterCreateModel<T: PersistentModel>(_ model: T)
+    func beforeDeleteModel<T: PersistentModel>(_ model: T) -> Bool
+    func afterDeleteModel<T: PersistentModel>(_ model: T)
 }
 
 // MARK: - Service Layer Protocols
@@ -53,6 +51,10 @@ protocol WeeklyPlanManaging {
     func generateWeeklyPlan(for profile: UserProfile) async -> WeeklyTemplate?
     func updateWeeklyPlan(_ template: WeeklyTemplate) async -> Bool
     func getCurrentWeekPlan() async -> WeeklyTemplate?
+    func requestManualUpdate() async
+    var analysisDataDescription: String { get }
+    var analysisResultDescription: String { get }
+    var monthlyUsageDescription: String { get }
 }
 
 /// Analytics service abstraction
@@ -114,6 +116,19 @@ extension CRUDOperations {
         return results.first
     }
 }
+
+extension ModelOperations {
+    func validateModel<T: PersistentModel>(_ model: T) -> FieldValidationEngine.ValidationResult { .success }
+    func beforeCreateModel<T: PersistentModel>(_ model: T) -> T { model }
+    func afterCreateModel<T: PersistentModel>(_ model: T) {}
+    func beforeDeleteModel<T: PersistentModel>(_ model: T) -> Bool { true }
+    func afterDeleteModel<T: PersistentModel>(_ model: T) {}
+}
+
+// MARK: - Type Aliases
+
+/// Type alias for backwards compatibility
+typealias WeeklyPlanManager = ProtocolBasedWeeklyPlanManager
 
 extension ViewModelProtocol {
     func refresh() async {

@@ -2,6 +2,8 @@ import Foundation
 import SwiftData
 import OSLog
 
+private let logger = Logger(subsystem: "Delax100DaysWorkout", category: "ProgressAnalyzer")
+
 struct WeeklyStats {
     let weekStartDate: Date
     let totalWorkouts: Int
@@ -140,6 +142,48 @@ class ProgressAnalyzer {
         }
         
         return messages.joined(separator: "\n")
+    }
+    
+    // Enhanced full analysis method for WeeklyPlanManager
+    func performFullAnalysis() async -> AnalysisData {
+        do {
+            // Fetch all workout records with performance optimization
+            let descriptor = FetchDescriptor<WorkoutRecord>(
+                sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
+            let allRecords = try modelContext.fetch(descriptor)
+            
+            // Filter to last 30 days for performance (configurable)
+            let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+            let recentRecords = allRecords.filter { $0.date >= thirtyDaysAgo }
+            
+            // Enhanced progress analysis
+            let progress = analyzeProgress(records: recentRecords)
+            
+            // Calculate completion rate based on recent activity
+            let completionRate = calculateEnhancedCompletionRate(records: recentRecords)
+            
+            // Generate comprehensive trends summary
+            let progressTrends = generateEnhancedProgressTrendsSummary(records: recentRecords, allRecords: allRecords)
+            
+            // Performance metrics
+            let analysisMetrics = calculateAnalysisMetrics(recentRecords: recentRecords, totalRecords: allRecords)
+            
+            logger.info("Full analysis completed: \(recentRecords.count) recent records, completion rate: \(completionRate)%")
+            
+            return AnalysisData(
+                workoutRecords: recentRecords,
+                completionRate: completionRate,
+                progressTrends: "\(progressTrends)\n\n📊 分析メトリクス: \(analysisMetrics)"
+            )
+        } catch {
+            Logger.error.error("Failed to perform full analysis: \(error.localizedDescription)")
+            return AnalysisData(
+                workoutRecords: [], 
+                completionRate: 0, 
+                progressTrends: "分析エラー: データの取得に失敗しました"
+            )
+        }
     }
     
     // AI分析用の構造化データを生成
@@ -563,6 +607,135 @@ class ProgressAnalyzer {
         }
         
         return recommendations
+    }
+    
+    // Helper method to generate progress trends summary
+    private func generateProgressTrendsSummary(records: [WorkoutRecord]) -> String {
+        let cyclingRecords = records.filter { $0.workoutType == .cycling }
+        let strengthRecords = records.filter { $0.workoutType == .strength }
+        let flexibilityRecords = records.filter { $0.workoutType == .flexibility }
+        
+        var trends: [String] = []
+        
+        if !cyclingRecords.isEmpty {
+            let analysis = analyzeCyclingTrends(records: records)
+            trends.append("サイクリング: \(trendToString(analysis.powerTrend))")
+        }
+        
+        if !strengthRecords.isEmpty {
+            let analysis = analyzeStrengthTrends(records: records)
+            trends.append("筋トレ: \(trendToString(analysis.volumeTrend))")
+        }
+        
+        if !flexibilityRecords.isEmpty {
+            let analysis = analyzeFlexibilityTrends(records: records)
+            trends.append("柔軟性: \(trendToString(analysis.splitAngleTrend))")
+        }
+        
+        return trends.isEmpty ? "データ不足" : trends.joined(separator: ", ")
+    }
+    
+    private func trendToString(_ trend: TrendDirection) -> String {
+        switch trend {
+        case .improving: return "向上中"
+        case .stable: return "安定"
+        case .declining: return "下降気味"
+        }
+    }
+    
+    // Enhanced helper methods for Phase 2
+    
+    private func calculateEnhancedCompletionRate(records: [WorkoutRecord]) -> Double {
+        guard !records.isEmpty else { return 0.0 }
+        
+        // Get completed workouts in the last 7 days
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let recentRecords = records.filter { $0.date >= sevenDaysAgo }
+        let completedRecords = recentRecords.filter { $0.isCompleted }
+        
+        // Calculate completion rate as percentage
+        let rate = Double(completedRecords.count) / max(Double(recentRecords.count), 1.0) * 100
+        return min(rate, 100.0) // Cap at 100%
+    }
+    
+    private func generateEnhancedProgressTrendsSummary(records: [WorkoutRecord], allRecords: [WorkoutRecord]) -> String {
+        var summary: [String] = []
+        
+        // Recent vs historical comparison
+        let historicalAverage = calculateHistoricalAverage(allRecords: allRecords)
+        let recentAverage = calculateRecentAverage(records: records)
+        
+        if recentAverage > historicalAverage * 1.1 {
+            summary.append("📈 最近のパフォーマンスが歴史的平均を上回っています")
+        } else if recentAverage < historicalAverage * 0.9 {
+            summary.append("📉 最近のパフォーマンスが低下傾向にあります")
+        } else {
+            summary.append("📊 パフォーマンスは安定しています")
+        }
+        
+        // Workout type distribution
+        let distribution = analyzeWorkoutTypeDistribution(records: records)
+        summary.append("💪 トレーニング構成: \(distribution)")
+        
+        // Enhanced trends by type
+        let cyclingRecords = records.filter { $0.workoutType == .cycling }
+        let strengthRecords = records.filter { $0.workoutType == .strength }
+        let flexibilityRecords = records.filter { $0.workoutType == .flexibility }
+        
+        if !cyclingRecords.isEmpty {
+            let analysis = analyzeCyclingTrends(records: records)
+            summary.append("🚴‍♂️ サイクリング: \(trendToString(analysis.powerTrend)) (一貫性: \(String(format: "%.0f", analysis.consistencyScore * 100))%)")
+        }
+        
+        if !strengthRecords.isEmpty {
+            let analysis = analyzeStrengthTrends(records: records)
+            summary.append("💪 筋トレ: \(trendToString(analysis.volumeTrend)) (一貫性: \(String(format: "%.0f", analysis.consistencyScore * 100))%)")
+        }
+        
+        if !flexibilityRecords.isEmpty {
+            let analysis = analyzeFlexibilityTrends(records: records)
+            summary.append("🧘‍♀️ 柔軟性: \(trendToString(analysis.splitAngleTrend)) (一貫性: \(String(format: "%.0f", analysis.consistencyScore * 100))%)")
+        }
+        
+        return summary.joined(separator: "\n")
+    }
+    
+    private func calculateAnalysisMetrics(recentRecords: [WorkoutRecord], totalRecords: [WorkoutRecord]) -> String {
+        let recentCount = recentRecords.count
+        let totalCount = totalRecords.count
+        let dataPoints = totalCount > 0 ? totalCount : 0
+        let analysisDepth = recentCount > 20 ? "詳細" : recentCount > 10 ? "標準" : "基本"
+        
+        return "データポイント: \(dataPoints), 分析対象: \(recentCount)件, 深度: \(analysisDepth)"
+    }
+    
+    private func calculateHistoricalAverage(allRecords: [WorkoutRecord]) -> Double {
+        guard allRecords.count > 7 else { return 0.0 }
+        
+        // Calculate weekly average over all historical data
+        let totalWeeks = max(1.0, Double(allRecords.count) / 7.0)
+        return Double(allRecords.filter { $0.isCompleted }.count) / totalWeeks
+    }
+    
+    private func calculateRecentAverage(records: [WorkoutRecord]) -> Double {
+        guard records.count > 0 else { return 0.0 }
+        
+        // Calculate weekly average for recent period
+        let recentWeeks = max(1.0, Double(records.count) / 7.0)
+        return Double(records.filter { $0.isCompleted }.count) / recentWeeks
+    }
+    
+    private func analyzeWorkoutTypeDistribution(records: [WorkoutRecord]) -> String {
+        let cycling = records.filter { $0.workoutType == .cycling }.count
+        let strength = records.filter { $0.workoutType == .strength }.count
+        let flexibility = records.filter { $0.workoutType == .flexibility }.count
+        let total = max(records.count, 1)
+        
+        let cyclingPct = Int(Double(cycling) / Double(total) * 100)
+        let strengthPct = Int(Double(strength) / Double(total) * 100)
+        let flexibilityPct = Int(Double(flexibility) / Double(total) * 100)
+        
+        return "サイクリング \(cyclingPct)%, 筋トレ \(strengthPct)%, 柔軟性 \(flexibilityPct)%"
     }
 }
 

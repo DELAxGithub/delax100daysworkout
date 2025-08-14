@@ -261,7 +261,7 @@ extension AdvancedFilteringEngine {
                 description: "Incomplete cycling workouts",
                 filterGroup: FilterGroup(
                     conditions: [
-                        .enumeration(property: "workoutType", value: WorkoutType.cycling),
+                        .enumeration(property: "workoutType", value: WorkoutType.cycling.rawValue),
                         .bool(property: "isCompleted", value: false)
                     ],
                     logicalOperator: .and
@@ -273,7 +273,7 @@ extension AdvancedFilteringEngine {
                 filterGroup: FilterGroup(
                     conditions: [
                         .date(property: "date", operation: .thisMonth, value: Date()),
-                        .enumeration(property: "workoutType", value: WorkoutType.strength)
+                        .enumeration(property: "workoutType", value: WorkoutType.strength.rawValue)
                     ],
                     logicalOperator: .and
                 )

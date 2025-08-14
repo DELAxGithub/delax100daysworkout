@@ -16,175 +16,10 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Countdown Timer
-                    VStack {
-                        Text("\(viewModel.daysRemaining)")
-                            .font(.system(size: 72, weight: .bold))
-                            .foregroundColor(.accentColor)
-                        Text("Days Remaining")
-                            .font(.title2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top)
-
-                    // Progress Circles
-                    HStack(spacing: 8) {
-                        ProgressCircleView(
-                            progress: viewModel.weightProgress,
-                            title: "Weight",
-                            currentValue: viewModel.currentWeightFormatted,
-                            goalValue: viewModel.goalWeightFormatted,
-                            color: .red
-                        )
-                        ProgressCircleView(
-                            progress: viewModel.ftpProgress,
-                            title: "FTP",
-                            currentValue: viewModel.currentFtpFormatted,
-                            goalValue: viewModel.goalFtpFormatted,
-                            color: .blue
-                        )
-                        ProgressCircleView(
-                            progress: viewModel.pwrProgress,
-                            title: "PWR",
-                            currentValue: viewModel.currentPwrFormatted,
-                            goalValue: viewModel.goalPwrFormatted,
-                            color: .purple
-                        )
-                    }
-                    .padding(.horizontal)
-
-                    // AI Analysis Quick Access
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "brain.head.profile")
-                                .foregroundColor(.purple)
-                            Text("AI分析")
-                                .font(.headline)
-                            Spacer()
-                            
-                            if isAnalyzing {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            }
-                        }
-                        
-                        if let manager = weeklyPlanManager {
-                            Text(getAnalysisDescription(manager))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("状態: \(analysisStatusText(for: manager.updateStatus))")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            // 最後の更新内容表示
-                            if manager.updateStatus == .completed,
-                               let suggestion = manager.lastUpdateSuggestion {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Divider()
-                                    
-                                    Text("最新の変更内容")
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.green)
-                                    
-                                    Text(suggestion.reasoning)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
-                                    if !suggestion.recommendedChanges.isEmpty {
-                                        Text("適用された変更:")
-                                            .font(.caption)
-                                            .fontWeight(.medium)
-                                        
-                                        ForEach(suggestion.recommendedChanges.indices, id: \.self) { index in
-                                            let change = suggestion.recommendedChanges[index]
-                                            Text("✓ \(change.taskTitle): \(change.reason)")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-                                    
-                                    Text("適用日時: \(manager.lastUpdateDate?.formatted(date: .abbreviated, time: .shortened) ?? "")")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.top, 8)
-                            }
-                        } else {
-                            Text("進捗データを基に最適なトレーニング調整を提案")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            if let manager = weeklyPlanManager, manager.canRevert {
-                                Button("元に戻す") {
-                                    Task {
-                                        await manager.revertLastUpdate()
-                                    }
-                                }
-                                .buttonStyle(.bordered)
-                                .tint(.orange)
-                            }
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                Task {
-                                    await runQuickAnalysis()
-                                }
-                            }) {
-                                HStack {
-                                    if isAnalyzing {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                            .scaleEffect(0.8)
-                                    }
-                                    Text(isAnalyzing ? "分析中..." : "今すぐ分析")
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.purple)
-                            .disabled(isAnalyzing || (weeklyPlanManager?.updateStatus == .analyzing))
-                        }
-                    }
-                    .padding()
-                    .background(Color.purple.opacity(0.1))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-
-                    // Today's Workout Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Today's Workout")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .padding([.horizontal, .top])
-
-                        if viewModel.todaysWorkouts.isEmpty {
-                            ContentUnavailableView(
-                                "No Workouts Logged Today",
-                                systemImage: "plus.circle",
-                                description: Text("Tap the '+' button to add a workout.")
-                            )
-                            .padding()
-                        } else {
-                            ForEach(viewModel.todaysWorkouts, id: \.self) { workout in
-                                EditableWorkoutCardView(
-                                    workout: workout,
-                                    onEdit: { editedWorkout in
-                                        viewModel.updateWorkout(workout, with: editedWorkout)
-                                    },
-                                    onDelete: { workoutToDelete in
-                                        self.workoutToDelete = workoutToDelete
-                                        showingDeleteAlert = true
-                                    }
-                                )
-                                .padding(.horizontal)
-                            }
-                        }
-                    }
+                    countdownSection
+                    progressSection
+                    aiAnalysisSection
+                    todaysWorkoutSection
                 }
             }
             .navigationTitle("Dashboard")
@@ -205,7 +40,7 @@ struct DashboardView: View {
             .onAppear {
                 viewModel.refreshData()
                 if weeklyPlanManager == nil {
-                    weeklyPlanManager = WeeklyPlanManager(modelContext: modelContext)
+                    weeklyPlanManager = ProtocolBasedWeeklyPlanManager()
                 }
             }
             .sheet(isPresented: $isShowingLogEntry, onDismiss: {
@@ -230,6 +65,158 @@ struct DashboardView: View {
                 }
             } message: {
                 Text("このワークアウトを削除してもよろしいですか？この操作は取り消せません。")
+            }
+        }
+    }
+    
+    // MARK: - View Components
+    
+    @ViewBuilder
+    private var countdownSection: some View {
+        VStack {
+            Text("\(viewModel.daysRemaining)")
+                .font(.system(size: 72, weight: .bold))
+                .foregroundColor(.accentColor)
+            Text("Days Remaining")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.secondary)
+        }
+        .padding(.top)
+    }
+    
+    @ViewBuilder
+    private var progressSection: some View {
+        HStack(spacing: 8) {
+            ProgressCircleView(
+                progress: viewModel.weightProgress,
+                title: "Weight",
+                currentValue: viewModel.currentWeightFormatted,
+                goalValue: viewModel.goalWeightFormatted,
+                color: .red
+            )
+            ProgressCircleView(
+                progress: viewModel.ftpProgress,
+                title: "FTP",
+                currentValue: viewModel.currentFtpFormatted,
+                goalValue: viewModel.goalFtpFormatted,
+                color: .blue
+            )
+            ProgressCircleView(
+                progress: viewModel.pwrProgress,
+                title: "PWR",
+                currentValue: viewModel.currentPwrFormatted,
+                goalValue: viewModel.goalPwrFormatted,
+                color: .purple
+            )
+        }
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    private var aiAnalysisSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "brain.head.profile")
+                    .foregroundColor(.purple)
+                Text("AI分析")
+                    .font(.headline)
+                Spacer()
+                
+                if isAnalyzing {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            
+            if let manager = weeklyPlanManager {
+                Text(getAnalysisDescription(manager))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("状態: \(analysisStatusText(for: manager.updateStatus))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                // 最後の更新内容表示
+                if manager.updateStatus == .completed {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Divider()
+                        
+                        Text("最新の変更内容")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.green)
+                        
+                        Text("プランが正常に更新されました")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 8)
+                }
+            } else {
+                Text("進捗データを基に最適なトレーニング調整を提案")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            HStack {
+                Spacer()
+                
+                Button(action: {
+                    Task {
+                        await runQuickAnalysis()
+                    }
+                }) {
+                    HStack {
+                        if isAnalyzing {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.8)
+                        }
+                        Text(isAnalyzing ? "分析中..." : "今すぐ分析")
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.purple)
+                .disabled(isAnalyzing || (weeklyPlanManager?.updateStatus == .analyzing))
+            }
+        }
+        .padding()
+        .background(Color.purple.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    private var todaysWorkoutSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Today's Workout")
+                .font(.title)
+                .fontWeight(.bold)
+                .padding([.horizontal, .top])
+
+            if viewModel.todaysWorkouts.isEmpty {
+                ContentUnavailableView(
+                    "No Workouts Logged Today",
+                    systemImage: "plus.circle",
+                    description: Text("Tap the '+' button to add a workout.")
+                )
+                .padding()
+            } else {
+                ForEach(viewModel.todaysWorkouts, id: \.self) { workout in
+                    EditableWorkoutCardView(
+                        workout: workout,
+                        onEdit: { editedWorkout in
+                            viewModel.updateWorkout(workout, with: editedWorkout)
+                        },
+                        onDelete: { workoutToDelete in
+                            self.workoutToDelete = workoutToDelete
+                            showingDeleteAlert = true
+                        }
+                    )
+                    .padding(.horizontal)
+                }
             }
         }
     }

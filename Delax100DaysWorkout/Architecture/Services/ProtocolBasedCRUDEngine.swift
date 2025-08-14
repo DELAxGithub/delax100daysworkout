@@ -212,9 +212,7 @@ final class ProtocolBasedCRUDEngine<T: PersistentModel>: ObservableObject, CRUDO
 // MARK: - Injectable Conformance
 
 extension ProtocolBasedCRUDEngine: Injectable {
-    convenience init(container: DIContainer) {
-        self.init(container: container)
-    }
+    // Injectable conformance through existing initializer
 }
 
 // MARK: - Convenience Factory

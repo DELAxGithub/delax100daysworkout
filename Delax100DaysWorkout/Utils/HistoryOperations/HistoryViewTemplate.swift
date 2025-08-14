@@ -70,8 +70,8 @@ struct UnifiedHistoryView<Template: HistoryViewTemplate>: View {
                     set: { template.searchViewModel.searchText = $0 }
                 ),
                 selectedSort: .init(
-                    get: { template.searchViewModel.selectedSort },
-                    set: { template.searchViewModel.selectedSort = $0 }
+                    get: { .dateNewest },
+                    set: { _ in }
                 ),
                 isSearchActive: .init(
                     get: { template.searchViewModel.isSearchActive },

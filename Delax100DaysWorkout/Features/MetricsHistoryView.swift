@@ -99,7 +99,24 @@ struct MetricsHistoryView: View {
                 // Unified Search Bar
                 UnifiedSearchBar(
                     searchText: $searchText,
-                    selectedSort: $selectedSort,
+                    selectedSort: .init(
+                        get: { 
+                            switch selectedSort {
+                            case .dateNewest: return .dateNewest
+                            case .dateOldest: return .dateOldest  
+                            case .valueHighest: return .valueHighest
+                            case .valueLowest: return .valueLowest
+                            }
+                        },
+                        set: { 
+                            selectedSort = switch $0 {
+                            case .dateNewest: .dateNewest
+                            case .dateOldest: .dateOldest
+                            case .valueHighest: .valueHighest
+                            case .valueLowest: .valueLowest
+                            }
+                        }
+                    ),
                     isSearchActive: $isSearchActive,
                     configuration: .metricsHistory,
                     onClear: {

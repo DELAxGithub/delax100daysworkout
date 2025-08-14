@@ -12,7 +12,7 @@ struct Delax100DaysWorkoutApp: App {
     init() {
         // Initialize ModelContainer
         do {
-            modelContainer = try ModelContainer(for: [
+            modelContainer = try ModelContainer(for:
                 UserProfile.self,
                 DailyLog.self,
                 WorkoutRecord.self,
@@ -28,7 +28,7 @@ struct Delax100DaysWorkoutApp: App {
                 WPRTrackingSystem.self,
                 TrainingSavings.self,
                 TaskCompletionCounter.self
-            ])
+            )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

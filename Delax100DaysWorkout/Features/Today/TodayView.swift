@@ -238,7 +238,7 @@ struct TodayView: View {
                     viewModel = TodayViewModel(modelContext: modelContext)
                 }
                 if weeklyPlanManager == nil {
-                    weeklyPlanManager = WeeklyPlanManager(modelContext: modelContext)
+                    weeklyPlanManager = ProtocolBasedWeeklyPlanManager()
                 }
             }
             .sheet(isPresented: $showingLogEntry) {

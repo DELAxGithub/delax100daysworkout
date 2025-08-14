@@ -6,6 +6,10 @@ final class UserProfile: @unchecked Sendable {
     // A unique identifier, although for a single-user app, we'll likely only have one instance.
     @Attribute(.unique) var id: UUID
     
+    // Basic user information
+    var name: String = ""
+    var goals: String?
+    
     // Goal Tracking
     var goalDate: Date
     

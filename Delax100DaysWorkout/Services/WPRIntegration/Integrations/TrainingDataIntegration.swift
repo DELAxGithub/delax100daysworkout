@@ -7,6 +7,7 @@ import OSLog
 class TrainingDataIntegration {
     private let modelContext: ModelContext
     private let savingsCalculator: SavingsCalculator
+    private let logger = Logger(subsystem: "Delax100DaysWorkout", category: "TrainingDataIntegration")
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -131,12 +132,8 @@ class TrainingDataIntegration {
             return
         } else if calendar.isDate(lastUpdate, equalTo: date, toGranularity: .day) ||
                   calendar.dateInterval(of: .day, for: lastUpdate)?.end == calendar.dateInterval(of: .day, for: date)?.start {
-                // 連続日
-                savings.currentStreak += 1
-            } else {
-                // ストリーク中断
-                savings.currentStreak = 1
-            }
+            // 連続日
+            savings.currentStreak += 1
         } else {
             // ストリーク中断
             savings.currentStreak = 1
@@ -153,7 +150,7 @@ class TrainingDataIntegration {
         
         for milestone in milestones {
             if savings.currentCount == milestone {
-                Logger.system.info("マイルストーン達成: \(savings.savingsType.displayName) \(milestone)回")
+                logger.info("マイルストーン達成: \(savings.savingsType.displayName) \(milestone)回")
                 // 実際のマイルストーン処理はここに追加
                 break
             }

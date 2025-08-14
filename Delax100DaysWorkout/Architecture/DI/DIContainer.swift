@@ -5,7 +5,6 @@ import Foundation
 // MARK: - Dependency Injection Container
 
 /// Thread-safe dependency injection container
-@MainActor
 final class DIContainer: ObservableObject {
     static let shared = DIContainer()
     
@@ -13,7 +12,7 @@ final class DIContainer: ObservableObject {
     private var factories: [String: () -> Any] = [:]
     private var singletons: [String: Any] = [:]
     
-    private init() {}
+    init() {}
     
     // MARK: - Registration Methods
     
@@ -30,10 +29,10 @@ final class DIContainer: ObservableObject {
     }
     
     /// Register a service implementation for a protocol
-    func register<Protocol, Implementation>(
-        _ protocolType: Protocol.Type,
+    func register<ProtocolType, Implementation>(
+        _ protocolType: ProtocolType.Type,
         implementation: Implementation
-    ) where Implementation: Protocol {
+    ) {
         let key = String(describing: protocolType)
         services[key] = implementation
     }
@@ -199,10 +198,10 @@ struct ServiceRegistration {
         }
     }
     
-    init<Protocol, Implementation>(
-        _ protocolType: Protocol.Type,
+    init<ProtocolType, Implementation>(
+        _ protocolType: ProtocolType.Type,
         implementation: Implementation
-    ) where Implementation: Protocol {
+    ) {
         self.register = { container in
             container.register(protocolType, implementation: implementation)
         }

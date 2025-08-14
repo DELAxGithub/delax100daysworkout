@@ -47,17 +47,15 @@ struct CRUDMasterView<T: PersistentModel>: View {
             .navigationTitle(modelDisplayName)
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden(false)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button("Bulk Operations") { showingBulkOperations.toggle() }
-                        Button("Analytics") { showingAnalytics = true }
-                        Button("Add Item") { showingCreateForm = true }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
+            .navigationBarItems(
+                trailing: Menu {
+                    Button("Bulk Operations") { showingBulkOperations.toggle() }
+                    Button("Analytics") { showingAnalytics = true }
+                    Button("Add Item") { showingCreateForm = true }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
-            }
+            )
         }
         .sheet(isPresented: $showingAnalytics) {
             CRUDAnalyticsDashboard()
@@ -67,7 +65,7 @@ struct CRUDMasterView<T: PersistentModel>: View {
                 modelType: modelType,
                 onSave: { item in
                     Task {
-                        await crudEngine.create(item)
+                        await crudEngine?.create(item)
                         await loadItems()
                     }
                     showingCreateForm = false

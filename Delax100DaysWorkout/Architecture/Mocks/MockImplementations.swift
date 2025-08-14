@@ -5,6 +5,7 @@ import Foundation
 // MARK: - Mock Implementations for Testing
 
 /// Mock ModelContext provider for testing
+@MainActor
 final class MockModelContextProvider: ModelContextProviding {
     var modelContext: ModelContext
     
@@ -199,6 +200,23 @@ final class MockWeeklyPlanManager: WeeklyPlanManaging {
         operationCalls.removeAll()
         shouldFailOperations = false
     }
+    
+    // WeeklyPlanManaging protocol requirements
+    func requestManualUpdate() async {
+        operationCalls.append("requestManualUpdate")
+    }
+    
+    var analysisDataDescription: String {
+        return "Mock analysis data"
+    }
+    
+    var analysisResultDescription: String {
+        return "Mock analysis result"
+    }
+    
+    var monthlyUsageDescription: String {
+        return "Mock monthly usage"
+    }
 }
 
 /// Mock health data provider for testing
@@ -244,12 +262,12 @@ final class MockModelOperations<T>: ModelOperations {
     var validationMessage: String?
     var operationCalls: [String] = []
     
-    func validateModel(_ model: T) -> ValidationResult {
+    func validateModel(_ model: T) -> FieldValidationEngine.ValidationResult {
         operationCalls.append("validateModel")
         if shouldFailValidation {
-            return ValidationResult(isValid: false, errorMessage: validationMessage ?? "Mock validation failed")
+            return FieldValidationEngine.ValidationResult.failure(validationMessage ?? "Mock validation failed")
         }
-        return ValidationResult(isValid: true)
+        return FieldValidationEngine.ValidationResult.success
     }
     
     func beforeCreateModel(_ model: T) -> T {
@@ -281,6 +299,7 @@ final class MockModelOperations<T>: ModelOperations {
 
 extension DIContainer {
     /// Configure DI container for testing with mock implementations
+    @MainActor
     static func createTestContainer() -> DIContainer {
         let container = DIContainer()
         
@@ -316,18 +335,22 @@ extension DIContainer {
     
     /// Get mock services for testing
     func getMockErrorHandler() -> MockErrorHandler? {
-        resolve(ErrorHandling.self) as? MockErrorHandler
+        let handler: ErrorHandling? = self.resolve(ErrorHandling.self)
+        return handler as? MockErrorHandler
     }
     
     func getMockAnalytics() -> MockAnalyticsProvider? {
-        resolve(AnalyticsProviding.self) as? MockAnalyticsProvider
+        let analytics: AnalyticsProviding? = self.resolve(AnalyticsProviding.self)
+        return analytics as? MockAnalyticsProvider
     }
     
     func getMockWeeklyPlanManager() -> MockWeeklyPlanManager? {
-        resolve(WeeklyPlanManaging.self) as? MockWeeklyPlanManager
+        let manager: WeeklyPlanManaging? = self.resolve(WeeklyPlanManaging.self)
+        return manager as? MockWeeklyPlanManager
     }
     
     func getMockHealthDataProvider() -> MockHealthDataProvider? {
-        resolve(HealthDataProviding.self) as? MockHealthDataProvider
+        let provider: HealthDataProviding? = self.resolve(HealthDataProviding.self)
+        return provider as? MockHealthDataProvider
     }
 }

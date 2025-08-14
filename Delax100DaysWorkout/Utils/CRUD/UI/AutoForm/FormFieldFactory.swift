@@ -134,18 +134,9 @@ struct FormFieldFactory {
         value: Binding<Any?>,
         isEditing: Bool
     ) -> some View {
-        if case .enumeration(let enumType) = type {
-            Picker("Select option", selection: Binding(
-                get: { value.wrappedValue },
-                set: { value.wrappedValue = $0 }
-            )) {
-                ForEach(Array(enumType.allCases), id: \.self) { enumCase in
-                    Text(String(describing: enumCase))
-                        .tag(enumCase as Any)
-                }
-            }
-            .pickerStyle(MenuPickerStyle())
-            .disabled(!isEditing)
+        if case .enumeration(let enumTypeName) = type {
+            Text("Enum picker for: \(enumTypeName)")
+                .foregroundColor(.secondary)
         } else {
             Text("Unknown picker type")
                 .foregroundColor(.secondary)
@@ -176,17 +167,17 @@ extension FormFieldFactory {
     static func validateField(
         property: PropertyAnalyzer.PropertyInfo,
         value: Any?
-    ) -> ValidationResult {
+    ) -> FieldValidationEngine.ValidationResult {
         for rule in property.validationRules {
             let result = rule.validate(value)
             if !result.isValid {
                 return result
             }
         }
-        return .success
+        return FieldValidationEngine.ValidationResult.success
     }
     
-    static func createValidationMessage(for result: ValidationResult) -> some View {
+    static func createValidationMessage(for result: FieldValidationEngine.ValidationResult) -> some View {
         Group {
             if !result.isValid, let message = result.errorMessage {
                 Text(message)

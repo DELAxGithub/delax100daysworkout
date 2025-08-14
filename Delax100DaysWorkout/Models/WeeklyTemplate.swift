@@ -7,6 +7,9 @@ final class WeeklyTemplate: @unchecked Sendable {
     var isActive: Bool = false
     var createdAt: Date
     var updatedAt: Date
+    var weekStartDate: Date = Date()
+    var generatedBy: String?
+    var notes: String?
     
     @Relationship(deleteRule: .cascade)
     var dailyTasks: [DailyTask] = []

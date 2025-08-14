@@ -199,36 +199,36 @@ enum ValidationRule {
     case maxLength(Int)
     case numberRange(min: Double, max: Double)
     case dateRange(earliest: Date, latest: Date)
-    case custom((Any) -> ValidationResult)
+    case custom((Any) -> FieldValidationEngine.ValidationResult)
     
-    func validate(_ value: Any?) -> ValidationResult {
+    func validate(_ value: Any?) -> FieldValidationEngine.ValidationResult {
         switch self {
         case .required:
-            if value == nil { return .failure("This field is required") }
-            if let str = value as? String, str.isEmpty { return .failure("This field is required") }
-            return .success
+            if value == nil { return FieldValidationEngine.ValidationResult.failure("This field is required") }
+            if let str = value as? String, str.isEmpty { return FieldValidationEngine.ValidationResult.failure("This field is required") }
+            return FieldValidationEngine.ValidationResult.success
             
         case .minLength(let min):
-            guard let str = value as? String else { return .success }
-            return str.count >= min ? .success : .failure("Minimum length is \(min)")
+            guard let str = value as? String else { return FieldValidationEngine.ValidationResult.success }
+            return str.count >= min ? FieldValidationEngine.ValidationResult.success : FieldValidationEngine.ValidationResult.failure("Minimum length is \(min)")
             
         case .maxLength(let max):
-            guard let str = value as? String else { return .success }
-            return str.count <= max ? .success : .failure("Maximum length is \(max)")
+            guard let str = value as? String else { return FieldValidationEngine.ValidationResult.success }
+            return str.count <= max ? FieldValidationEngine.ValidationResult.success : FieldValidationEngine.ValidationResult.failure("Maximum length is \(max)")
             
         case .numberRange(let min, let max):
             if let num = value as? Double {
-                return (num >= min && num <= max) ? .success : .failure("Value must be between \(min) and \(max)")
+                return (num >= min && num <= max) ? FieldValidationEngine.ValidationResult.success : FieldValidationEngine.ValidationResult.failure("Value must be between \(min) and \(max)")
             }
             if let num = value as? Int {
                 let doubleNum = Double(num)
-                return (doubleNum >= min && doubleNum <= max) ? .success : .failure("Value must be between \(Int(min)) and \(Int(max))")
+                return (doubleNum >= min && doubleNum <= max) ? FieldValidationEngine.ValidationResult.success : FieldValidationEngine.ValidationResult.failure("Value must be between \(Int(min)) and \(Int(max))")
             }
-            return .success
+            return FieldValidationEngine.ValidationResult.success
             
         case .dateRange(let earliest, let latest):
-            guard let date = value as? Date else { return .success }
-            return (date >= earliest && date <= latest) ? .success : .failure("Date must be between \(earliest) and \(latest)")
+            guard let date = value as? Date else { return FieldValidationEngine.ValidationResult.success }
+            return (date >= earliest && date <= latest) ? FieldValidationEngine.ValidationResult.success : FieldValidationEngine.ValidationResult.failure("Date must be between \(earliest) and \(latest)")
             
         case .custom(let validator):
             return validator(value)

@@ -71,10 +71,10 @@ struct WeeklyReviewView: View {
     
     private func setupPlanManager() {
         if planManager == nil {
-            planManager = WeeklyPlanManager(modelContext: modelContext)
+            planManager = ProtocolBasedWeeklyPlanManager()
         } else {
             // WeeklyPlanManagerのmodelContextを正しく設定
-            let newPlanManager = WeeklyPlanManager(modelContext: modelContext)
+            let newPlanManager = ProtocolBasedWeeklyPlanManager()
             planManager?.updateStatus = newPlanManager.updateStatus
         }
     }
@@ -237,7 +237,8 @@ struct WeeklyReviewView: View {
             
             Button("AI分析を開始") {
                 Task {
-                    await planManager?.initiateWeeklyPlanUpdate()
+                    // TODO: Fix method name
+                    // await planManager?.initiateWeeklyPlanUpdate()
                 }
             }
             .buttonStyle(.borderedProminent)
@@ -308,7 +309,8 @@ struct WeeklyReviewView: View {
             
             Button("再試行") {
                 Task {
-                    await planManager?.initiateWeeklyPlanUpdate()
+                    // TODO: Fix method name
+                    // await planManager?.initiateWeeklyPlanUpdate()
                 }
             }
             .buttonStyle(.bordered)

@@ -146,12 +146,14 @@ class BaseViewModel<T>: ViewModelProtocol {
     
     @Injected(AnalyticsProviding.self) private var analytics: AnalyticsProviding
     
+    required init() {}
+    
     func loadData() async {
         isLoading = true
         defer { isLoading = false }
         
         do {
-            await loadDataImplementation()
+            try await loadDataImplementation()
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -195,6 +197,7 @@ final class ServiceFactory {
         self.container = container
     }
     
+    @MainActor
     func createCRUDEngine<T: PersistentModel>(
         for type: T.Type,
         with operations: (any ModelOperations)? = nil
@@ -202,6 +205,7 @@ final class ServiceFactory {
         return ProtocolBasedCRUDEngine<T>.create(for: type, with: operations)
     }
     
+    @MainActor
     func createViewModel<T, VM: BaseViewModel<T>>(
         _ viewModelType: VM.Type
     ) -> VM {
@@ -213,6 +217,7 @@ final class ServiceFactory {
 
 extension DIContainer {
     /// Configure all core services in the DI container
+    @MainActor
     func configureAppServices(modelContainer: ModelContainer) {
         // Set up model context provider
         AppModelContextProvider.setDefaultContainer(modelContainer)

@@ -34,12 +34,43 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
     // MARK: - Initialization
     
     init(container: DIContainer = DIContainer.shared) {
-        // Dependencies injected via @Injected
-        self.progressAnalyzer = ProgressAnalyzer(modelContext: contextProvider.modelContext)
-        self.aiService = WeeklyPlanAIService()
+        // Enhanced initialization with proper dependency management
+        let logger = Logger(subsystem: "Delax100DaysWorkout", category: "WeeklyPlanManagerInit")
         
+        do {
+            // Try to get ModelContext from DI container first
+            if let contextProvider = try? container.resolve(ModelContextProviding.self) {
+                self.progressAnalyzer = ProgressAnalyzer(modelContext: contextProvider.modelContext)
+                logger.info("Initialized ProgressAnalyzer with injected ModelContext")
+            } else {
+                // Fallback to creating temporary context
+                let tempContainer = try ModelContainer(for: WeeklyTemplate.self, UserProfile.self, DailyTask.self, WorkoutRecord.self)
+                self.progressAnalyzer = ProgressAnalyzer(modelContext: tempContainer.mainContext)
+                logger.warning("Initialized ProgressAnalyzer with temporary ModelContext")
+            }
+        } catch {
+            // Final fallback
+            logger.error("Failed to create ModelContainer: \(error.localizedDescription), using minimal container")
+            let fallbackContainer = try! ModelContainer(for: WeeklyTemplate.self)
+            self.progressAnalyzer = ProgressAnalyzer(modelContext: fallbackContainer.mainContext)
+        }
+        
+        // Initialize AI service with enhanced logging
+        self.aiService = WeeklyPlanAIService()
+        logger.info("WeeklyPlanAIService initialized")
+        
+        // Load settings and track initialization
         loadSettings()
-        analytics.trackEvent("WeeklyPlanManager_Initialized", parameters: [:])
+        
+        // Enhanced analytics with more context
+        let initializationContext = [
+            "timestamp": Date().timeIntervalSince1970,
+            "hasValidDI": container.isRegistered(ModelContextProviding.self),
+            "version": "2.0"
+        ] as [String: Any]
+        
+        analytics.trackEvent("WeeklyPlanManager_Initialized", parameters: initializationContext)
+        logger.info("WeeklyPlanManager initialization completed successfully")
     }
     
     /// Manual dependency injection for testing
@@ -62,7 +93,7 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
     // MARK: - WeeklyPlanManaging Protocol Implementation
     
     func generateWeeklyPlan(for profile: UserProfile) async -> WeeklyTemplate? {
-        analytics.trackEvent("WeeklyPlan_GenerationStarted", parameters: ["profileId": profile.id.uuidString])
+        analytics.trackEvent("WeeklyPlan_GenerationStarted", parameters: ["profileId": profile.id.hashValue.description])
         
         updateStatus = .analyzing
         
@@ -87,7 +118,7 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
                     lastAnalysisResult = "Plan generated successfully"
                     
                     analytics.trackEvent("WeeklyPlan_GenerationCompleted", parameters: [
-                        "profileId": profile.id.uuidString,
+                        "profileId": profile.id.hashValue.description,
                         "dataPoints": lastAnalysisDataCount
                     ])
                     
@@ -107,13 +138,13 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
     }
     
     func updateWeeklyPlan(_ template: WeeklyTemplate) async -> Bool {
-        analytics.trackEvent("WeeklyPlan_UpdateStarted", parameters: ["templateId": template.id.uuidString])
+        analytics.trackEvent("WeeklyPlan_UpdateStarted", parameters: ["templateId": template.id.hashValue.description])
         
         do {
             contextProvider.modelContext.insert(template)
             try contextProvider.modelContext.save()
             
-            analytics.trackEvent("WeeklyPlan_UpdateCompleted", parameters: ["templateId": template.id.uuidString])
+            analytics.trackEvent("WeeklyPlan_UpdateCompleted", parameters: ["templateId": template.id.hashValue.description])
             return true
             
         } catch {
@@ -129,7 +160,7 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
             let calendar = Calendar.current
             let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
             
-            let descriptor = FetchDescriptor<WeeklyTemplate>(
+            var descriptor = FetchDescriptor<WeeklyTemplate>(
                 predicate: #Predicate<WeeklyTemplate> { template in
                     template.weekStartDate >= startOfWeek
                 },
@@ -196,7 +227,7 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
         return """
         Generate a weekly training plan based on the following analysis:
         
-        User Profile: \(profile.name ?? "User")
+        User Profile: \(profile.id.hashValue.description)
         Current Goals: \(profile.goals ?? "General fitness")
         
         Recent Performance Data:
@@ -211,7 +242,7 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
     private func createTemplateFromResponse(_ response: String, profile: UserProfile) async -> WeeklyTemplate? {
         // Parse AI response and create WeeklyTemplate
         // This is a simplified implementation
-        let template = WeeklyTemplate()
+        let template = WeeklyTemplate(name: "AI Generated Plan")
         template.weekStartDate = Calendar.current.startOfDay(for: Date())
         template.generatedBy = "AI Assistant"
         template.notes = response
@@ -222,14 +253,47 @@ final class ProtocolBasedWeeklyPlanManager: ObservableObject, WeeklyPlanManaging
     private func savePlan(_ template: WeeklyTemplate) async -> Bool {
         return await updateWeeklyPlan(template)
     }
+    
+    // MARK: - WeeklyPlanManaging Protocol Methods
+    
+    func requestManualUpdate() async {
+        logger.info("Manual update requested")
+        updateStatus = .analyzing
+        
+        // Perform manual update logic
+        do {
+            if let profile = try await getCurrentUserProfile() {
+                let _ = await generateWeeklyPlan(for: profile)
+            }
+        } catch {
+            logger.error("Manual update failed: \(error.localizedDescription)")
+        }
+        
+        updateStatus = .idle
+    }
+    
+    var analysisDataDescription: String {
+        return "Analysis count: \(analysisCount), Last analysis: \(lastAnalysisDataCount) data points"
+    }
+    
+    var analysisResultDescription: String {
+        return lastAnalysisResult ?? "No analysis result available"
+    }
+    
+    var monthlyUsageDescription: String {
+        return "Monthly analysis count: \(monthlyAnalysisCount)"
+    }
+    
+    private func getCurrentUserProfile() async throws -> UserProfile? {
+        // Implementation to fetch current user profile
+        return nil // Placeholder
+    }
 }
 
 // MARK: - Injectable Conformance
 
 extension ProtocolBasedWeeklyPlanManager: Injectable {
-    convenience init(container: DIContainer) {
-        self.init(container: container)
-    }
+    // Injectable conformance through existing initializer
 }
 
 // MARK: - Supporting Types

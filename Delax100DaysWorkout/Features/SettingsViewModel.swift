@@ -40,7 +40,8 @@ class SettingsViewModel {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.weeklyPlanManager = WeeklyPlanManager(modelContext: modelContext)
+        // Initialize with the new ProtocolBasedWeeklyPlanManager
+        self.weeklyPlanManager = ProtocolBasedWeeklyPlanManager()
         fetchOrCreateUserProfile()
         loadAISettings()
         loadAPIKey()

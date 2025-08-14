@@ -47,7 +47,7 @@ class HistorySearchEngine<T: Searchable> {
         _ records: [T],
         minValue: Double,
         maxValue: Double,
-        sortOption: SearchConfiguration.SortOption = .valueHighest
+        sortOption: HistorySearchConfiguration.SortOption = .valueHighest
     ) -> [T] {
         let filteredRecords = records.filter { record in
             record.searchableValue >= minValue && record.searchableValue <= maxValue

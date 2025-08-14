@@ -2,6 +2,8 @@ import Foundation
 import SwiftData
 import OSLog
 
+private let logger = Logger(subsystem: "Delax100DaysWorkout", category: "WeeklyPlanAIService")
+
 struct AIAnalysisRequest {
     let weeklyStats: WeeklyStats
     let progress: Progress
@@ -162,6 +164,47 @@ class WeeklyPlanAIService {
         }
         
         return _apiKeyStatus
+    }
+    
+    // Enhanced weekly plan generation method for ProtocolBasedWeeklyPlanManager
+    func generateWeeklyPlan(prompt: String) async -> String {
+        // Check API key status first
+        guard !claudeAPIKey.isEmpty else {
+            logger.warning("Claude API key not configured, returning fallback plan")
+            return generateFallbackPlan(reason: "APIキーが設定されていません")
+        }
+        
+        // Validate API key format
+        guard isValidAPIKeyFormat(claudeAPIKey) else {
+            Logger.error.error("Invalid Claude API key format")
+            return generateFallbackPlan(reason: "APIキーの形式が無効です")
+        }
+        
+        do {
+            // Enhanced prompt for better AI responses
+            let enhancedPrompt = enhancePrompt(originalPrompt: prompt)
+            
+            logger.info("Generating weekly plan with Claude AI...")
+            let startTime = Date()
+            
+            let response = try await callClaudeAPI(prompt: enhancedPrompt)
+            
+            let duration = Date().timeIntervalSince(startTime)
+            logger.info("Weekly plan generated successfully in \(String(format: "%.2f", duration)) seconds")
+            
+            // Post-process the response for better formatting
+            let processedResponse = postProcessPlanResponse(response)
+            
+            return processedResponse
+            
+        } catch let error as AIServiceError {
+            Logger.error.error("AI Service error: \(error.localizedDescription)")
+            return generateFallbackPlan(reason: "AI サービスエラー: \(error.localizedDescription)")
+            
+        } catch {
+            Logger.error.error("Unexpected error generating weekly plan: \(error.localizedDescription)")
+            return generateFallbackPlan(reason: "予期しないエラーが発生しました")
+        }
     }
     
     // メイン機能：週次プラン分析と提案
@@ -443,6 +486,101 @@ class WeeklyPlanAIService {
     private func estimateTokens(text: String) -> Int {
         // 簡易的なトークン数推定（実際にはtiktokenライブラリを使用する方が正確）
         return text.count / 4
+    }
+    
+    // MARK: - Enhanced Helper Methods for Phase 2
+    
+    private func generateFallbackPlan(reason: String) -> String {
+        let currentDate = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .none)
+        
+        return """
+        # 基本的な週間トレーニングプラン
+        
+        ⚠️ \(reason)のため、基本プランを提供しています。
+        
+        ## 週間プラン（\(currentDate)）
+        
+        **月曜日**: 🚴‍♂️ サイクリング 30分
+        - Zone2での有酸素運動
+        - 心拍数をモニタリング
+        
+        **火曜日**: 💪 Push筋トレ 45分
+        - 胸、肩、三頭筋を中心に
+        - 3セット × 10回
+        
+        **水曜日**: 🧘‍♀️ ストレッチ & 柔軟性 20分
+        - 全身のストレッチ
+        - 前屈・開脚の記録
+        
+        **木曜日**: 🚴‍♂️ サイクリング 45分
+        - インターバルまたはSST
+        - パワー目標: 170-230W
+        
+        **金曜日**: 💪 Pull & Core筋トレ 45分
+        - 背中、二頭筋、体幹
+        - 3セット × 10回
+        
+        **土曜日**: 🧘‍♀️ リカバリー柔軟 30分
+        - ヨガまたは軽いストレッチ
+        - マッサージ推奨
+        
+        **日曜日**: 😴 完全休息日
+        - アクティブレスト推奨
+        - 軽い散歩程度
+        
+        💡 **ヒント**: 設定画面でClaude APIキーを設定すると、パーソナライズされたプランを生成できます。
+        """
+    }
+    
+    private func enhancePrompt(originalPrompt: String) -> String {
+        let dateContext = DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .none)
+        
+        return """
+        # 週間トレーニングプラン生成依頼
+        
+        **日付**: \(dateContext)
+        **リクエストタイプ**: 個人向けトレーニングプラン最適化
+        
+        ## 入力データ
+        \(originalPrompt)
+        
+        ## 出力要件
+        以下の形式で、実用的で実行可能な週間プランを生成してください：
+        
+        1. **各日の具体的な活動内容**（種目、時間、強度）
+        2. **目標設定**（パワー、重量、時間など）
+        3. **進捗に基づく調整理由**
+        4. **次週への改善提案**
+        
+        ## 制約条件
+        - 日本語で回答
+        - 週7日構成（休息日含む）
+        - 現実的で継続可能なプラン
+        - 怪我予防を最優先
+        - 段階的な負荷増加を考慮
+        
+        ## 特別な注意
+        - 過度な負荷増加は避ける
+        - バランスの取れたトレーニング構成
+        - ユーザーの生活リズムを考慮
+        """
+    }
+    
+    private func postProcessPlanResponse(_ response: String) -> String {
+        var processed = response
+        
+        // Clean up common AI response artifacts
+        processed = processed.replacingOccurrences(of: "```", with: "")
+        processed = processed.replacingOccurrences(of: "# ", with: "")
+        
+        // Add timestamp
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .short)
+        processed = "📅 生成日時: \(timestamp)\n\n\(processed)"
+        
+        // Add footer
+        processed += "\n\n🤖 このプランはAIによって生成されました。体調に合わせて適宜調整してください。"
+        
+        return processed
     }
 }
 
