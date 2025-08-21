@@ -13,7 +13,12 @@
       "Bash(git restore:*)",
       "Bash(swift build:*)",
       "Bash(swiftc:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(xcrun simctl list:*)",
+      "Bash(xcrun simctl shutdown:*)",
+      "Bash(xcrun simctl erase:*)"
     ],
     "deny": [],
     "ask": []

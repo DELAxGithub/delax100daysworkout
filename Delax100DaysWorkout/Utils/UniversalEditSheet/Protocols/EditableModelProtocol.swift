@@ -163,7 +163,7 @@ struct WorkoutModelCustomization: EditableModelProtocol {
         }
         
         if workoutRecord.workoutType == .cycling {
-            if workoutRecord.cyclingDetail == nil || workoutRecord.cyclingDetail?.distance == 0 {
+            if workoutRecord.cyclingData == nil {
                 return FieldValidationEngine.ValidationResult.warning("サイクリングワークアウトには距離を記録することをお勧めします")
             }
         }
@@ -198,7 +198,7 @@ struct WorkoutModelCustomization: EditableModelProtocol {
         guard let workoutRecord = model as? WorkoutRecord else { return true }
         
         // Auto-set completion status based on details
-        if workoutRecord.workoutType == .cycling && workoutRecord.cyclingDetail?.distance ?? 0 > 0 {
+        if workoutRecord.workoutType == .cycling && workoutRecord.cyclingData?.duration ?? 0 > 0 {
             workoutRecord.isCompleted = true
         }
         

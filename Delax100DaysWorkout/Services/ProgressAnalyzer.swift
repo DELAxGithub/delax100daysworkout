@@ -59,7 +59,7 @@ class ProgressAnalyzer {
         case .cycling:
             return detectCyclingPR(newRecord: newRecord, history: history)
         case .strength:
-            return Achievement.checkForPR(newRecord: newRecord, history: history)
+            return detectStrengthPR(newRecord: newRecord, history: history)
         case .flexibility:
             return detectFlexibilityPR(newRecord: newRecord, history: history)
         case .pilates:
@@ -164,7 +164,7 @@ class ProgressAnalyzer {
             let recentRecords = allRecords.filter { $0.date >= thirtyDaysAgo }
             
             // Enhanced progress analysis
-            let progress = analyzeProgress(records: recentRecords)
+            let _ = analyzeProgress(records: recentRecords)
             
             // Calculate completion rate based on recent activity
             let completionRate = calculateEnhancedCompletionRate(records: recentRecords)
@@ -192,26 +192,7 @@ class ProgressAnalyzer {
         }
     }
     
-    // AI分析用の構造化データを生成
-    func generateAIAnalysisData(records: [WorkoutRecord], template: WeeklyTemplate) -> AIAnalysisRequest {
-        let weeklyStats = calculateWeeklyStats(records: records, template: template)
-        let progress = analyzeProgress(records: records)
-        
-        // ユーザー設定を取得（実装に応じて調整）
-        let userPreferences = UserPreferences(
-            preferredWorkoutDays: [1, 2, 3, 4, 5, 6], // 月-土
-            availableTime: 60, // 1日平均60分
-            fitnessGoals: ["筋力向上", "持久力向上", "柔軟性向上"],
-            limitations: []
-        )
-        
-        return AIAnalysisRequest(
-            weeklyStats: weeklyStats,
-            progress: progress,
-            currentTemplate: template,
-            userPreferences: userPreferences
-        )
-    }
+    // AI分析機能は簡単化のため無効化
     
     // 詳細な週次レポートを生成（AI用）
     func generateDetailedWeeklyReport(records: [WorkoutRecord], template: WeeklyTemplate) -> DetailedWeeklyReport {
@@ -236,33 +217,43 @@ class ProgressAnalyzer {
     // MARK: - Private Methods
     
     private func detectCyclingPR(newRecord: WorkoutRecord, history: [WorkoutRecord]) -> Achievement? {
-        guard let newDetail = newRecord.cyclingDetail else { return nil }
+        guard let newDetail = newRecord.cyclingData else { return nil }
         
         let cyclingHistory = history.filter { $0.workoutType == .cycling }
         
         // 最高パワー記録をチェック
-        let maxPower = cyclingHistory.compactMap { $0.cyclingDetail?.averagePower }.max() ?? 0
+        let maxPower = cyclingHistory.compactMap { $0.cyclingData?.power }.map { Double($0) }.max() ?? 0
         
-        if newDetail.averagePower > maxPower && maxPower > 0 {
+        if let power = newDetail.power, Double(power) > maxPower && maxPower > 0 {
             return Achievement(
                 type: .personalRecord,
                 title: "パワー新記録！",
-                description: "平均\(Int(newDetail.averagePower))W達成",
+                description: "平均\(newDetail.power ?? 0)W達成",
                 workoutType: .cycling,
-                value: "\(Int(newDetail.averagePower))W"
+                value: "\(newDetail.power ?? 0)W"
             )
         }
         
-        // 最長距離記録をチェック
-        let maxDistance = cyclingHistory.compactMap { $0.cyclingDetail?.distance }.max() ?? 0
+        // Distance tracking removed for simplified model
         
-        if newDetail.distance > maxDistance && maxDistance > 0 {
+        return nil
+    }
+    
+    private func detectStrengthPR(newRecord: WorkoutRecord, history: [WorkoutRecord]) -> Achievement? {
+        guard let newDetail = newRecord.strengthData else { return nil }
+        
+        let strengthHistory = history.filter { $0.workoutType == .strength }
+        
+        // 最高重量記録をチェック
+        let maxWeight = strengthHistory.compactMap { $0.strengthData?.weight }.max() ?? 0
+        
+        if newDetail.weight > maxWeight && maxWeight > 0 {
             return Achievement(
                 type: .personalRecord,
-                title: "距離新記録！",
-                description: "\(newDetail.distance)km達成",
-                workoutType: .cycling,
-                value: "\(newDetail.distance)km"
+                title: "筋力新記録！", 
+                description: "\(newDetail.weight)kg達成",
+                workoutType: .strength,
+                value: "\(newDetail.weight)kg"
             )
         }
         
@@ -270,13 +261,25 @@ class ProgressAnalyzer {
     }
     
     private func detectFlexibilityPR(newRecord: WorkoutRecord, history: [WorkoutRecord]) -> Achievement? {
-        guard let newDetail = newRecord.flexibilityDetail else { return nil }
+        guard let newDetail = newRecord.flexibilityData else { return nil }
         
         let flexHistory = history
             .filter { $0.workoutType == .flexibility }
-            .compactMap { $0.flexibilityDetail }
+            .compactMap { $0.flexibilityData }
         
-        return Achievement.checkForFlexibilityImprovement(current: newDetail, previous: flexHistory)
+        // Simplified flexibility achievement check
+        let previousMeasurement = flexHistory.last?.measurement ?? 0
+        let currentMeasurement = newDetail.measurement ?? 0
+        if currentMeasurement > previousMeasurement * 1.1 {
+            return Achievement(
+                type: .improvement,
+                title: "柔軟性向上",
+                description: "前回より\(Int((currentMeasurement - previousMeasurement) * 100) / 100)%向上",
+                workoutType: .flexibility,
+                value: "\(Int(currentMeasurement))度"
+            )
+        }
+        return nil
     }
     
     private func calculateTypeStats(records: [WorkoutRecord], type: WorkoutType, template: WeeklyTemplate) -> WorkoutTypeStats {
@@ -294,15 +297,21 @@ class ProgressAnalyzer {
         
         switch type {
         case .cycling:
-            let powers = typeRecords.compactMap { $0.cyclingDetail?.averagePower }
+            let powers = typeRecords.compactMap { record in
+                if let power = record.cyclingData?.power {
+                    return Double(power)
+                }
+                return nil
+            }
             averageMetric = powers.isEmpty ? 0 : powers.reduce(0, +) / Double(powers.count)
             if powers.count >= 2, let lastPower = powers.last, let firstPower = powers.first, lastPower > firstPower {
                 improvements.append("パワーが向上中")
             }
             
         case .strength:
-            let totalVolumes = typeRecords.compactMap { record in
-                record.strengthDetails?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
+            let totalVolumes = typeRecords.compactMap { record -> Double? in
+                guard let data = record.strengthData else { return nil }
+                return data.weight * Double(data.sets * data.reps)
             }
             averageMetric = totalVolumes.isEmpty ? 0 : totalVolumes.reduce(0, +) / Double(totalVolumes.count)
             if totalVolumes.count >= 2, let lastVolume = totalVolumes.last, let firstVolume = totalVolumes.first, lastVolume > firstVolume {
@@ -310,7 +319,7 @@ class ProgressAnalyzer {
             }
             
         case .flexibility:
-            let angles = typeRecords.compactMap { $0.flexibilityDetail?.averageSplitAngle }
+            let angles = typeRecords.compactMap { $0.flexibilityData?.measurement }
             averageMetric = angles.isEmpty ? 0 : angles.reduce(0, +) / Double(angles.count)
             if angles.count >= 2, let lastAngle = angles.last, let firstAngle = angles.first, lastAngle > firstAngle {
                 improvements.append("柔軟性が向上")
@@ -442,14 +451,18 @@ class ProgressAnalyzer {
             )
         }
         
-        let powers = cyclingRecords.compactMap { $0.cyclingDetail?.averagePower }
-        let distances = cyclingRecords.compactMap { $0.cyclingDetail?.distance }
+        let powers = cyclingRecords.compactMap { record in
+            if let power = record.cyclingData?.power {
+                return Double(power)
+            }
+            return nil
+        }
         
         return CyclingTrendAnalysis(
             powerTrend: calculateTrend(values: powers),
-            distanceTrend: calculateTrend(values: distances.map { Double($0) }),
+            distanceTrend: .stable,
             consistencyScore: calculateConsistencyScore(values: powers),
-            recommendations: generateCyclingRecommendations(powers: powers, distances: distances.map { Int($0) })
+            recommendations: generateCyclingRecommendations(powers: powers, distances: [])
         )
     }
     
@@ -467,12 +480,13 @@ class ProgressAnalyzer {
             )
         }
         
-        let totalVolumes = strengthRecords.compactMap { record in
-            record.strengthDetails?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
+        let totalVolumes = strengthRecords.compactMap { record -> Double? in
+            guard let data = record.strengthData else { return nil }
+            return data.weight * Double(data.sets * data.reps)
         }
         
-        let maxWeights = strengthRecords.compactMap { record in
-            record.strengthDetails?.map { $0.weight }.max()
+        let maxWeights = strengthRecords.compactMap { record -> Double? in
+            return record.strengthData?.weight
         }
         
         return StrengthTrendAnalysis(
@@ -497,14 +511,13 @@ class ProgressAnalyzer {
             )
         }
         
-        let forwardBends = flexRecords.compactMap { $0.flexibilityDetail?.forwardBendDistance }
-        let splitAngles = flexRecords.compactMap { $0.flexibilityDetail?.averageSplitAngle }
+        let measurements = flexRecords.compactMap { $0.flexibilityData?.measurement }
         
         return FlexibilityTrendAnalysis(
-            forwardBendTrend: calculateTrend(values: forwardBends),
-            splitAngleTrend: calculateTrend(values: splitAngles),
-            consistencyScore: calculateConsistencyScore(values: splitAngles),
-            recommendations: generateFlexibilityRecommendations(forwardBends: forwardBends, splitAngles: splitAngles)
+            forwardBendTrend: calculateTrend(values: measurements),
+            splitAngleTrend: calculateTrend(values: measurements),
+            consistencyScore: calculateConsistencyScore(values: measurements),
+            recommendations: generateFlexibilityRecommendations(forwardBends: measurements, splitAngles: measurements)
         )
     }
     

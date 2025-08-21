@@ -67,4 +67,26 @@ final class DailyTask {
         
         return adjustedTask
     }
+    
+    // MARK: - Migration Support
+    
+    /// 既存のpilates/yogaタスクをflexibilityに移行
+    func migrateToFlexibility() {
+        switch workoutType.rawValue {
+        case "Pilates":
+            workoutType = .flexibility
+            if title.contains("ピラティス") == false {
+                title = "ピラティス - \(title)"
+            }
+            
+        case "Yoga":
+            workoutType = .flexibility
+            if title.contains("ヨガ") == false {
+                title = "ヨガ - \(title)"
+            }
+            
+        default:
+            break
+        }
+    }
 }

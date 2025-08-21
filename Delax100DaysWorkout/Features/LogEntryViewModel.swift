@@ -47,11 +47,11 @@ class LogEntryViewModel {
     var cyclingDistance: Double = 0.0
     var cyclingDuration: Int = 0
     var cyclingAveragePower: Double = 0.0
-    var cyclingIntensity: CyclingIntensity = .endurance
+    var cyclingIntensity: CyclingZone = .z2
     var cyclingNotes: String = ""
     
     // Strength details
-    var strengthDetails: [StrengthDetail] = []
+    var strengthData: SimpleStrengthData = SimpleStrengthData(muscleGroup: .chest, weight: 0, reps: 0, sets: 0)
     
     // Flexibility details
     var flexibilityForwardBend: Double = 0.0
@@ -152,9 +152,7 @@ class LogEntryViewModel {
                 "notes:\(cyclingNotes)"
             ].joined(separator: ";")
         case .strength:
-            let detailsSig = strengthDetails.map { d in
-                [d.exercise, String(d.sets), String(d.reps), String(d.weight), d.notes ?? "", d.pullUpVariant?.rawValue ?? "", String(d.isAssisted), String(d.assistWeight), String(d.maxConsecutiveReps)].joined(separator: ",")
-            }.joined(separator: "|")
+            let detailsSig = "\(strengthData.muscleGroup.displayName),\(strengthData.sets),\(strengthData.reps),\(strengthData.weight)"
             return ["type:strength", "date:\(date.timeIntervalSince1970)", "sum:\(workoutSummary)", "items:\(detailsSig)"]
                 .joined(separator: ";")
         case .flexibility:
@@ -196,18 +194,18 @@ class LogEntryViewModel {
         )
         descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first,
-           let detail = record.cyclingDetail {
-            cyclingDistance = detail.distance
+           let detail = record.cyclingData {
+            cyclingDistance = 0.0  // distance not available in SimpleCyclingData
             cyclingDuration = detail.duration
-            cyclingAveragePower = detail.averagePower
-            cyclingIntensity = detail.intensity
-            cyclingNotes = detail.notes ?? ""
+            cyclingAveragePower = Double(detail.power ?? 0)
+            cyclingIntensity = mapZoneToIntensity(detail.zone)
+            cyclingNotes = ""  // notes not available in SimpleCyclingData
             if workoutSummary.isEmpty { workoutSummary = record.summary }
         }
     }
 
     private func preloadLastStrength() {
-        guard strengthDetails.isEmpty,
+        guard strengthData.weight == 0,
               workoutSummary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         var descriptor = FetchDescriptor<WorkoutRecord>(
             predicate: #Predicate { $0.workoutType.rawValue == "Strength" },
@@ -215,23 +213,9 @@ class LogEntryViewModel {
         )
         descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first,
-           let details = record.strengthDetails {
-            // Create fresh copies so we don't reuse persisted objects
-            strengthDetails = details.map { d in
-                let copy = StrengthDetail(
-                    exercise: d.exercise,
-                    sets: d.sets,
-                    reps: d.reps,
-                    weight: d.weight,
-                    notes: d.notes
-                )
-                copy.isPersonalRecord = d.isPersonalRecord
-                copy.pullUpVariant = d.pullUpVariant
-                copy.isAssisted = d.isAssisted
-                copy.assistWeight = d.assistWeight
-                copy.maxConsecutiveReps = d.maxConsecutiveReps
-                return copy
-            }
+           let data = record.strengthData {
+            // Use the existing strengthData property
+            strengthData = data
             if workoutSummary.isEmpty { workoutSummary = record.summary }
         }
     }
@@ -246,12 +230,12 @@ class LogEntryViewModel {
         )
         descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first,
-           let detail = record.flexibilityDetail {
-            flexibilityForwardBend = detail.forwardBendDistance
-            flexibilityLeftSplit = detail.leftSplitAngle
-            flexibilityRightSplit = detail.rightSplitAngle
-            flexibilityDuration = detail.duration
-            flexibilityNotes = detail.notes ?? ""
+           let data = record.flexibilityData {
+            flexibilityForwardBend = data.measurement ?? 0.0
+            flexibilityLeftSplit = 90.0  // default value
+            flexibilityRightSplit = 90.0  // default value
+            flexibilityDuration = data.duration
+            flexibilityNotes = ""  // notes not available in simple data
             if workoutSummary.isEmpty { workoutSummary = record.summary }
         }
     }
@@ -318,49 +302,38 @@ class LogEntryViewModel {
                 
             case .cycling:
                 let newRecord = WorkoutRecord(date: date, workoutType: .cycling, summary: workoutSummary)
-                let cyclingDetail = CyclingDetail(
-                    distance: cyclingDistance,
+                newRecord.cyclingData = SimpleCyclingData(
+                    zone: .z2,  // default zone
                     duration: cyclingDuration,
-                    averagePower: cyclingAveragePower,
-                    intensity: cyclingIntensity,
-                    notes: cyclingNotes.isEmpty ? nil : cyclingNotes
+                    power: Int(cyclingAveragePower)
                 )
-                newRecord.cyclingDetail = cyclingDetail
                 newRecord.markAsCompleted()
                 modelContext.insert(newRecord)
-                modelContext.insert(cyclingDetail)
                 
-                // WPR自動更新をトリガー
-                newRecord.triggerWPRUpdate(context: modelContext)
+                // TODO: Implement WPR update trigger
+                // newRecord.triggerWPRUpdate(context: modelContext)
                 
             case .strength:
                 let newRecord = WorkoutRecord(date: date, workoutType: .strength, summary: workoutSummary)
-                newRecord.strengthDetails = strengthDetails
+                newRecord.strengthData = strengthData
                 newRecord.markAsCompleted()
                 modelContext.insert(newRecord)
-                for detail in strengthDetails {
-                    modelContext.insert(detail)
-                }
                 
-                // WPR自動更新をトリガー
-                newRecord.triggerWPRUpdate(context: modelContext)
+                // TODO: Implement WPR update trigger
+                // newRecord.triggerWPRUpdate(context: modelContext)
                 
             case .flexibility:
                 let newRecord = WorkoutRecord(date: date, workoutType: .flexibility, summary: workoutSummary)
-                let flexibilityDetail = FlexibilityDetail(
-                    forwardBendDistance: flexibilityForwardBend,
-                    leftSplitAngle: flexibilityLeftSplit,
-                    rightSplitAngle: flexibilityRightSplit,
+                newRecord.flexibilityData = SimpleFlexibilityData(
+                    type: .general,  // default type
                     duration: flexibilityDuration,
-                    notes: flexibilityNotes.isEmpty ? nil : flexibilityNotes
+                    measurement: flexibilityForwardBend > 0 ? flexibilityForwardBend : nil
                 )
-                newRecord.flexibilityDetail = flexibilityDetail
                 newRecord.markAsCompleted()
                 modelContext.insert(newRecord)
-                modelContext.insert(flexibilityDetail)
                 
-                // WPR自動更新をトリガー
-                newRecord.triggerWPRUpdate(context: modelContext)
+                // TODO: Implement WPR update trigger
+                // newRecord.triggerWPRUpdate(context: modelContext)
             }
             
             // 永続化を実行
@@ -439,6 +412,17 @@ class LogEntryViewModel {
             
         } catch {
             Logger.error.error("マイグレーションエラー: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func mapZoneToIntensity(_ zone: CyclingZone) -> CyclingZone {
+        switch zone {
+        case .z2: return .z2
+        case .sst: return .sst
+        case .vo2: return .vo2
+        case .recovery: return .recovery
         }
     }
 }

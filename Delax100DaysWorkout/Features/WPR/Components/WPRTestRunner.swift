@@ -81,14 +81,12 @@ struct WPRTestRunner {
         testResults.append("\n🔄 自動更新統合テスト")
         
         let cyclingWorkout = WorkoutRecord(date: Date(), workoutType: .cycling, summary: "テスト用SST")
-        let cyclingDetail = CyclingDetail(
-            distance: 40.0,
-            duration: 3600,
-            averagePower: 240.0,
-            intensity: .sst,
-            averageHeartRate: 165
+        let cyclingData = SimpleCyclingData(
+            zone: .sst,
+            duration: 60,  // 60 minutes
+            power: 240
         )
-        cyclingWorkout.cyclingDetail = cyclingDetail
+        cyclingWorkout.cyclingData = cyclingData
         testResults.append("✅ サイクリングワークアウト作成完了")
         
         let ftpRecord = FTPHistory(date: Date(), ftpValue: 265, measurementMethod: .twentyMinuteTest)

@@ -19,7 +19,6 @@ struct WeeklyScheduleView: View {
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date()) - 1
     @State private var viewModel: WeeklyScheduleViewModel?
-    @State private var showingAddTaskSheet = false
     @State private var viewMode: ScheduleViewMode = .day
     
     private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
@@ -48,23 +47,15 @@ struct WeeklyScheduleView: View {
             }
             .navigationTitle("スケジュール")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        Button {
-                            showingAddTaskSheet = true
-                        } label: {
-                            Label("追加", systemImage: "plus")
-                        }
-                        
-                        Button {
-                            jumpToToday()
-                        } label: {
-                            Label("今日へ", systemImage: "calendar.day.timeline.left")
-                        }
+                    Button {
+                        jumpToToday()
+                    } label: {
+                        Label("今日へ", systemImage: "calendar.day.timeline.left")
                     }
                 }
-            }
+            })
         }
         .onAppear {
             ensureActiveTemplate()
@@ -80,20 +71,7 @@ struct WeeklyScheduleView: View {
                 QuickRecordSheet(task: task, workoutRecord: record)
             }
         }
-        .sheet(isPresented: $showingAddTaskSheet) {
-            AddCustomTaskSheet(
-                selectedDay: selectedDay,
-                onSave: { task in
-                    if let activeTemplate = activeTemplates.first {
-                        viewModel?.addCustomTask(task, to: activeTemplate)
-                    }
-                    showingAddTaskSheet = false
-                },
-                onCancel: {
-                    showingAddTaskSheet = false
-                }
-            )
-        }
+        // AddCustomTaskSheet removed - using QuickRecordView instead
     }
     
     private func jumpToToday() {
@@ -143,16 +121,11 @@ struct WeeklyScheduleView: View {
                 
                 if tasks.isEmpty {
                     Spacer()
-                    Button(action: {
-                        showingAddTaskSheet = true
-                    }) {
-                        ContentUnavailableView(
-                            "休息日",
-                            systemImage: "moon.zzz",
-                            description: Text("\(dayNames[selectedDay])曜日はトレーニングがありません\nタップしてトレーニングを追加")
-                        )
-                    }
-                    .buttonStyle(.plain)
+                    ContentUnavailableView(
+                        "休息日",
+                        systemImage: "moon.zzz",
+                        description: Text("\(dayNames[selectedDay])曜日はトレーニングがありません")
+                    )
                     Spacer()
                 } else {
                     ScrollView {
@@ -485,21 +458,7 @@ struct DetailItem: View {
     }
 }
 
-// プレビュー用の拡張
-extension CyclingIntensity {
-    var displayName: String {
-        switch self {
-        case .endurance: return "Endurance"
-        case .sst: return "SST"
-        case .vo2max: return "VO2max"
-        case .recovery: return "Recovery"
-        case .z2: return "Zone 2"
-        case .tempo: return "Tempo"
-        case .anaerobic: return "Anaerobic"
-        case .sprint: return "Sprint"
-        }
-    }
-}
+// プレビュー用の拡張 - CyclingIntensity removed
 
 #Preview {
     WeeklyScheduleView()

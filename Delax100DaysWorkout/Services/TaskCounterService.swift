@@ -38,7 +38,7 @@ class TaskCounterService: ObservableObject {
     
     /// DailyTaskの完了時にカウンターを更新
     func incrementCounter(for task: DailyTask, in modelContext: ModelContext) {
-        let taskType = TaskIdentificationUtils.generateTaskType(from: task)
+        let taskType = task.workoutType.rawValue
         let counter = getOrCreateCounter(for: taskType, in: modelContext)
         
         counter.incrementCount()
@@ -53,7 +53,7 @@ class TaskCounterService: ObservableObject {
     
     /// WorkoutRecordの完了時にカウンターを更新
     func incrementCounter(for record: WorkoutRecord, in modelContext: ModelContext) {
-        let taskType = TaskIdentificationUtils.generateTaskType(from: record)
+        let taskType = record.workoutType.rawValue
         let counter = getOrCreateCounter(for: taskType, in: modelContext)
         
         counter.incrementCount()
@@ -85,7 +85,7 @@ class TaskCounterService: ObservableObject {
     
     /// DailyTaskのカウンター情報を取得
     func getCounterInfo(for task: DailyTask, in modelContext: ModelContext) -> TaskCompletionCounter? {
-        let taskType = TaskIdentificationUtils.generateTaskType(from: task)
+        let taskType = task.workoutType.rawValue
         return getCounterInfo(for: taskType, in: modelContext)
     }
     
@@ -136,7 +136,7 @@ class TaskCounterService: ObservableObject {
             
             // 各WorkoutRecordから種目識別子を生成してカウント
             for record in records {
-                let taskType = TaskIdentificationUtils.generateTaskType(from: record)
+                let taskType = record.workoutType.rawValue
                 taskTypeCounts[taskType, default: 0] += 1
             }
             

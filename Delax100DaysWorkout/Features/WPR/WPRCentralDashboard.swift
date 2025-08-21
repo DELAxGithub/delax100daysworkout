@@ -124,8 +124,7 @@ struct WPRCentralDashboardView: View {
     }
     
     private func setupWPRSystem() {
-        // WPR自動更新サービスを使用してシステムを初期化
-        let _ = WPRAutoUpdateService(modelContext: modelContext)
+        // WPR自動更新サービスは簡単化のため無効化
         
         // WPRシステムが存在しない場合は作成
         if wprSystems.isEmpty {

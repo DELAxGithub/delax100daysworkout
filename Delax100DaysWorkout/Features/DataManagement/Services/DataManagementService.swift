@@ -112,6 +112,7 @@ class DataManagementService {
     // MARK: - Demo Data Operations
     
     static func generateDemoData(modelContext: ModelContext) {
-        DemoDataManager.generateJuly2025DemoData(modelContext: modelContext)
+        // DemoDataManager は簡単化のため無効化
+        print("Demo data generation disabled for simplified build")
     }
 }

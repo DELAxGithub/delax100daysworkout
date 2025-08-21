@@ -109,9 +109,9 @@ class DashboardViewModel {
             originalWorkout.isCompleted = editedWorkout.isCompleted
             
             // 詳細データを更新
-            originalWorkout.cyclingDetail = editedWorkout.cyclingDetail
-            originalWorkout.strengthDetails = editedWorkout.strengthDetails
-            originalWorkout.flexibilityDetail = editedWorkout.flexibilityDetail
+            originalWorkout.cyclingData = editedWorkout.cyclingData
+            originalWorkout.strengthData = editedWorkout.strengthData
+            originalWorkout.flexibilityData = editedWorkout.flexibilityData
             
             try modelContext.save()
             

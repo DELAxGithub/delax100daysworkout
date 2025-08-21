@@ -14,6 +14,7 @@ struct UnifiedHomeDashboardView: View {
     @State private var scheduleViewModel: WeeklyScheduleViewModel? = nil
     @State private var latestWeight: Double? = nil
     @State private var isHealthKitSyncing = false
+    @State private var userProfile: UserProfile? = nil
     
     @State private var showingFTPEntry = false
     @State private var showingDemoDataAlert = false
@@ -49,34 +50,66 @@ struct UnifiedHomeDashboardView: View {
                     // FTP Section
                     SectionCard(title: "FTP進捗", icon: "bolt.fill", iconColor: .blue) {
                         VStack(spacing: 16) {
-                            // Current FTP with 20-min target
-                            if let currentFTP = sstViewModel.currentFTP,
-                               let twentyMinTarget = sstViewModel.twentyMinutePowerTarget {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("現在")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                            // Current FTP with goals and progress
+                            HStack(spacing: 20) {
+                                // Current FTP
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("現在")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    if let currentFTP = sstViewModel.currentFTP {
                                         Text("\(currentFTP)W")
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.blue)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    VStack(alignment: .trailing, spacing: 4) {
-                                        Text("20分目標")
-                                            .font(.caption)
+                                    } else {
+                                        Text("--")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
                                             .foregroundColor(.secondary)
-                                        Text("\(twentyMinTarget)W")
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.orange)
                                     }
                                 }
-                                .padding(.horizontal)
+                                
+                                // Goal FTP
+                                VStack(alignment: .center, spacing: 4) {
+                                    Text("目標")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    if let goalFTP = userProfile?.goalFtp, goalFTP > 0 {
+                                        Text("\(goalFTP)W")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.green)
+                                    } else {
+                                        Text("未設定")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                // Progress percentage
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    Text("進捗")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    if let currentFTP = sstViewModel.currentFTP,
+                                       let startFTP = userProfile?.startFtp,
+                                       let goalFTP = userProfile?.goalFtp,
+                                       goalFTP > startFTP {
+                                        let progress = Double(currentFTP - startFTP) / Double(goalFTP - startFTP) * 100
+                                        Text("\(Int(max(0, min(100, progress))))%")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(progress >= 100 ? .green : .orange)
+                                    } else {
+                                        Text("--")
+                                            .font(.title3)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                             }
+                            .padding(.horizontal)
                             
                             // FTP Chart (Compact)
                             if !sstViewModel.ftpHistory.isEmpty {
@@ -175,38 +208,104 @@ struct UnifiedHomeDashboardView: View {
                     
                     // Health Summary Section
                     SectionCard(title: "健康データ", icon: "heart.fill", iconColor: .red) {
-                        HStack(spacing: 20) {
-                            // Weight Display
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("体重")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                if let weight = latestWeight {
-                                    Text("\(weight, specifier: "%.1f")kg")
-                                        .font(.title3)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.orange)
-                                } else {
-                                    Text("データなし")
+                        VStack(spacing: 16) {
+                            // Weight section with goals
+                            HStack(spacing: 20) {
+                                // Current Weight
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("体重")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
+                                    if let weight = latestWeight {
+                                        Text("\(weight, specifier: "%.1f")kg")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.orange)
+                                    } else {
+                                        Text("データなし")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                // Goal Weight
+                                VStack(alignment: .center, spacing: 4) {
+                                    Text("目標")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    if let goalWeight = userProfile?.goalWeightKg, goalWeight > 0 {
+                                        Text("\(goalWeight, specifier: "%.1f")kg")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.green)
+                                    } else {
+                                        Text("未設定")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                // Weight Progress
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    Text("進捗")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    if let currentWeight = latestWeight,
+                                       let startWeight = userProfile?.startWeightKg,
+                                       let goalWeight = userProfile?.goalWeightKg,
+                                       startWeight != goalWeight {
+                                        let progress = (startWeight - currentWeight) / (startWeight - goalWeight) * 100
+                                        Text("\(Int(max(0, min(100, progress))))%")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(progress >= 100 ? .green : .orange)
+                                    } else {
+                                        Text("--")
+                                            .font(.title3)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
                             
-                            Spacer()
-                            
                             // Steps Display
-                            VStack(alignment: .trailing, spacing: 4) {
-                                Text("今日の歩数")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("\(Int(todaySteps))")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.green)
-                                Text("歩")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("今日の歩数")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("\(Int(todaySteps)) 歩")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.green)
+                                }
+                                
+                                Spacer()
+                                
+                                // Goal date countdown
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    Text("目標まで")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    if let goalDate = userProfile?.goalDate {
+                                        let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: goalDate).day ?? 0
+                                        if daysLeft > 0 {
+                                            Text("\(daysLeft)日")
+                                                .font(.title3)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.blue)
+                                        } else {
+                                            Text("期限終了")
+                                                .font(.caption)
+                                                .foregroundColor(.red)
+                                        }
+                                    } else {
+                                        Text("未設定")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -241,28 +340,55 @@ struct UnifiedHomeDashboardView: View {
                     // Overall Progress Section
                     SectionCard(title: "全体進捗", icon: "chart.bar.fill", iconColor: .green) {
                         VStack(spacing: 16) {
-                            // Progress Stats
-                            HStack(spacing: 20) {
-                                StatView(
-                                    title: "今月",
-                                    value: "\(progressViewModel?.currentMonthWorkouts ?? 0)",
-                                    unit: "回",
-                                    color: .green
-                                )
+                            // Progress Stats with Goal Comparison
+                            VStack(spacing: 12) {
+                                // Main stats
+                                HStack(spacing: 20) {
+                                    StatView(
+                                        title: "今月",
+                                        value: "\(progressViewModel?.currentMonthWorkouts ?? 0)",
+                                        unit: "回",
+                                        color: .green
+                                    )
+                                    
+                                    StatView(
+                                        title: "連続",
+                                        value: "\(progressViewModel?.currentStreak ?? 0)",
+                                        unit: "日",
+                                        color: .orange
+                                    )
+                                    
+                                    StatView(
+                                        title: "合計",
+                                        value: "\(progressViewModel?.totalWorkouts ?? 0)",
+                                        unit: "回",
+                                        color: .blue
+                                    )
+                                }
                                 
-                                StatView(
-                                    title: "連続",
-                                    value: "\(progressViewModel?.currentStreak ?? 0)",
-                                    unit: "日",
-                                    color: .orange
-                                )
-                                
-                                StatView(
-                                    title: "合計",
-                                    value: "\(progressViewModel?.totalWorkouts ?? 0)",
-                                    unit: "回",
-                                    color: .blue
-                                )
+                                // Goal timeline progress
+                                if let goalDate = userProfile?.goalDate {
+                                    let totalDays = Calendar.current.dateComponents([.day], from: Date().addingTimeInterval(-100*24*60*60), to: goalDate).day ?? 100
+                                    let elapsedDays = Calendar.current.dateComponents([.day], from: Date().addingTimeInterval(-100*24*60*60), to: Date()).day ?? 0
+                                    let timeProgress = Double(elapsedDays) / Double(totalDays) * 100
+                                    
+                                    HStack {
+                                        Text("目標期間進捗")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(Int(max(0, min(100, timeProgress))))% (経過\(elapsedDays)/\(totalDays)日)")
+                                            .font(.caption)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(timeProgress > 100 ? .red : .blue)
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                                }
                             }
                             
                             // Recent Activity
@@ -414,10 +540,14 @@ struct UnifiedHomeDashboardView: View {
         }
         .onAppear {
             setupViewModels()
+            loadUserProfile()
             loadAllData()
             Task {
                 await initializeHealthKit()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileUpdated)) { _ in
+            loadUserProfile()
         }
     }
     
@@ -431,6 +561,15 @@ struct UnifiedHomeDashboardView: View {
         scheduleViewModel = WeeklyScheduleViewModel(modelContext: modelContext)
     }
     
+    private func loadUserProfile() {
+        let descriptor = FetchDescriptor<UserProfile>()
+        do {
+            userProfile = try modelContext.fetch(descriptor).first
+        } catch {
+            Logger.error.error("Failed to fetch UserProfile: \(error.localizedDescription)")
+        }
+    }
+    
     private func loadAllData() {
         sstViewModel.loadData()
         progressViewModel?.fetchData()
@@ -438,6 +577,7 @@ struct UnifiedHomeDashboardView: View {
     }
     
     private func refreshAllData() {
+        loadUserProfile() // UserProfile更新
         sstViewModel.refreshData()
         progressViewModel?.fetchData()
         dashboardViewModel?.refreshData()
@@ -717,6 +857,12 @@ extension ProgressChartViewModel {
 }
 
 // MARK: - Preview
+
+// MARK: - Notifications
+
+extension Notification.Name {
+    static let userProfileUpdated = Notification.Name("userProfileUpdated")
+}
 
 #Preview {
     UnifiedHomeDashboardView()

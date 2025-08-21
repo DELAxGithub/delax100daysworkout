@@ -62,14 +62,9 @@ class TaskSuggestionManager {
             adjustCyclingTask(task: adjustedTask, performance: performance)
         case .strength:
             adjustStrengthTask(task: adjustedTask, performance: performance)
-        case .flexibility:
+        case .flexibility, .pilates, .yoga:
             adjustFlexibilityTask(task: adjustedTask, performance: performance)
-        case .pilates:
-            // ピラティス調整は後で実装
-            break
-        case .yoga:
-            // ヨガ調整は後で実装
-            break
+            // Note: pilates and yoga are now handled under flexibility type
         }
         
         return adjustedTask
@@ -134,24 +129,21 @@ class TaskSuggestionManager {
     private func calculateAverageIntensity(records: [WorkoutRecord], type: WorkoutType) -> Double {
         switch type {
         case .cycling:
-            let powers = records.compactMap { $0.cyclingDetail?.averagePower }
+            let powers = records.compactMap { $0.cyclingData?.power }.map { Double($0) }
             return powers.isEmpty ? 1.0 : powers.reduce(0, +) / Double(powers.count)
         case .strength:
-            // 総重量で計算
-            let totalWeights = records.compactMap { record in
-                record.strengthDetails?.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
+            // 総重量で計算 (simplified for SimpleStrengthData)
+            let totalWeights: [Double] = records.compactMap { record in
+                guard let data = record.strengthData else { return nil }
+                return data.weight * Double(data.sets * data.reps)
             }
             return totalWeights.isEmpty ? 1.0 : totalWeights.reduce(0, +) / Double(totalWeights.count)
-        case .flexibility:
-            // 柔軟性の改善度で計算
-            let angles = records.compactMap { $0.flexibilityDetail?.averageSplitAngle }
-            return angles.isEmpty ? 1.0 : angles.reduce(0, +) / Double(angles.count)
-        case .pilates:
-            // ピラティス強度計算は後で実装
-            return 1.0
-        case .yoga:
-            // ヨガ強度計算は後で実装
-            return 1.0
+        case .flexibility, .pilates, .yoga:
+            // 柔軟性の改善度で計算 (simplified for SimpleFlexibilityData)
+            let measurements = records.compactMap { $0.flexibilityData?.measurement }
+            return measurements.isEmpty ? 1.0 : measurements.reduce(0, +) / Double(measurements.count)
+        // case .pilates, .yoga: // Migrated to flexibility
+        //     return 1.0
         }
     }
     
@@ -241,11 +233,11 @@ class TaskSuggestionManager {
             description: "雨天のため室内でクロストレーニング"
         )
         
-        alternative.targetDetails = TargetDetails(
-            exercises: ["バーピー", "マウンテンクライマー", "プランク"],
-            targetSets: 3,
-            targetReps: 15
-        )
+        var details = TargetDetails()
+        details.exercises = ["バーピー", "マウンテンクライマー", "プランク"]
+        details.targetSets = 3
+        details.targetReps = 15
+        alternative.targetDetails = details
         
         return alternative
     }
@@ -259,11 +251,11 @@ class TaskSuggestionManager {
                 title: "リカバリーライド",
                 description: "疲労回復のための軽めのライド"
             )
-            alternative.targetDetails = TargetDetails(
-                duration: 30,
-                intensity: .recovery,
-                targetPower: 100
-            )
+            var details = TargetDetails()
+            details.duration = 30
+            details.intensity = .recovery
+            details.targetPower = 100
+            alternative.targetDetails = details
             return alternative
             
         case .strength:
@@ -273,16 +265,16 @@ class TaskSuggestionManager {
                 title: "アクティブリカバリー",
                 description: "ストレッチとモビリティワーク"
             )
-            alternative.targetDetails = TargetDetails(targetDuration: 20)
+            var details = TargetDetails()
+            details.targetDuration = 20
+            alternative.targetDetails = details
             return alternative
             
-        case .flexibility:
+        case .flexibility, .pilates, .yoga:
             // 柔軟性は既に軽いので変更なし
             return originalTask
-        case .pilates:
-            return originalTask
-        case .yoga:
-            return originalTask
+        // case .pilates, .yoga: // Migrated to flexibility
+        //     return originalTask
         }
     }
     
@@ -296,23 +288,23 @@ class TaskSuggestionManager {
         
         switch originalTask.workoutType {
         case .cycling:
-            alternative.targetDetails = TargetDetails(
-                duration: 20,
-                intensity: .tempo,
-                targetPower: originalTask.targetDetails?.targetPower
-            )
+            var details = TargetDetails()
+            details.duration = 20
+            details.intensity = .sst
+            details.targetPower = originalTask.targetDetails?.targetPower
+            alternative.targetDetails = details
         case .strength:
-            alternative.targetDetails = TargetDetails(
-                exercises: originalTask.targetDetails?.exercises?.prefix(2).map { $0 } ?? [],
-                targetSets: 2,
-                targetReps: originalTask.targetDetails?.targetReps ?? 10
-            )
-        case .flexibility:
-            alternative.targetDetails = TargetDetails(targetDuration: 10)
-        case .pilates:
-            alternative.targetDetails = TargetDetails(targetDuration: 15)
-        case .yoga:
-            alternative.targetDetails = TargetDetails(targetDuration: 15)
+            var details = TargetDetails()
+            details.exercises = originalTask.targetDetails?.exercises?.prefix(2).map { $0 } ?? []
+            details.targetSets = 2
+            details.targetReps = originalTask.targetDetails?.targetReps ?? 10
+            alternative.targetDetails = details
+        case .flexibility, .pilates, .yoga:
+            var details = TargetDetails()
+            details.targetDuration = 10
+            alternative.targetDetails = details
+        // case .pilates, .yoga: // Migrated to flexibility
+        //     alternative.targetDetails = TargetDetails(targetDuration: 15)
         }
         
         return alternative
@@ -325,7 +317,9 @@ class TaskSuggestionManager {
             title: "リハビリストレッチ",
             description: "怪我に配慮した軽いストレッチ"
         )
-        alternative.targetDetails = TargetDetails(targetDuration: 15)
+        var details = TargetDetails()
+        details.targetDuration = 15
+        alternative.targetDetails = details
         return alternative
     }
 }

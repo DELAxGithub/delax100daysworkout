@@ -96,6 +96,9 @@ class SettingsViewModel {
             // Show confirmation alert and prepare for navigation
             self.showSaveConfirmation = true
             self.shouldNavigateToHome = true
+            
+            // Notify other views that UserProfile has been updated
+            NotificationCenter.default.post(name: .userProfileUpdated, object: nil)
         }
         
         return true
@@ -164,7 +167,7 @@ class SettingsViewModel {
     }
     
     func saveAPIKey() {
-        WeeklyPlanAIService.saveAPIKey(claudeAPIKey)
+        UserDefaults.standard.set(claudeAPIKey, forKey: "claude_api_key")
         // ViewModelの状態をリセット
         apiKeyTestResult = ""
         showSaveConfirmation = true
@@ -172,7 +175,7 @@ class SettingsViewModel {
     
     func clearAPIKey() {
         claudeAPIKey = ""
-        WeeklyPlanAIService.clearAPIKey()
+        UserDefaults.standard.removeObject(forKey: "claude_api_key")
         apiKeyTestResult = ""
     }
     
@@ -186,32 +189,11 @@ class SettingsViewModel {
         isTestingAPIKey = true
         apiKeyTestResult = "テスト中..."
         
-        // 一時的にAPIキーを保存してテスト
-        let originalKey = UserDefaults.standard.string(forKey: "claude_api_key")
-        WeeklyPlanAIService.saveAPIKey(claudeAPIKey)
-        
-        // 新しいサービスインスタンスでテスト
-        let testService = WeeklyPlanAIService()
-        let result = await testService.testAPIKey()
-        
-        switch result {
-        case .valid:
-            apiKeyTestResult = "✅ APIキーは有効です"
-        case .missing:
-            apiKeyTestResult = "❌ APIキーが設定されていません"
-        case .invalid:
+        // 簡単なフォーマットチェック
+        if claudeAPIKey.hasPrefix("sk-") && claudeAPIKey.count > 20 {
+            apiKeyTestResult = "✅ APIキーの形式は有効です"
+        } else {
             apiKeyTestResult = "❌ APIキーの形式が無効です"
-        case .untested:
-            apiKeyTestResult = "⚠️ 接続テストに失敗しました"
-        }
-        
-        // テスト結果が無効な場合は元のキーに戻す
-        if result != .valid {
-            if let original = originalKey {
-                WeeklyPlanAIService.saveAPIKey(original)
-            } else {
-                WeeklyPlanAIService.clearAPIKey()
-            }
         }
         
         isTestingAPIKey = false

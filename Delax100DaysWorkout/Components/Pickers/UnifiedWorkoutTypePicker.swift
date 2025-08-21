@@ -150,7 +150,7 @@ private struct WorkoutTypeOption: View {
         )
         
         UnifiedWorkoutTypePicker(
-            selectedType: .constant(.pilates),
+            selectedType: .constant(.flexibility),
             onSelectionChanged: { type in
                 Logger.debug.debug("Selected: \(type.rawValue)")
             }

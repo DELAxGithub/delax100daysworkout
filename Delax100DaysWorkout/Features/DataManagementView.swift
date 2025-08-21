@@ -56,8 +56,15 @@ struct DataManagementView: View {
             }
             .sheet(item: $viewModel.selectedEditModel) { model in
                 NavigationStack {
-                    GenericCRUDModelView(editableModel: model)
-                        .environment(\.modelContext, modelContext)
+                    Text("編集機能: \(model.displayName)")
+                        .navigationTitle("編集")
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button("完了") {
+                                    viewModel.selectedEditModel = nil
+                                }
+                            }
+                        }
                 }
             }
         }

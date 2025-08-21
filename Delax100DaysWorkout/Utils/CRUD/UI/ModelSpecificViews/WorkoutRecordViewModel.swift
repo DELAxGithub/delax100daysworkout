@@ -86,7 +86,7 @@ class WorkoutRecordViewModel: ObservableObject {
     func toggleCompletion(_ record: WorkoutRecord, modelContext: ModelContext) async {
         record.isCompleted.toggle()
         if record.isCompleted {
-            record.markAsCompleted(modelContext: modelContext)
+            record.markAsCompleted()
         }
         await loadWorkoutRecords()
     }

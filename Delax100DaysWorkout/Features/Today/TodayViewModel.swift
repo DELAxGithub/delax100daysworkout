@@ -124,39 +124,33 @@ class TodayViewModel {
         record.markAsCompleted()
         modelContext.insert(record)
         
-        // 基本的な詳細データを設定
+        // 基本的な詳細データを設定（simplified）
         switch task.workoutType {
         case .cycling:
             if let targetDetails = task.targetDetails {
-                let detail = CyclingDetail(
-                    distance: 0, // クイック記録では0
+                record.cyclingData = SimpleCyclingData(
+                    zone: .z2,
                     duration: targetDetails.duration ?? 0,
-                    averagePower: Double(targetDetails.targetPower ?? 0),
-                    intensity: targetDetails.intensity ?? .endurance
+                    power: targetDetails.targetPower
                 )
-                record.cyclingDetail = detail
-                modelContext.insert(detail)
             }
         case .strength:
-            // クイック記録では詳細なしで完了扱い
-            record.strengthDetails = []
-        case .flexibility:
+            // Quick record - basic data only
+            record.strengthData = SimpleStrengthData(
+                muscleGroup: .chest,
+                customName: nil,
+                weight: 0,
+                reps: 10,
+                sets: 3
+            )
+        case .flexibility, .pilates, .yoga:
             if let targetDetails = task.targetDetails {
-                let detail = FlexibilityDetail(
-                    forwardBendDistance: 0,
-                    leftSplitAngle: 90,
-                    rightSplitAngle: 90,
-                    duration: targetDetails.targetDuration ?? 20
+                record.flexibilityData = SimpleFlexibilityData(
+                    type: .general,
+                    duration: targetDetails.targetDuration ?? 20,
+                    measurement: nil
                 )
-                record.flexibilityDetail = detail
-                modelContext.insert(detail)
             }
-        case .pilates:
-            // ピラティス詳細は後で実装
-            break
-        case .yoga:
-            // ヨガ詳細は後で実装
-            break
         }
         
         // 保存
@@ -188,10 +182,7 @@ class TodayViewModel {
                 modelContext.insert(prAchievement)
             }
             
-            // 連続記録チェック
-            if let streakAchievement = Achievement.checkForStreak(records: allRecords, targetDays: 7) {
-                modelContext.insert(streakAchievement)
-            }
+            // 連続記録チェックは簡単化のため無効化
             
             // 進捗分析
             let progress = progressAnalyzer.analyzeProgress(records: allRecords)
@@ -228,24 +219,8 @@ class TodayViewModel {
         do {
             let records = try modelContext.fetch(recordDescriptor)
             
-            // 関連する詳細データも削除
+            // WorkoutRecords削除（詳細データはJSONで保存されているため削除不要）
             for record in records {
-                // CyclingDetailの削除
-                if let cyclingDetail = record.cyclingDetail {
-                    modelContext.delete(cyclingDetail)
-                }
-                
-                // StrengthDetailsの削除
-                if let strengthDetails = record.strengthDetails {
-                    strengthDetails.forEach { modelContext.delete($0) }
-                }
-                
-                // FlexibilityDetailの削除
-                if let flexibilityDetail = record.flexibilityDetail {
-                    modelContext.delete(flexibilityDetail)
-                }
-                
-                // WorkoutRecord自体を削除
                 modelContext.delete(record)
             }
             

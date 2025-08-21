@@ -66,11 +66,7 @@ struct TaskCardView: View {
                     // 目標達成時の「おかわり」ボタン
                     if counter.isTargetAchieved && !isCompleted {
                         Button("おかわり +50") {
-                            TaskCounterService.shared.addTarget(
-                                for: TaskIdentificationUtils.generateTaskType(from: task),
-                                additionalCount: 50,
-                                in: modelContext
-                            )
+                            // TaskCounterService removed
                             loadCounterInfo()
                         }
                         .font(Typography.captionMedium.font)

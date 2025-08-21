@@ -203,8 +203,8 @@ struct ProgressDetailsSheet: View {
     private var cyclingProgressChart: some View {
         let cyclingRecords = filteredRecords.filter { $0.workoutType == .cycling }
         let powerData = cyclingRecords.compactMap { record -> (Date, Double)? in
-            guard let power = record.cyclingDetail?.averagePower else { return nil }
-            return (record.date, power)
+            guard let power = record.cyclingData?.power else { return nil }
+            return (record.date, Double(power))
         }
         
         guard !powerData.isEmpty else { return AnyView(EmptyView()) }
@@ -216,7 +216,7 @@ struct ProgressDetailsSheet: View {
                     .fontWeight(.medium)
                 
                 Chart {
-                    ForEach(Array(powerData.enumerated()), id: \.offset) { index, item in
+                    ForEach(Array(powerData.enumerated()), id: \.0) { (index, item) in
                         LineMark(
                             x: .value("日付", item.0),
                             y: .value("パワー", item.1)
@@ -236,8 +236,8 @@ struct ProgressDetailsSheet: View {
     private var strengthProgressChart: some View {
         let strengthRecords = filteredRecords.filter { $0.workoutType == .strength }
         let volumeData = strengthRecords.compactMap { record -> (Date, Double)? in
-            guard let details = record.strengthDetails else { return nil }
-            let totalVolume = details.reduce(0.0) { $0 + ($1.weight * Double($1.sets * $1.reps)) }
+            guard let data = record.strengthData else { return nil }
+            let totalVolume = data.weight * Double(data.sets * data.reps)
             return (record.date, totalVolume)
         }
         
@@ -250,7 +250,7 @@ struct ProgressDetailsSheet: View {
                     .fontWeight(.medium)
                 
                 Chart {
-                    ForEach(Array(volumeData.enumerated()), id: \.offset) { index, item in
+                    ForEach(Array(volumeData.enumerated()), id: \.0) { (index, item) in
                         LineMark(
                             x: .value("日付", item.0),
                             y: .value("負荷量", item.1)
@@ -270,7 +270,7 @@ struct ProgressDetailsSheet: View {
     private var flexibilityProgressChart: some View {
         let flexRecords = filteredRecords.filter { $0.workoutType == .flexibility }
         let angleData = flexRecords.compactMap { record -> (Date, Double)? in
-            guard let angle = record.flexibilityDetail?.averageSplitAngle else { return nil }
+            guard let angle = record.flexibilityData?.measurement else { return nil }
             return (record.date, angle)
         }
         
@@ -283,7 +283,7 @@ struct ProgressDetailsSheet: View {
                     .fontWeight(.medium)
                 
                 Chart {
-                    ForEach(Array(angleData.enumerated()), id: \.offset) { index, item in
+                    ForEach(Array(angleData.enumerated()), id: \.0) { (index, item) in
                         LineMark(
                             x: .value("日付", item.0),
                             y: .value("角度", item.1)

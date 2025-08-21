@@ -130,7 +130,12 @@ struct EditableWorkoutCardView: View {
             }
         }
         .sheet(isPresented: $showingEditSheet) {
-            WorkoutEditSheet(workoutRecord: workout)
+            WorkoutHistoryEditSheet(
+                workout: workout,
+                onSave: { _ in
+                    showingEditSheet = false
+                }
+            )
         }
     }
     

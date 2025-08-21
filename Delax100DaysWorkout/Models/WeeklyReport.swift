@@ -12,7 +12,10 @@ final class WeeklyReport {
     var flexibilityCompleted: Int = 0
     var flexibilityTarget: Int = 0
     var summary: String = ""
-    var achievements: [String] = []
+    
+    // SwiftData-compatible achievements storage as comma-separated string
+    private var achievementsString: String = ""
+    
     var encouragementMessage: String = ""
     var createdAt: Date
     
@@ -20,6 +23,20 @@ final class WeeklyReport {
         self.weekStartDate = weekStartDate
         self.weekEndDate = Calendar.current.date(byAdding: .day, value: 6, to: weekStartDate) ?? weekStartDate
         self.createdAt = Date()
+        self.achievementsString = ""
+    }
+    
+    // Computed property for achievements array
+    var achievements: [String] {
+        get {
+            if achievementsString.isEmpty {
+                return []
+            }
+            return achievementsString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        }
+        set {
+            achievementsString = newValue.joined(separator: ",")
+        }
     }
     
     var totalCompleted: Int {

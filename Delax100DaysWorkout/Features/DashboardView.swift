@@ -42,7 +42,7 @@ struct DashboardView: View {
             .sheet(isPresented: $isShowingLogEntry, onDismiss: {
                 viewModel.refreshData()
             }) {
-                LogEntryView(viewModel: LogEntryViewModel(modelContext: modelContext))
+                QuickRecordView()
             }
             .sheet(isPresented: $showingMetricEntry, onDismiss: {
                 viewModel.refreshData()

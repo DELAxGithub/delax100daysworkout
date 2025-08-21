@@ -57,9 +57,11 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .flexibility,
             title: "リカバリー柔軟",
             description: "30分＋前後開脚記録",
-            targetDetails: TargetDetails(
-                targetDuration: 30
-            )
+            targetDetails: {
+                var details = TargetDetails()
+                details.targetDuration = 30
+                return details
+            }()
         )
         template.addTask(sundayFlex)
         
@@ -69,11 +71,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .strength,
             title: "Push筋トレ",
             description: "胸・肩・三頭筋",
-            targetDetails: TargetDetails(
-                exercises: ["ベンチプレス", "ダンベルプレス", "ショルダープレス"],
-                targetSets: 3,
-                targetReps: 10
-            )
+            targetDetails: {
+                var details = TargetDetails()
+                details.exercises = ["ベンチプレス", "ダンベルプレス", "ショルダープレス"]
+                details.targetSets = 3
+                details.targetReps = 10
+                return details
+            }()
         )
         template.addTask(mondayStrength)
         
@@ -82,9 +86,11 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .flexibility,
             title: "ストレッチ",
             description: "筋トレ後のストレッチ",
-            targetDetails: TargetDetails(
-                targetDuration: 10
-            ),
+            targetDetails: {
+                var details = TargetDetails()
+                details.targetDuration = 10
+                return details
+            }(),
             sortOrder: 1
         )
         template.addTask(mondayFlex)
@@ -95,11 +101,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .flexibility,
             title: "朝の柔軟",
             description: "20分＋前屈/左右開脚記録",
-            targetDetails: TargetDetails(
-                targetDuration: 20,
-                targetForwardBend: 0,
-                targetSplitAngle: 120
-            )
+            targetDetails: {
+                var details = TargetDetails()
+                details.targetDuration = 20
+                details.targetForwardBend = 0
+                details.targetSplitAngle = 120
+                return details
+            }()
         )
         template.addTask(tuesdayFlex)
         
@@ -109,11 +117,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .cycling,
             title: "SST 45分",
             description: "Sweet Spot Training",
-            targetDetails: TargetDetails(
-                duration: 45,
-                intensity: .sst,
-                targetPower: 230
-            ),
+            targetDetails: {
+                var details = TargetDetails()
+                details.duration = 45
+                details.intensity = .sst
+                details.targetPower = 230
+                return details
+            }(),
             isFlexible: true
         )
         template.addTask(wednesdayBike)
@@ -124,11 +134,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .strength,
             title: "Pull筋トレ＋体幹",
             description: "背中・二頭筋・体幹",
-            targetDetails: TargetDetails(
-                exercises: ["プルアップ", "ラットプルダウン", "ローイング", "プランク"],
-                targetSets: 3,
-                targetReps: 10
-            )
+            targetDetails: {
+                var details = TargetDetails()
+                details.exercises = ["プルアップ", "ラットプルダウン", "ローイング", "プランク"]
+                details.targetSets = 3
+                details.targetReps = 10
+                return details
+            }()
         )
         template.addTask(thursdayStrength)
         
@@ -137,9 +149,11 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .flexibility,
             title: "ストレッチ",
             description: "筋トレ後のストレッチ",
-            targetDetails: TargetDetails(
-                targetDuration: 10
-            ),
+            targetDetails: {
+                var details = TargetDetails()
+                details.targetDuration = 10
+                return details
+            }(),
             sortOrder: 1
         )
         template.addTask(thursdayFlex)
@@ -150,11 +164,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .cycling,
             title: "Z2脂肪燃焼ライド",
             description: "45分の脂肪燃焼ライド",
-            targetDetails: TargetDetails(
-                duration: 45,
-                intensity: .z2,
-                targetPower: 170
-            )
+            targetDetails: {
+                var details = TargetDetails()
+                details.duration = 45
+                details.intensity = .z2
+                details.targetPower = 170
+                return details
+            }()
         )
         template.addTask(fridayBike)
         
@@ -163,9 +179,11 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .flexibility,
             title: "柔軟（前後）",
             description: "前後開脚中心",
-            targetDetails: TargetDetails(
-                targetDuration: 15
-            ),
+            targetDetails: {
+                var details = TargetDetails()
+                details.targetDuration = 15
+                return details
+            }(),
             sortOrder: 1
         )
         template.addTask(fridayFlex)
@@ -176,11 +194,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .cycling,
             title: "ロングライド",
             description: "90〜120分の持久力向上",
-            targetDetails: TargetDetails(
-                duration: 90,
-                intensity: .endurance,
-                targetPower: 180
-            ),
+            targetDetails: {
+                var details = TargetDetails()
+                details.duration = 90
+                details.intensity = .z2
+                details.targetPower = 180
+                return details
+            }(),
             isFlexible: true
         )
         template.addTask(saturdayBike)
@@ -190,11 +210,13 @@ final class WeeklyTemplate: @unchecked Sendable {
             workoutType: .strength,
             title: "Legs+Core筋トレ",
             description: "脚・体幹",
-            targetDetails: TargetDetails(
-                exercises: ["スクワット", "ランジ", "デッドリフト", "腹筋"],
-                targetSets: 3,
-                targetReps: 10
-            ),
+            targetDetails: {
+                var details = TargetDetails()
+                details.exercises = ["スクワット", "ランジ", "デッドリフト", "腹筋"]
+                details.targetSets = 3
+                details.targetReps = 10
+                return details
+            }(),
             sortOrder: 1
         )
         template.addTask(saturdayStrength)

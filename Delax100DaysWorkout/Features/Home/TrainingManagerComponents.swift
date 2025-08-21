@@ -79,7 +79,7 @@ struct TaskCounterSection: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
                     ForEach(Array(counters.prefix(4)), id: \.taskType) { counter in
                         TaskCounterCard(
-                            title: TaskIdentificationUtils.getDisplayName(for: counter.taskType),
+                            title: counter.taskType,
                             count: counter.completionCount,
                             target: counter.currentTarget,
                             subtitle: counter.progressText,

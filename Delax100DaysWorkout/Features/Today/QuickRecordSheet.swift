@@ -13,17 +13,18 @@ struct QuickRecordSheet: View {
     @State private var showToast = false
     @State private var toastMessage = ""
     
-    // Cycling specific
-    @State private var distance: Double = 0
-    @State private var actualPower: Double = 0
-    
-    // Strength specific
-    @State private var exercises: [StrengthExerciseInput] = []
-    
-    // Flexibility specific
-    @State private var forwardBend: Double = 0
-    @State private var leftSplit: Double = 90
-    @State private var rightSplit: Double = 90
+    // Simplified inputs
+    @State private var selectedZone: CyclingZone = .z2
+    @State private var duration: Int = 60
+    @State private var power: Int = 0
+    @State private var selectedMuscleGroup: WorkoutMuscleGroup = .chest
+    @State private var customName: String = ""
+    @State private var weight: Double = 0
+    @State private var reps: Int = 10
+    @State private var sets: Int = 3
+    @State private var selectedFlexType: FlexibilityType = .general
+    @State private var flexDuration: Int = 30
+    @State private var measurement: Double = 0
     
     var body: some View {
         NavigationStack {
@@ -72,12 +73,8 @@ struct QuickRecordSheet: View {
                                     cyclingInputSection
                                 case .strength:
                                     strengthInputSection
-                                case .flexibility:
+                                case .flexibility, .pilates, .yoga:
                                     flexibilityInputSection
-                                case .pilates:
-                                    pilatesInputSection
-                                case .yoga:
-                                    yogaInputSection
                                 }
                             }
                             .padding(.horizontal)
@@ -172,44 +169,52 @@ struct QuickRecordSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             Label("サイクリング詳細", systemImage: "bicycle")
                 .font(.headline)
+                .foregroundStyle(.blue)
             
             VStack(spacing: 12) {
-                HStack {
-                    Label("距離", systemImage: "location")
-                    Spacer()
-                    HStack {
-                        TextField("0", value: $distance, format: .number.precision(.fractionLength(1)))
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 60)
-                        Text("km")
-                    }
-                }
-                
-                HStack {
-                    Label("平均パワー", systemImage: "bolt")
-                    Spacer()
-                    HStack {
-                        TextField("0", value: $actualPower, format: .number.precision(.fractionLength(0)))
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 60)
-                        Text("W")
-                    }
-                }
-                
-                if let targetPower = task.targetDetails?.targetPower {
-                    HStack {
-                        Text("目標: \(targetPower)W")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        if actualPower > 0 {
-                            let percentage = Int((actualPower / Double(targetPower)) * 100)
-                            Text("\(percentage)%")
-                                .font(.caption)
-                                .foregroundStyle(percentage >= 95 ? .green : .orange)
+                // Zone selection (simplified)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("ゾーン")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Picker("ゾーン", selection: $selectedZone) {
+                        ForEach(CyclingZone.allCases, id: \.self) { zone in
+                            Text(zone.displayName).tag(zone)
                         }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                // Duration
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("時間")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    HStack {
+                        Slider(value: Binding(
+                            get: { Double(duration) },
+                            set: { duration = Int($0) }
+                        ), in: 15...180, step: 15)
+                        
+                        Text("\(duration)分")
+                            .font(.subheadline)
+                            .frame(width: 50)
+                    }
+                }
+                
+                // Power (optional)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("パワー（オプション）")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    HStack {
+                        TextField("0", value: $power, format: .number)
+                            .keyboardType(.numberPad)
+                            .textFieldStyle(.roundedBorder)
+                        Text("W")
                     }
                 }
             }
@@ -223,96 +228,66 @@ struct QuickRecordSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             Label("筋トレ詳細", systemImage: "dumbbell")
                 .font(.headline)
+                .foregroundStyle(.orange)
             
-            if task.targetDetails?.exercises != nil {
-                ForEach(exercises.indices, id: \.self) { index in
+            VStack(spacing: 16) {
+                // Muscle group picker
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("部位")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Picker("部位", selection: $selectedMuscleGroup) {
+                        ForEach(WorkoutMuscleGroup.allCases, id: \.self) { group in
+                            Text(group.displayName).tag(group)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(height: 100)
+                }
+                
+                // Custom name for "その他"
+                if selectedMuscleGroup == .custom {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(exercises[index].name)
+                        Text("種目名")
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        HStack(spacing: 16) {
-                            VStack(alignment: .leading) {
-                                Text("重量")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                HStack {
-                                    TextField("0", value: $exercises[index].weight, format: .number.precision(.fractionLength(1)))
-                                        .keyboardType(.decimalPad)
-                                        .frame(width: 50)
-                                    Text("kg")
-                                        .font(.caption)
-                                }
-                            }
-                            
-                            VStack(alignment: .leading) {
-                                Text("セット")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                TextField("0", value: $exercises[index].sets, format: .number)
-                                    .keyboardType(.numberPad)
-                                    .frame(width: 40)
-                            }
-                            
-                            VStack(alignment: .leading) {
-                                Text("レップ")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                TextField("0", value: $exercises[index].reps, format: .number)
-                                    .keyboardType(.numberPad)
-                                    .frame(width: 40)
-                            }
-                            
-                            Spacer()
+                        TextField("例：ベンチプレス", text: $customName)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                }
+                
+                // Weight, sets, reps
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading) {
+                        Text("重量")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        HStack {
+                            TextField("0", value: $weight, format: .number.precision(.fractionLength(1)))
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(.roundedBorder)
+                            Text("kg")
                         }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
                     }
-                }
-            }
-        }
-    }
-    
-    private var flexibilityInputSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Label("柔軟性詳細", systemImage: "figure.flexibility")
-                .font(.headline)
-            
-            VStack(spacing: 12) {
-                HStack {
-                    Label("前屈", systemImage: "arrow.down")
-                    Spacer()
-                    HStack {
-                        TextField("0", value: $forwardBend, format: .number.precision(.fractionLength(1)))
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 60)
-                        Text("cm")
-                    }
-                }
-                
-                HStack {
-                    Label("左開脚", systemImage: "arrow.left.and.right")
-                    Spacer()
-                    HStack {
-                        TextField("90", value: $leftSplit, format: .number.precision(.fractionLength(0)))
+                    
+                    VStack(alignment: .leading) {
+                        Text("セット")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        TextField("3", value: $sets, format: .number)
                             .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 50)
-                        Text("°")
+                            .textFieldStyle(.roundedBorder)
                     }
-                }
-                
-                HStack {
-                    Label("右開脚", systemImage: "arrow.left.and.right")
-                    Spacer()
-                    HStack {
-                        TextField("90", value: $rightSplit, format: .number.precision(.fractionLength(0)))
+                    
+                    VStack(alignment: .leading) {
+                        Text("レップ")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        TextField("10", value: $reps, format: .number)
                             .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 50)
-                        Text("°")
+                            .textFieldStyle(.roundedBorder)
                     }
                 }
             }
@@ -322,37 +297,68 @@ struct QuickRecordSheet: View {
         }
     }
     
-    private var pilatesInputSection: some View {
+    private var flexibilityInputSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Label("ピラティス詳細", systemImage: "figure.pilates")
+            Label("柔軟性詳細", systemImage: "figure.flexibility")
                 .font(.headline)
+                .foregroundStyle(.green)
             
-            VStack(spacing: 8) {
-                Text("ピラティス詳細入力は後で実装予定")
-                    .foregroundColor(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
+            VStack(spacing: 16) {
+                // Type picker
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("種類")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Picker("種類", selection: $selectedFlexType) {
+                        ForEach(FlexibilityType.allCases, id: \.self) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(height: 100)
+                }
+                
+                // Duration
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("時間")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    HStack {
+                        Slider(value: Binding(
+                            get: { Double(flexDuration) },
+                            set: { flexDuration = Int($0) }
+                        ), in: 5...60, step: 5)
+                        
+                        Text("\(flexDuration)分")
+                            .font(.subheadline)
+                            .frame(width: 50)
+                    }
+                }
+                
+                // Measurement (for forward bend and split)
+                if selectedFlexType.hasMeasurement {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(selectedFlexType == .forwardBend ? "測定値" : "角度")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        HStack {
+                            TextField("0", value: $measurement, format: .number.precision(.fractionLength(1)))
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(.roundedBorder)
+                            Text(selectedFlexType == .forwardBend ? "cm" : "°")
+                        }
+                    }
+                }
             }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
         }
     }
     
-    private var yogaInputSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Label("ヨガ詳細", systemImage: "figure.yoga")
-                .font(.headline)
-            
-            VStack(spacing: 8) {
-                Text("ヨガ詳細入力は後で実装予定")
-                    .foregroundColor(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-            }
-        }
-    }
     
     // MARK: - Helper Methods
     
@@ -362,123 +368,90 @@ struct QuickRecordSheet: View {
             return ["調子良かった", "向かい風が強かった", "疲れていた", "ペース配分を意識した"]
         case .strength:
             return ["フォームを意識した", "限界まで追い込んだ", "軽めに調整した", "新記録！"]
-        case .flexibility:
+        case .flexibility, .pilates, .yoga:
             return ["体が硬かった", "少し改善した", "痛みがあった", "調子良かった"]
-        case .pilates:
-            return ["コアを意識した", "呼吸に集中した", "バランスが難しかった", "スッキリした"]
-        case .yoga:
-            return ["心が落ち着いた", "体があたたまった", "集中できた", "リラックスできた"]
         }
     }
     
     private func setupInitialValues() {
         switch task.workoutType {
         case .cycling:
-            if let detail = workoutRecord.cyclingDetail {
-                distance = detail.distance
-                actualPower = detail.averagePower
-            } else if let target = task.targetDetails {
-                actualPower = Double(target.targetPower ?? 0)
+            if let existingData = workoutRecord.cyclingData {
+                selectedZone = existingData.zone
+                duration = existingData.duration
+                power = existingData.power ?? 0
+            } else {
+                duration = selectedZone.defaultDuration
             }
             
         case .strength:
-            if let exercises = task.targetDetails?.exercises {
-                self.exercises = exercises.map { name in
-                    StrengthExerciseInput(
-                        name: name,
-                        weight: 0,
-                        sets: task.targetDetails?.targetSets ?? 3,
-                        reps: task.targetDetails?.targetReps ?? 10
-                    )
-                }
+            if let existingData = workoutRecord.strengthData {
+                selectedMuscleGroup = existingData.muscleGroup
+                customName = existingData.customName ?? ""
+                weight = existingData.weight
+                sets = existingData.sets
+                reps = existingData.reps
+            } else if let target = task.targetDetails {
+                sets = target.targetSets ?? 3
+                reps = target.targetReps ?? 10
             }
             
-        case .flexibility:
-            if let detail = workoutRecord.flexibilityDetail {
-                forwardBend = detail.forwardBendDistance
-                leftSplit = detail.leftSplitAngle
-                rightSplit = detail.rightSplitAngle
+        case .flexibility, .pilates, .yoga:
+            if let existingData = workoutRecord.flexibilityData {
+                selectedFlexType = existingData.type
+                flexDuration = existingData.duration
+                measurement = existingData.measurement ?? 0
+            } else {
+                flexDuration = 30
             }
-        case .pilates:
-            // ピラティス初期値設定は後で実装
-            break
-        case .yoga:
-            // ヨガ初期値設定は後で実装
-            break
         }
     }
     
     private func saveDetails() {
-        // Notes can be added to details or summary
         let noteText = notes.isEmpty ? nil : notes
         
+        // Create simple data based on workout type
         switch task.workoutType {
         case .cycling:
-            if let detail = workoutRecord.cyclingDetail {
-                detail.distance = distance
-                detail.averagePower = actualPower
-                if let note = noteText {
-                    // Add note to summary
-                    workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
-                }
-            }
+            let cyclingData = SimpleCyclingData(
+                zone: selectedZone,
+                duration: duration,
+                power: power > 0 ? power : nil
+            )
+            workoutRecord.cyclingData = cyclingData
             
         case .strength:
-            // Clear existing details
-            workoutRecord.strengthDetails?.forEach { modelContext.delete($0) }
+            let strengthData = SimpleStrengthData(
+                muscleGroup: selectedMuscleGroup,
+                customName: selectedMuscleGroup == .custom ? customName : nil,
+                weight: weight,
+                reps: reps,
+                sets: sets
+            )
+            workoutRecord.strengthData = strengthData
             
-            // Add new details
-            let newDetails = exercises.compactMap { input -> StrengthDetail? in
-                guard input.weight > 0 && input.sets > 0 && input.reps > 0 else { return nil }
-                return StrengthDetail(
-                    exercise: input.name,
-                    sets: input.sets,
-                    reps: input.reps,
-                    weight: input.weight
-                )
-            }
-            
-            newDetails.forEach { detail in
-                modelContext.insert(detail)
-                if let note = noteText {
-                    detail.notes = note
-                }
-                workoutRecord.strengthDetails?.append(detail)
-            }
-            
-        case .flexibility:
-            if let detail = workoutRecord.flexibilityDetail {
-                detail.forwardBendDistance = forwardBend
-                detail.leftSplitAngle = leftSplit
-                detail.rightSplitAngle = rightSplit
-                if let note = noteText {
-                    // Add note to summary
-                    workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
-                }
-            }
-        case .pilates:
-            // ピラティス詳細保存は後で実装
-            if let note = noteText {
-                workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
-            }
-        case .yoga:
-            // ヨガ詳細保存は後で実装
-            if let note = noteText {
-                workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
-            }
+        case .flexibility, .pilates, .yoga:
+            let flexibilityData = SimpleFlexibilityData(
+                type: selectedFlexType,
+                duration: flexDuration,
+                measurement: selectedFlexType.hasMeasurement ? measurement : nil
+            )
+            workoutRecord.flexibilityData = flexibilityData
+        }
+        
+        // Add notes to summary if provided
+        if let note = noteText {
+            workoutRecord.summary = "\(workoutRecord.summary)\n\(note)"
         }
         
         do {
             try modelContext.save()
             
-            // WPR自動更新をトリガー
-            workoutRecord.triggerWPRUpdate(context: modelContext)
-            
             // Haptic feedback
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.impactOccurred()
             
-            // Show success animation and toast
+            // Show success animation
             withAnimation(.spring()) {
                 showSuccessAnimation = true
                 toastMessage = "保存しました！"
@@ -496,8 +469,9 @@ struct QuickRecordSheet: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 dismiss()
             }
+            
         } catch {
-            Logger.error.error("Error saving details: \(error.localizedDescription)")
+            print("Error saving details: \(error.localizedDescription)")
             
             // Error feedback
             let notificationFeedback = UINotificationFeedbackGenerator()

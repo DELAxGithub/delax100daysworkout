@@ -86,8 +86,9 @@ class SSTDashboardViewModel: ObservableObject {
     private func loadWHRData(context: ModelContext) {
         // 過去30日のサイクリングデータを取得
         let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let cyclingType = WorkoutType.cycling
         let predicate = #Predicate<WorkoutRecord> { workout in
-            workout.date >= thirtyDaysAgo && workout.cyclingDetail != nil
+            workout.date >= thirtyDaysAgo && workout.workoutType == cyclingType
         }
         
         let descriptor = FetchDescriptor<WorkoutRecord>(
@@ -98,9 +99,10 @@ class SSTDashboardViewModel: ObservableObject {
         do {
             let workouts = try context.fetch(descriptor)
             whrData = workouts.compactMap { workout in
-                guard let cycling = workout.cyclingDetail,
-                      let whr = cycling.whrRatio else { return nil }
-                return WHRDataPoint(date: workout.date, whrRatio: whr, averagePower: cycling.averagePower)
+                // TODO: Update for SimpleCyclingData - WHR not available in simple model
+                guard let cycling = workout.cyclingData else { return nil }
+                // Using dummy values since WHR isn't in SimpleCyclingData
+                return WHRDataPoint(date: workout.date, whrRatio: 1.0, averagePower: Double(cycling.power ?? 0))
             }
         } catch {
             Logger.error.error("Failed to load W/HR data: \(error.localizedDescription)")

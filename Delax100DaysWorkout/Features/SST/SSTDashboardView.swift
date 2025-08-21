@@ -490,31 +490,20 @@ struct DemoDataSection: View {
             }
             
             VStack(spacing: 8) {
-                if DemoDataManager.hasJuly2025DemoData(modelContext: modelContext) {
-                    Text(DemoDataManager.getDemoDataSummary(modelContext: modelContext))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Button("デモデータを再生成") {
-                        generateDemoData()
-                    }
-                    .buttonStyle(.bordered)
-                    .foregroundColor(.orange)
-                } else {
-                    Text("実機デモ用の2025年7月データを生成できます")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                    
-                    Button("7月デモデータ生成") {
-                        generateDemoData()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .foregroundColor(.white)
-                    .background(Color.orange)
+                // TODO: Re-implement demo data manager
+                // Demo data generation temporarily disabled
+                
+                Text("デモデータ機能は一時的に無効化されています")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Button("デモデータ生成（無効）") {
+                    // generateDemoData()
                 }
+                .buttonStyle(.bordered)
+                .foregroundColor(.gray)
+                .disabled(true)
             }
         }
         .padding()
@@ -528,7 +517,8 @@ struct DemoDataSection: View {
     
     private func generateDemoData() {
         DispatchQueue.global(qos: .userInitiated).async {
-            DemoDataManager.generateJuly2025DemoData(modelContext: modelContext)
+            // TODO: Re-implement demo data generation
+            // DemoDataManager.generateJuly2025DemoData(modelContext: modelContext)
             
             DispatchQueue.main.async {
                 onDemoDataGenerated()
