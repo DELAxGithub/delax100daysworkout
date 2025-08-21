@@ -26,7 +26,7 @@ struct QuickWeightEntry: View {
                     .foregroundColor(.orange)
                     .font(.title2)
                 
-                TextField("Enter weight", text: $weightInput)
+                TextField("体重を入力", text: $weightInput)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.decimalPad)
                     .font(.title2)
@@ -56,12 +56,12 @@ struct QuickWeightEntry: View {
         .onAppear {
             loadLastWeight()
         }
-        .alert("Saved!", isPresented: $showingSuccess) {
+        .alert("保存完了！", isPresented: $showingSuccess) {
             Button("OK") { }
         } message: {
-            Text("Weight recorded successfully: \(String(format: "%.1f", weightValue))kg")
+            Text("体重を記録しました: \(String(format: "%.1f", weightValue))kg")
         }
-        .alert("Error", isPresented: $showingError) {
+        .alert("エラー", isPresented: $showingError) {
             Button("OK") { }
         } message: {
             Text(errorMessage)

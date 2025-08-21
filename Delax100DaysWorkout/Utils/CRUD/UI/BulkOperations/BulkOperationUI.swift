@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct BulkOperationUI<T: PersistentModel>: View {
     @Environment(\.modelContext) private var modelContext
@@ -246,6 +247,6 @@ class ExportManager {
     
     func exportModels<T: PersistentModel>(_ models: [T]) {
         // Implementation would depend on export format (JSON, CSV, etc.)
-        print("Exporting \(models.count) items")
+        Logger.general.info("Exporting \(models.count) items")
     }
 }

@@ -41,9 +41,9 @@ struct LogEntryView: View {
             // NOTE: Only weight is currently supported. Other types cause crashes.
             switch viewModel.logType {
             case .weight:
-                Section(header: Text("Weight Details")) {
+                Section(header: Text("体重詳細")) {
                     HStack {
-                        Text("Weight (kg)")
+                        Text("体重 (kg)")
                         Spacer()
                         TextField("Weight", value: $viewModel.weightKg, format: .number.precision(.fractionLength(1)))
                             .keyboardType(.decimalPad)
@@ -54,14 +54,14 @@ struct LogEntryView: View {
             default:
                 // Temporarily disabled to prevent crashes
                 // TODO: Implement proper workout entry in dedicated screens
-                Section(header: Text("Coming Soon")) {
+                Section(header: Text("近日公開")) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("This feature is being redesigned", systemImage: "hammer.fill")
+                        Label("この機能は再設計中です", systemImage: "hammer.fill")
                             .foregroundColor(.orange)
-                        Text("Workout entry will be integrated into the history screens for better context and usability.")
+                        Text("ワークアウト入力は履歴画面に統合され、より良いコンテキストと使いやすさを提供します。")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text("For now, please use the weight entry feature above.")
+                        Text("現在は上記の体重入力機能をご利用ください。")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -99,32 +99,32 @@ struct LogEntryView: View {
                             ProgressView()
                                 .scaleEffect(0.8)
                                 .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                            Text("Saving...")
+                            Text("保存中...")
                         }
                         .animation(.easeInOut(duration: 0.2), value: isSaving)
                     } else {
-                        Text("Save")
+                        Text("保存")
                     }
                 }
                 .disabled(viewModel.isSaveDisabled || isSaving)
             }
         }
-        .alert("Discard changes?", isPresented: $showingCancelAlert) {
-            Button("Discard", role: .destructive) {
+        .alert("変更を破棄しますか？", isPresented: $showingCancelAlert) {
+            Button("破棄", role: .destructive) {
                 dismiss()
             }
-            Button("Keep editing", role: .cancel) { }
+            Button("編集続行", role: .cancel) { }
         } message: {
-            Text("Your changes will be lost.")
+            Text("変更内容が失われます。")
         }
-        .alert("Saved!", isPresented: $showingSaveSuccess) {
+        .alert("保存完了！", isPresented: $showingSaveSuccess) {
             Button("OK") {
                 dismiss()
             }
         } message: {
-            Text("Your data has been saved successfully.")
+            Text("データが正常に保存されました。")
         }
-        .alert("Save Error", isPresented: $showingErrorAlert) {
+        .alert("保存エラー", isPresented: $showingErrorAlert) {
             Button("OK") { }
         } message: {
             Text(errorMessage)

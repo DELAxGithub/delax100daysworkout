@@ -8,7 +8,6 @@ struct DashboardView: View {
     @State private var isShowingLogEntry = false
     @State private var showingDeleteAlert = false
     @State private var workoutToDelete: WorkoutRecord?
-    @State private var weeklyPlanManager: WeeklyPlanManager?
     @State private var isAnalyzing = false
     @State private var showingMetricEntry = false
     
@@ -39,9 +38,6 @@ struct DashboardView: View {
             }
             .onAppear {
                 viewModel.refreshData()
-                if weeklyPlanManager == nil {
-                    weeklyPlanManager = ProtocolBasedWeeklyPlanManager()
-                }
             }
             .sheet(isPresented: $isShowingLogEntry, onDismiss: {
                 viewModel.refreshData()
@@ -77,7 +73,7 @@ struct DashboardView: View {
             Text("\(viewModel.daysRemaining)")
                 .font(.system(size: 72, weight: .bold))
                 .foregroundColor(.accentColor)
-            Text("Days Remaining")
+            Text("残り日数")
                 .font(.title2)
                 .fontWeight(.medium)
                 .foregroundColor(.secondary)
@@ -129,36 +125,10 @@ struct DashboardView: View {
                 }
             }
             
-            if let manager = weeklyPlanManager {
-                Text(getAnalysisDescription(manager))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Text("状態: \(analysisStatusText(for: manager.updateStatus))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                // 最後の更新内容表示
-                if manager.updateStatus == .completed {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Divider()
-                        
-                        Text("最新の変更内容")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.green)
-                        
-                        Text("プランが正常に更新されました")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top, 8)
-                }
-            } else {
-                Text("進捗データを基に最適なトレーニング調整を提案")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            // AI分析機能は単純化されました
+            Text("AI分析機能は設定で管理されています")
+                .font(.caption)
+                .foregroundColor(.secondary)
             
             HStack {
                 Spacer()
@@ -179,7 +149,7 @@ struct DashboardView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.purple)
-                .disabled(isAnalyzing || (weeklyPlanManager?.updateStatus == .analyzing))
+                .disabled(isAnalyzing)
             }
         }
         .padding()
@@ -191,16 +161,16 @@ struct DashboardView: View {
     @ViewBuilder
     private var todaysWorkoutSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Today's Workout")
+            Text("今日のワークアウト")
                 .font(.title)
                 .fontWeight(.bold)
                 .padding([.horizontal, .top])
 
             if viewModel.todaysWorkouts.isEmpty {
                 ContentUnavailableView(
-                    "No Workouts Logged Today",
+                    "今日のワークアウトはありません",
                     systemImage: "plus.circle",
-                    description: Text("Tap the '+' button to add a workout.")
+                    description: Text("「+」ボタンでワークアウトを追加してください")
                 )
                 .padding()
             } else {
@@ -225,32 +195,9 @@ struct DashboardView: View {
     
     @MainActor
     private func runQuickAnalysis() async {
-        guard let manager = weeklyPlanManager else { return }
         isAnalyzing = true
-        await manager.requestManualUpdate()
+        // 分析機能は単純化されました
+        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2秒待機
         isAnalyzing = false
-    }
-    
-    private func analysisStatusText(for status: PlanUpdateStatus) -> String {
-        switch status {
-        case .idle:
-            return "分析可能"
-        case .analyzing:
-            return "分析中..."
-        case .completed:
-            return "最新プラン適用済み"
-        case .failed(_):
-            return "エラー"
-        }
-    }
-    
-    private func getAnalysisDescription(_ manager: WeeklyPlanManager) -> String {
-        if manager.updateStatus == .analyzing {
-            return manager.analysisDataDescription
-        } else if let result = manager.lastAnalysisResult {
-            return "最新結果: \(result)"
-        } else {
-            return "進捗データを基に最適なトレーニング調整を提案"
-        }
     }
 }

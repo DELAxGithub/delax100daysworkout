@@ -2,20 +2,21 @@ import Foundation
 import SwiftData
 import UIKit
 
-struct BugReport: Codable {
-    let id: UUID
-    let timestamp: Date
-    let category: BugCategory
-    let description: String?
-    let reproductionSteps: String?
-    let expectedBehavior: String?
-    let actualBehavior: String?
-    let screenshot: Data?
-    let deviceInfo: DeviceInfo
-    let appVersion: String
-    let currentView: String
-    let userActions: [UserAction]
-    let logs: [LogEntry]
+@Model
+final class BugReport: Codable {
+    var id: UUID
+    var timestamp: Date
+    var category: BugCategory
+    var bugDescription: String?  // 'description'は予約語のため変更
+    var reproductionSteps: String?
+    var expectedBehavior: String?
+    var actualBehavior: String?
+    var screenshot: Data?
+    var deviceInfo: DeviceInfo
+    var appVersion: String
+    var currentView: String
+    var userActions: [UserAction]
+    var logs: [LogEntry]
     
     init(
         category: BugCategory,
@@ -31,7 +32,7 @@ struct BugReport: Codable {
         self.id = UUID()
         self.timestamp = Date()
         self.category = category
-        self.description = description
+        self.bugDescription = description
         self.reproductionSteps = reproductionSteps
         self.expectedBehavior = expectedBehavior
         self.actualBehavior = actualBehavior
@@ -41,6 +42,51 @@ struct BugReport: Codable {
         self.currentView = currentView
         self.userActions = userActions
         self.logs = logs
+    }
+    
+    // MARK: - Codable Implementation
+    
+    enum CodingKeys: String, CodingKey {
+        case id, timestamp, category
+        case bugDescription = "description"
+        case reproductionSteps, expectedBehavior, actualBehavior, screenshot
+        case deviceInfo, appVersion, currentView, userActions, logs
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.timestamp = try container.decode(Date.self, forKey: .timestamp)
+        self.category = try container.decode(BugCategory.self, forKey: .category)
+        self.bugDescription = try container.decodeIfPresent(String.self, forKey: .bugDescription)
+        self.reproductionSteps = try container.decodeIfPresent(String.self, forKey: .reproductionSteps)
+        self.expectedBehavior = try container.decodeIfPresent(String.self, forKey: .expectedBehavior)
+        self.actualBehavior = try container.decodeIfPresent(String.self, forKey: .actualBehavior)
+        self.screenshot = try container.decodeIfPresent(Data.self, forKey: .screenshot)
+        self.deviceInfo = try container.decode(DeviceInfo.self, forKey: .deviceInfo)
+        self.appVersion = try container.decode(String.self, forKey: .appVersion)
+        self.currentView = try container.decode(String.self, forKey: .currentView)
+        self.userActions = try container.decode([UserAction].self, forKey: .userActions)
+        self.logs = try container.decode([LogEntry].self, forKey: .logs)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(category, forKey: .category)
+        try container.encodeIfPresent(bugDescription, forKey: .bugDescription)
+        try container.encodeIfPresent(reproductionSteps, forKey: .reproductionSteps)
+        try container.encodeIfPresent(expectedBehavior, forKey: .expectedBehavior)
+        try container.encodeIfPresent(actualBehavior, forKey: .actualBehavior)
+        try container.encodeIfPresent(screenshot, forKey: .screenshot)
+        try container.encode(deviceInfo, forKey: .deviceInfo)
+        try container.encode(appVersion, forKey: .appVersion)
+        try container.encode(currentView, forKey: .currentView)
+        try container.encode(userActions, forKey: .userActions)
+        try container.encode(logs, forKey: .logs)
     }
 }
 

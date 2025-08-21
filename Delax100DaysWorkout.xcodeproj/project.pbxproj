@@ -86,11 +86,10 @@
 				};
 			};
 			buildConfigurationList = DE85A2262E368E6700E742CF /* Build configuration list for PBXProject "Delax100DaysWorkout" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
-				Base,
+				ja,
 			);
 			mainGroup = DE85A2222E368E6700E742CF;
 			minimizedProjectReferenceProxies = 1;

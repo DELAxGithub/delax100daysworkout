@@ -264,7 +264,7 @@ private struct CorrelationIndicator: View {
     WPRAnalyticsDashboard(
         system: WPRTrackingSystem.sampleData(),
         onMetricTap: { metric in
-            print("Tapped: \(metric.title)")
+            // Metric tapped - handled by parent
         }
     )
     .padding()

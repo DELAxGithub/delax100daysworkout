@@ -181,7 +181,7 @@ struct GitHubService {
         
         """
         
-        if let description = bugReport.description {
+        if let description = bugReport.bugDescription {
             body += """
             ### 問題の説明
             \(description)

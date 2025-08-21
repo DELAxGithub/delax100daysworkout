@@ -18,34 +18,38 @@ struct FTPHistoryView: View {
     @State private var showingSearchResults = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Unified Header
-            UnifiedHeaderComponent(
-                configuration: .history(
-                    title: "FTP履歴",
-                    onAdd: {
-                        showingEntrySheet = true
-                    },
-                    onEdit: ftpHistory.isEmpty ? nil : {
-                        withAnimation {
-                            isEditMode.toggle()
-                        }
-                    },
-                    isEditMode: isEditMode
+        NavigationView {
+            VStack(spacing: 0) {
+                // Unified Header
+                UnifiedHeaderComponent(
+                    configuration: .history(
+                        title: "FTP履歴",
+                        onAdd: {
+                            showingEntrySheet = true
+                        },
+                        onEdit: ftpHistory.isEmpty ? nil : {
+                            withAnimation {
+                                isEditMode.toggle()
+                            }
+                        },
+                        isEditMode: isEditMode
+                    )
                 )
-            )
-            .padding(.horizontal)
-            .padding(.top, Spacing.sm.value)
-            
-            // Content
-            if ftpHistory.isEmpty {
-                ContentUnavailableView(
-                    "FTP記録なし",
-                    systemImage: "chart.bar.xaxis.ascending",
-                    description: Text("ヘッダーの「+」ボタンでFTPを記録しましょう")
-                )
-            } else {
-                VStack(spacing: Spacing.lg.value) {
+                .padding(.horizontal)
+                .padding(.top, Spacing.sm.value)
+                
+                // Content
+                if ftpHistory.isEmpty {
+                    Spacer()
+                    ContentUnavailableView(
+                        "FTP記録なし",
+                        systemImage: "chart.bar.xaxis.ascending",
+                        description: Text("ヘッダーの「+」ボタンでFTPを記録しましょう")
+                    )
+                    Spacer()
+                } else {
+                    ScrollView {
+                        VStack(spacing: Spacing.lg.value) {
                         // Chart Section
                         if showingChart {
                             BaseCard(style: ElevatedCardStyle()) {
@@ -134,43 +138,45 @@ struct FTPHistoryView: View {
                             .padding(.horizontal)
                         }
                         
-                        // History List
-                        List {
-                            ForEach(ftpHistory) { record in
-                                FTPRecordRow(
-                                    record: record,
-                                    onEdit: {
-                                        selectedRecord = record
-                                        showingEditSheet = true
-                                        HapticManager.shared.trigger(.selection)
-                                    }
-                                )
+                            // History List
+                            LazyVStack(spacing: Spacing.sm.value) {
+                                ForEach(ftpHistory) { record in
+                                    FTPRecordRow(
+                                        record: record,
+                                        onEdit: {
+                                            selectedRecord = record
+                                            showingEditSheet = true
+                                            HapticManager.shared.trigger(.selection)
+                                        }
+                                    )
+                                }
                             }
-                            .onDelete(perform: deleteRecords)
-                    }
-                    .listStyle(.plain)
-                }
-            }
-            
-            // Edit Mode Actions
-            if isEditMode && !ftpHistory.isEmpty {
-                BaseCard(style: OutlinedCardStyle()) {
-                    Button(action: {
-                        showingBulkDeleteAlert = true
-                    }) {
-                        HStack {
-                            Image(systemName: "trash")
-                                .foregroundColor(SemanticColor.destructiveAction)
-                            Text("一括削除")
-                                .font(Typography.labelMedium)
-                                .foregroundColor(SemanticColor.destructiveAction)
+                            .padding(.horizontal)
+                            
+                            // Edit Mode Actions
+                            if isEditMode && !ftpHistory.isEmpty {
+                                BaseCard(style: OutlinedCardStyle()) {
+                                    Button(action: {
+                                        showingBulkDeleteAlert = true
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "trash")
+                                                .foregroundColor(SemanticColor.destructiveAction)
+                                            Text("一括削除")
+                                                .font(Typography.labelMedium)
+                                                .foregroundColor(SemanticColor.destructiveAction)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(Spacing.md.value)
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .padding(.bottom, Spacing.md.value)
+                            }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(Spacing.md.value)
+                        .padding(.vertical)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, Spacing.md.value)
             }
         }
         .sheet(isPresented: $showingEntrySheet) {

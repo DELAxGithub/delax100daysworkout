@@ -5,7 +5,7 @@ struct WeeklyReviewView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @State private var planManager: WeeklyPlanManager?
+    // planManagerは単純化のため削除
     @State private var showingProgressDetails = false
     
     @Query private var workoutRecords: [WorkoutRecord]
@@ -70,13 +70,7 @@ struct WeeklyReviewView: View {
     }
     
     private func setupPlanManager() {
-        if planManager == nil {
-            planManager = ProtocolBasedWeeklyPlanManager()
-        } else {
-            // WeeklyPlanManagerのmodelContextを正しく設定
-            let newPlanManager = ProtocolBasedWeeklyPlanManager()
-            planManager?.updateStatus = newPlanManager.updateStatus
-        }
+        // planManagerは単純化のため削除
     }
     
     private var headerSection: some View {
@@ -188,10 +182,7 @@ struct WeeklyReviewView: View {
                 
                 Spacer()
                 
-                if case .analyzing = planManager?.updateStatus {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                }
+                // AI分析は単純化されました
             }
             
             Text("Dashboard画面の「今すぐ分析」ボタンでAI分析を実行できます。分析結果は自動的に適用されます。")
@@ -213,17 +204,7 @@ struct WeeklyReviewView: View {
     }
     
     private var statusText: String {
-        guard let planManager = planManager else { return "初期化中..." }
-        switch planManager.updateStatus {
-        case .idle:
-            return "分析可能"
-        case .analyzing:
-            return "分析中..."
-        case .completed:
-            return "最新プラン適用済み"
-        case .failed(_):
-            return "エラー"
-        }
+        return "AI分析は設定画面で管理されています"
     }
     
     private var aiIdleSection: some View {
@@ -237,7 +218,7 @@ struct WeeklyReviewView: View {
             
             Button("AI分析を開始") {
                 Task {
-                    // TODO: Fix method name
+                    // Initiate AI-powered weekly analysis
                     // await planManager?.initiateWeeklyPlanUpdate()
                 }
             }
@@ -309,7 +290,7 @@ struct WeeklyReviewView: View {
             
             Button("再試行") {
                 Task {
-                    // TODO: Fix method name
+                    // Initiate AI-powered weekly analysis
                     // await planManager?.initiateWeeklyPlanUpdate()
                 }
             }

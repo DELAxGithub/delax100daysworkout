@@ -9,9 +9,9 @@ struct ProgressChartView: View {
             VStack {
                 if viewModel.dailyLogs.isEmpty {
                     ContentUnavailableView(
-                        "No Progress Data",
+                        "進捗データがありません",
                         systemImage: "chart.bar.xaxis.ascending",
-                        description: Text("Log your daily weight to see your progress chart.")
+                        description: Text("毎日の体重を記録して進捗グラフを確認しましょう。")
                     )
                 } else {
                     Chart {
@@ -21,7 +21,7 @@ struct ProgressChartView: View {
                                 .foregroundStyle(.green)
                                 .lineStyle(StrokeStyle(lineWidth: 2, dash: [5]))
                                 .annotation(position: .top, alignment: .leading) {
-                                    Text("Goal: \(goalWeight, specifier: "%.1f") kg")
+                                    Text("目標: \(goalWeight, specifier: "%.1f") kg")
                                         .font(.caption).foregroundColor(.green)
                                 }
                         }

@@ -40,6 +40,12 @@ struct Progress {
     let recentAchievements: [Achievement]
 }
 
+struct AnalysisData {
+    let workoutRecords: [WorkoutRecord]
+    let completionRate: Double
+    let progressTrends: String
+}
+
 class ProgressAnalyzer {
     private let modelContext: ModelContext
     

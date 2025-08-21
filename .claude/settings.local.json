@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./build.sh)",
+      "Bash(mkdir:*)",
+      "Bash(python3:*)",
+      "Bash(bash:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(git restore:*)",
+      "Bash(swift build:*)",
+      "Bash(swiftc:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

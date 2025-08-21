@@ -21,8 +21,7 @@ struct GenericCRUDView<T: PersistentModel & Identifiable>: View {
         modelType: T.Type,
         displayName: String,
         icon: String,
-        color: Color,
-        operations: (any ModelOperations)? = nil
+        color: Color
     ) {
         self.modelType = modelType
         self.displayName = displayName
@@ -35,8 +34,7 @@ struct GenericCRUDView<T: PersistentModel & Identifiable>: View {
             let mockContext = ModelContext(try! ModelContainer(for: modelType))
             return CRUDEngine<T>(
                 modelContext: mockContext,
-                errorHandler: ErrorHandler(),
-                operations: operations
+                errorHandler: ErrorHandler()
             )
         }())
     }

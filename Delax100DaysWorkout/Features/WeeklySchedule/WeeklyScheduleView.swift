@@ -137,11 +137,12 @@ struct WeeklyScheduleView: View {
             
             Divider()
             
-            // タスクリスト
+            // タスクリスト - スクロール可能エリア
             if let template = activeTemplates.first {
                 let tasks = template.tasksForDay(selectedDay)
                 
                 if tasks.isEmpty {
+                    Spacer()
                     Button(action: {
                         showingAddTaskSheet = true
                     }) {
@@ -152,6 +153,7 @@ struct WeeklyScheduleView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    Spacer()
                 } else {
                     ScrollView {
                         VStack(spacing: 12) {
@@ -167,11 +169,13 @@ struct WeeklyScheduleView: View {
                     }
                 }
             } else {
+                Spacer()
                 ContentUnavailableView(
                     "テンプレートがありません",
                     systemImage: "calendar.badge.exclamationmark",
                     description: Text("アクティブなテンプレートを作成してください")
                 )
+                Spacer()
             }
         }
     }

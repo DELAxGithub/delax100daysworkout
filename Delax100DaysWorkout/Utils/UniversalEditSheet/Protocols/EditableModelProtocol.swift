@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 import Foundation
 
 // MARK: - Editable Model Protocol
@@ -210,7 +211,7 @@ struct WorkoutModelCustomization: EditableModelProtocol {
         
         if workoutRecord.isCompleted {
             // Could trigger achievement checks, statistics updates, etc.
-            print("Workout completed: \(workoutRecord.summary)")
+            Logger.general.info("Workout completed: \(workoutRecord.summary)")
         }
     }
 }

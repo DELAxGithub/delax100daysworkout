@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import OSLog
 
 // MARK: - Usage Tracker
 
@@ -204,7 +205,7 @@ class UsageTracker: ObservableObject {
             let data = try encoder.encode(events)
             userDefaults.set(data, forKey: eventsKey)
         } catch {
-            print("Failed to persist usage events: \(error)")
+            Logger.error.error("Failed to persist usage events: \(error)")
         }
     }
     
@@ -215,7 +216,7 @@ class UsageTracker: ObservableObject {
             let decoder = JSONDecoder()
             events = try decoder.decode([UsageEvent].self, from: data)
         } catch {
-            print("Failed to load persisted events: \(error)")
+            Logger.error.error("Failed to load persisted events: \(error)")
         }
     }
 }

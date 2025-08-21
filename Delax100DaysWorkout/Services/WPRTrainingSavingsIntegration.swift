@@ -1,6 +1,5 @@
 import Foundation
 import SwiftData
-import Combine
 
 // MARK: - Unified Training System Integration (Main Orchestrator)
 

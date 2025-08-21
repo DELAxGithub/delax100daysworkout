@@ -8,13 +8,11 @@ struct CRUDEngineFactory {
     static func createEngine<T: PersistentModel>(
         for type: T.Type,
         modelContext: ModelContext,
-        errorHandler: ErrorHandler,
-        operations: (any ModelOperations)? = nil
+        errorHandler: ErrorHandler
     ) -> CRUDEngine<T> {
         return CRUDEngine<T>(
             modelContext: modelContext,
-            errorHandler: errorHandler,
-            operations: operations
+            errorHandler: errorHandler
         )
     }
     
@@ -27,8 +25,7 @@ struct CRUDEngineFactory {
     ) -> CRUDEngine<WorkoutRecord> {
         return CRUDEngine<WorkoutRecord>(
             modelContext: modelContext,
-            errorHandler: errorHandler,
-            operations: nil // WorkoutRecord already implements Validatable
+            errorHandler: errorHandler
         )
     }
     
@@ -39,8 +36,7 @@ struct CRUDEngineFactory {
     ) -> CRUDEngine<DailyMetric> {
         return CRUDEngine<DailyMetric>(
             modelContext: modelContext,
-            errorHandler: errorHandler,
-            operations: nil
+            errorHandler: errorHandler
         )
     }
     
@@ -51,8 +47,7 @@ struct CRUDEngineFactory {
     ) -> CRUDEngine<FTPHistory> {
         return CRUDEngine<FTPHistory>(
             modelContext: modelContext,
-            errorHandler: errorHandler,
-            operations: nil
+            errorHandler: errorHandler
         )
     }
 }

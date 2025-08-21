@@ -12,6 +12,8 @@ class SettingsViewModel {
     var goalFtp: Int = 0
 
     var showSaveConfirmation = false
+    var showSaveError = false
+    var saveError = ""
     
     // AI設定
     var aiAnalysisEnabled: Bool = true
@@ -31,7 +33,7 @@ class SettingsViewModel {
     var apiKeyTestResult: String = ""
     
     // HealthKit管理
-    var healthKitService = HealthKitService()
+    var healthKitManager = HealthKitManager.shared
     var isHealthKitSyncing: Bool = false
     var lastHealthKitSync: Date?
 
@@ -70,8 +72,12 @@ class SettingsViewModel {
         }
     }
 
-    func save() {
-        guard let userProfile = userProfile else { return }
+    func save() -> Bool {
+        guard let userProfile = userProfile else { 
+            saveError = "ユーザープロフィールが見つかりません"
+            showSaveError = true
+            return false
+        }
 
         // ViewModelの値をモデルに反映
         userProfile.goalDate = self.goalDate
@@ -82,6 +88,7 @@ class SettingsViewModel {
 
         // Show confirmation alert
         showSaveConfirmation = true
+        return true
     }
     
     private func loadAISettings() {
@@ -215,12 +222,12 @@ class SettingsViewModel {
     // MARK: - HealthKit管理
     
     var healthKitAuthStatus: String {
-        return healthKitService.isAuthorized ? "認証済み" : "未認証"
+        return healthKitManager.isAuthorized ? "認証済み" : "未認証"
     }
     
     var lastHealthKitSyncDate: String {
         // 自動同期の日時を優先して表示
-        let autoSyncDate = healthKitService.lastAutoSyncDate
+        let autoSyncDate = healthKitManager.lastAutoSyncDate
         let manualSyncDate = lastHealthKitSync
         
         let lastSyncDate: Date?
@@ -252,7 +259,7 @@ class SettingsViewModel {
         formatter.locale = Locale(identifier: "ja_JP")
         
         let dateString = formatter.string(from: date)
-        let dataCount = healthKitService.lastSyncDataCount
+        let dataCount = healthKitManager.lastSyncDataCount
         
         if dataCount > 0 {
             return "\(dateString) (\(syncType)・\(dataCount)件)"
@@ -263,11 +270,20 @@ class SettingsViewModel {
     
     func requestHealthKitAuthorization() async {
         do {
-            try await healthKitService.requestAuthorization()
-            // 認証後に状態を再確認
+            Logger.general.info("Settings: 手動でHealthKit認証をリクエスト開始")
+            try await healthKitManager.requestPermissions()
+            
+            // 認証後に状態を再確認（少し待ってから）
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5秒待機
             await refreshHealthKitStatus()
-            if healthKitService.isAuthorized {
+            
+            Logger.general.info("Settings: 認証後の状態 - isAuthorized: \(self.healthKitManager.isAuthorized)")
+            
+            if self.healthKitManager.isAuthorized {
+                Logger.general.info("Settings: 認証確認後、自動同期を開始")
                 await syncHealthKitData()
+            } else {
+                Logger.general.warning("Settings: 認証後も isAuthorized が false のまま")
             }
         } catch {
             Logger.error.error("HealthKit認証エラー: \(error.localizedDescription)")
@@ -276,14 +292,14 @@ class SettingsViewModel {
     
     @MainActor
     func refreshHealthKitStatus() async {
-        // HealthKitServiceの認証状態を強制的に再チェック
-        healthKitService.checkAuthorizationStatus()
+        // HealthKitManagerの認証状態を強制的に再チェック
+        healthKitManager.checkAuthorizationStatus()
         // UIの更新を待つ
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒
     }
     
     func syncHealthKitData() async {
-        guard healthKitService.isAuthorized else { return }
+        guard healthKitManager.isAuthorized else { return }
         
         isHealthKitSyncing = true
         
@@ -292,14 +308,14 @@ class SettingsViewModel {
             let startDate = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
             
             // 体重データを同期
-            let weightData = try await healthKitService.syncWeightData(from: startDate, modelContext: modelContext)
+            let weightData = try await healthKitManager.syncWeightData(from: startDate, modelContext: modelContext)
             
             // 心拍数データを同期
-            let heartRateData = try await healthKitService.syncHeartRateData(from: startDate, modelContext: modelContext)
+            let heartRateData = try await healthKitManager.syncHeartRateData(from: startDate, modelContext: modelContext)
             
-            // 同期したデータ数をHealthKitServiceに反映
+            // 同期したデータ数をHealthKitManagerに反映
             await MainActor.run {
-                healthKitService.lastSyncDataCount = weightData.count + heartRateData.count
+                healthKitManager.lastSyncDataCount = weightData.count + heartRateData.count
             }
             
             lastHealthKitSync = Date()
@@ -321,4 +337,41 @@ class SettingsViewModel {
     private func loadHealthKitSyncDate() {
         lastHealthKitSync = UserDefaults.standard.object(forKey: "LastHealthKitSync") as? Date
     }
+    
+    // MARK: - Developer Tools
+    
+    #if DEBUG
+    func resetDatabase() {
+        // データベースリセット機能（開発用）
+        do {
+            // すべてのUserProfileを削除
+            let userProfileDescriptor = FetchDescriptor<UserProfile>()
+            let userProfiles = try modelContext.fetch(userProfileDescriptor)
+            for profile in userProfiles {
+                modelContext.delete(profile)
+            }
+            
+            // 新しいデフォルトプロフィールを作成
+            let newProfile = UserProfile()
+            modelContext.insert(newProfile)
+            self.userProfile = newProfile
+            
+            try modelContext.save()
+            
+            // ViewModelの値をリセット
+            self.goalDate = Date().addingTimeInterval(100 * 24 * 60 * 60)
+            self.startWeightKg = 0.0
+            self.goalWeightKg = 0.0
+            self.startFtp = 0
+            self.goalFtp = 0
+            
+            Logger.general.info("Database reset completed")
+            
+        } catch {
+            Logger.error.error("Database reset failed: \(error.localizedDescription)")
+            saveError = "データベースのリセットに失敗しました: \(error.localizedDescription)"
+            showSaveError = true
+        }
+    }
+    #endif
 }

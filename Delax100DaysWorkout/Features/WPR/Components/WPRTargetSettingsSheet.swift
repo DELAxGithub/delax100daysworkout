@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct WPRTargetSettingsSheet: View {
     let system: WPRTrackingSystem
@@ -108,7 +109,7 @@ struct WPRTargetSettingsSheet: View {
         do {
             try modelContext.save()
         } catch {
-            print("目標設定保存エラー: \(error.localizedDescription)")
+            Logger.error.error("Failed to save goal settings: \(error.localizedDescription)")
         }
     }
 }

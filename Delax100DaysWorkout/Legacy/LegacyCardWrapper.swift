@@ -16,7 +16,7 @@ struct LegacyCardWrapper<Content: View>: View {
             style: migrationMetadata.suggestedStyle,
             accessibility: migrationMetadata.accessibilityConfig
         ) {
-            VStack(spacing: 0) {
+            VStack(spacing: Spacing.xs.value) {
                 // Migration notice (only in debug)
                 #if DEBUG
                 if migrationMetadata.showMigrationNotice {

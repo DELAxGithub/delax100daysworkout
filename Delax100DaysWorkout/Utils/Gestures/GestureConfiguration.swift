@@ -70,9 +70,9 @@ extension InteractionPattern {
     var accessibilityHint: String {
         switch self {
         case .tap:
-            return AccessibilityText.cardTapHint()
+            return "タップして詳細を表示"
         case .longPress:
-            return AccessibilityText.cardLongPressHint()
+            return "長押ししてオプションを表示"
         case .swipeLeft:
             return "左にスワイプしてアクション"
         case .swipeRight:

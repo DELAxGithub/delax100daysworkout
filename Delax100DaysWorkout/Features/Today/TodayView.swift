@@ -11,7 +11,6 @@ struct TodayView: View {
     @State private var quickRecordWorkout: WorkoutRecord?
     @State private var showDeleteAlert = false
     @State private var taskToDelete: DailyTask?
-    @State private var weeklyPlanManager: WeeklyPlanManager?
     @State private var isAnalyzing = false
     @State private var lastCompletedTask: DailyTask?
     
@@ -86,15 +85,9 @@ struct TodayView: View {
                                     }
                                 }
                                 
-                                if let manager = weeklyPlanManager {
-                                    Text(getDailyAnalysisDescription(manager))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                } else {
-                                    Text("完了したワークアウトを基に、AIがアドバイスを提供します")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("完了したワークアウトを基に、AIがアドバイスを提供します")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                 
                                 HStack {
                                     Spacer()
@@ -237,9 +230,7 @@ struct TodayView: View {
                 if viewModel == nil {
                     viewModel = TodayViewModel(modelContext: modelContext)
                 }
-                if weeklyPlanManager == nil {
-                    weeklyPlanManager = ProtocolBasedWeeklyPlanManager()
-                }
+                // WeeklyPlanManagerは単純化のため削除
             }
             .sheet(isPresented: $showingLogEntry) {
                 if selectedTask != nil {
@@ -273,20 +264,11 @@ struct TodayView: View {
     
     @MainActor
     private func runDailyAnalysis() async {
-        guard let manager = weeklyPlanManager else { return }
+        // AI分析は単純化されました - 設定画面で管理
         isAnalyzing = true
-        await manager.requestManualUpdate()
+        // 将来的にAI分析を実装
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒待機
         isAnalyzing = false
-    }
-    
-    private func getDailyAnalysisDescription(_ manager: WeeklyPlanManager) -> String {
-        if manager.updateStatus == .analyzing {
-            return "今日のパフォーマンスデータを分析中..."
-        } else if let result = manager.lastAnalysisResult {
-            return "前回の分析: \(result)"
-        } else {
-            return "完了したワークアウトを基に、AIがアドバイスを提供します"
-        }
     }
 }
 

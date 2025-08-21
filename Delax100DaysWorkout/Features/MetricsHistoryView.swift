@@ -61,33 +61,35 @@ struct MetricsHistoryView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Unified Header
-            UnifiedHeaderComponent(
-                configuration: UnifiedHeaderConfiguration(
-                    title: "メトリクス履歴",
-                    primaryAction: HeaderAction(
-                        icon: "line.3.horizontal.decrease.circle",
-                        label: "フィルター",
-                        action: {
-                            showingFilterSheet = true
-                        }
-                    ),
-                    secondaryAction: !filteredMetrics.isEmpty ? HeaderAction(
-                        icon: isEditMode ? "checkmark" : "pencil",
-                        label: isEditMode ? "完了" : "編集",
-                        action: {
-                            withAnimation {
-                                isEditMode.toggle()
-                            }
-                        }
-                    ) : nil
-                )
-            )
-            .padding(.horizontal)
-            .padding(.top, Spacing.sm.value)
-            
+        NavigationView {
             VStack(spacing: 0) {
+                // Unified Header
+                UnifiedHeaderComponent(
+                    configuration: UnifiedHeaderConfiguration(
+                        title: "メトリクス履歴",
+                        primaryAction: HeaderAction(
+                            icon: "line.3.horizontal.decrease.circle",
+                            label: "フィルター",
+                            action: {
+                                showingFilterSheet = true
+                            }
+                        ),
+                        secondaryAction: !filteredMetrics.isEmpty ? HeaderAction(
+                            icon: isEditMode ? "checkmark" : "pencil",
+                            label: isEditMode ? "完了" : "編集",
+                            action: {
+                                withAnimation {
+                                    isEditMode.toggle()
+                                }
+                            }
+                        ) : nil
+                    )
+                )
+                .padding(.horizontal)
+                .padding(.top, Spacing.sm.value)
+                
+                ScrollView {
+                    VStack(spacing: 8) {
                 // Quick Weight Entry
                 QuickWeightEntry()
                     .padding(.horizontal)
@@ -230,52 +232,55 @@ struct MetricsHistoryView: View {
                     .padding(.vertical, 8)
                 }
                 
-                if filteredMetrics.isEmpty {
-                    ContentUnavailableView(
-                        "メトリクス履歴なし",
-                        systemImage: "scalemass.circle",
-                        description: Text("体重や心拍数を記録して履歴を確認しましょう")
-                    )
-                } else {
-                    List {
-                        ForEach(filteredMetrics) { metric in
-                            MetricHistoryRow(
-                                metric: metric,
-                                onEdit: { 
-                                    selectedMetric = metric
-                                    showingEditSheet = true
-                                },
-                                onDelete: { metricToDelete in
-                                    self.metricToDelete = metricToDelete
-                                    showingDeleteAlert = true
-                                }
+                        if filteredMetrics.isEmpty {
+                            ContentUnavailableView(
+                                "メトリクス履歴なし",
+                                systemImage: "scalemass.circle",
+                                description: Text("体重や心拍数を記録して履歴を確認しましょう")
                             )
+                            .padding(.top, 40)
+                        } else {
+                            LazyVStack(spacing: 8) {
+                                ForEach(filteredMetrics) { metric in
+                                    MetricHistoryRow(
+                                        metric: metric,
+                                        onEdit: { 
+                                            selectedMetric = metric
+                                            showingEditSheet = true
+                                        },
+                                        onDelete: { metricToDelete in
+                                            self.metricToDelete = metricToDelete
+                                            showingDeleteAlert = true
+                                        }
+                                    )
+                                    .padding(.horizontal)
+                                }
+                            }
+                            .padding(.vertical)
                         }
-                        .onDelete(perform: deleteMetrics)
-                    }
-                    .listStyle(.plain)
-                }
-            }
-            
-            // Edit Mode Actions
-            if isEditMode && !filteredMetrics.isEmpty {
-                BaseCard(style: OutlinedCardStyle()) {
-                    Button(action: {
-                        showingBulkDeleteAlert = true
-                    }) {
-                        HStack {
-                            Image(systemName: "trash")
-                                .foregroundColor(SemanticColor.destructiveAction)
-                            Text("一括削除")
-                                .font(Typography.labelMedium)
-                                .foregroundColor(SemanticColor.destructiveAction)
+                        
+                        // Edit Mode Actions
+                        if isEditMode && !filteredMetrics.isEmpty {
+                            BaseCard(style: OutlinedCardStyle()) {
+                                Button(action: {
+                                    showingBulkDeleteAlert = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(SemanticColor.destructiveAction)
+                                        Text("一括削除")
+                                            .font(Typography.labelMedium)
+                                            .foregroundColor(SemanticColor.destructiveAction)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(Spacing.md.value)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.bottom, Spacing.md.value)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(Spacing.md.value)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, Spacing.md.value)
             }
         }
             .sheet(isPresented: $showingFilterSheet) {

@@ -32,7 +32,7 @@ struct RelationshipRenderer {
         Button(action: {
             if isEditing {
                 // TODO: Show relationship picker sheet
-                print("Show picker for \(type)")
+                // TODO: Implement relationship picker
             }
         }) {
             HStack {
@@ -83,7 +83,7 @@ struct RelationshipRenderer {
                 if isEditing {
                     Button("追加") {
                         // TODO: Show collection item picker
-                        print("Add item to \(type) collection")
+                        // TODO: Implement collection item picker
                     }
                     .font(Typography.captionMedium.font)
                     .foregroundColor(SemanticColor.primaryAction.color)
@@ -171,7 +171,7 @@ private struct RelationshipItemsList: View {
     
     private func removeItem(at index: Int) {
         // TODO: Implement item removal
-        print("Remove item at index \(index)")
+        // TODO: Implement item removal
     }
 }
 
