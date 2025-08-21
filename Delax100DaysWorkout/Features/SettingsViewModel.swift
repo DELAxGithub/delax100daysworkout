@@ -14,6 +14,8 @@ class SettingsViewModel {
     var showSaveConfirmation = false
     var showSaveError = false
     var saveError = ""
+    var shouldNavigateToHome = false
+    var isSaving = false
     
     // AI設定
     var aiAnalysisEnabled: Bool = true
@@ -79,6 +81,8 @@ class SettingsViewModel {
             return false
         }
 
+        isSaving = true
+        
         // ViewModelの値をモデルに反映
         userProfile.goalDate = self.goalDate
         userProfile.startWeightKg = self.startWeightKg
@@ -86,8 +90,14 @@ class SettingsViewModel {
         userProfile.startFtp = self.startFtp
         userProfile.goalFtp = self.goalFtp
 
-        // Show confirmation alert
-        showSaveConfirmation = true
+        // Simulate save delay for better UX
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.isSaving = false
+            // Show confirmation alert and prepare for navigation
+            self.showSaveConfirmation = true
+            self.shouldNavigateToHome = true
+        }
+        
         return true
     }
     

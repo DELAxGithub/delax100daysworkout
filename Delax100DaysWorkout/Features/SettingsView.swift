@@ -3,6 +3,7 @@ import SwiftData
 
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
+    @Binding var selectedTab: Int
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var isMigratingCounters = false
@@ -188,12 +189,20 @@ struct SettingsView: View {
             .navigationTitle("設定")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") {
-                        if viewModel.save() {
-                            dismiss()
-                        }
+                    Button(action: {
+                        _ = viewModel.save()
                         // 保存失敗時は画面を閉じないでエラーを表示
+                    }) {
+                        HStack {
+                            if viewModel.isSaving {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.8)
+                            }
+                            Text(viewModel.isSaving ? "保存中..." : "保存")
+                        }
                     }
+                    .disabled(viewModel.isSaving)
                 }
             }
             .onAppear {
@@ -211,6 +220,14 @@ struct SettingsView: View {
             .alert("保存完了", isPresented: $viewModel.showSaveConfirmation) {
                 Button("OK", role: .cancel) {
                     viewModel.showSaveConfirmation = false
+                    
+                    // ホーム画面に自動遷移
+                    if viewModel.shouldNavigateToHome {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selectedTab = 1 // ホームタブ（UnifiedHomeDashboardView）
+                        }
+                        viewModel.shouldNavigateToHome = false
+                    }
                 }
             } message: {
                 Text("設定が正常に保存されました。")

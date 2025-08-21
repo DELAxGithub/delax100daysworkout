@@ -12,32 +12,36 @@ struct MainView: View {
             WeeklyScheduleView()
                 .shakeDetector(currentView: "スケジュール")
                 .tabItem {
-                    Label("スケジュール", systemImage: "calendar")
+                    Label("スケジュール", systemImage: selectedTab == 0 ? "calendar.circle.fill" : "calendar.circle")
                 }
                 .tag(0)
             
             UnifiedHomeDashboardView()
                 .shakeDetector(currentView: "ホーム")
                 .tabItem {
-                    Label("ホーム", systemImage: "house.fill")
+                    Label("ホーム", systemImage: selectedTab == 1 ? "house.circle.fill" : "house.circle")
                 }
                 .tag(1)
             
             WPRCentralDashboardView()
                 .shakeDetector(currentView: "WPR")
                 .tabItem {
-                    Label("WPR", systemImage: "bolt.fill")
+                    Label("WPR", systemImage: selectedTab == 2 ? "bolt.circle.fill" : "bolt.circle")
                 }
                 .tag(2)
             
-
-            SettingsView(viewModel: SettingsViewModel(modelContext: modelContext))
+            SettingsView(
+                viewModel: SettingsViewModel(modelContext: modelContext),
+                selectedTab: $selectedTab
+            )
                 .shakeDetector(currentView: "設定")
                 .tabItem {
-                    Label("設定", systemImage: "gear")
+                    Label("設定", systemImage: selectedTab == 3 ? "gear.circle.fill" : "gear.circle")
                 }
                 .tag(3)
         }
+        .tint(.blue)
+        .animation(.easeInOut(duration: 0.2), value: selectedTab)
         .onAppear {
             // アプリ起動時にHealthKit認証確認→自動同期の順序制御
             Task {
