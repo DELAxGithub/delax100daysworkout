@@ -54,27 +54,27 @@ class WeeklyScheduleViewModel {
         switch task.workoutType {
         case .cycling:
             if let targetDetails = task.targetDetails {
-                let detail = CyclingDetail(
-                    distance: 0,
-                    duration: targetDetails.duration ?? 0,
-                    averagePower: Double(targetDetails.targetPower ?? 0),
-                    intensity: targetDetails.intensity ?? .endurance
+                record.cyclingData = SimpleCyclingData(
+                    zone: .z2,
+                    duration: targetDetails.targetDuration ?? 60,
+                    power: targetDetails.targetPower
                 )
-                record.cyclingDetail = detail
-                modelContext.insert(detail)
             }
         case .strength:
-            record.strengthDetails = []
+            record.strengthData = SimpleStrengthData(
+                muscleGroup: .chest,
+                customName: nil,
+                weight: 0,
+                reps: 10,
+                sets: 3
+            )
         case .flexibility:
             if let targetDetails = task.targetDetails {
-                let detail = FlexibilityDetail(
-                    forwardBendDistance: 0,
-                    leftSplitAngle: 90,
-                    rightSplitAngle: 90,
-                    duration: targetDetails.targetDuration ?? 20
+                record.flexibilityData = SimpleFlexibilityData(
+                    type: .general,
+                    duration: targetDetails.targetDuration ?? 20,
+                    measurement: nil
                 )
-                record.flexibilityDetail = detail
-                modelContext.insert(detail)
             }
         case .pilates:
             // ピラティス詳細は後で実装
@@ -107,9 +107,10 @@ class WeeklyScheduleViewModel {
                 modelContext.insert(prAchievement)
             }
             
-            if let streakAchievement = Achievement.checkForStreak(records: allRecords, targetDays: 7) {
-                modelContext.insert(streakAchievement)
-            }
+            // TODO: Implement streak achievement detection
+            // if let streakAchievement = Achievement.checkForStreak(records: allRecords, targetDays: 7) {
+            //     modelContext.insert(streakAchievement)
+            // }
             
             let progress = progressAnalyzer.analyzeProgress(records: allRecords)
             if progress.currentStreak == 3 || progress.currentStreak == 5 {
@@ -312,6 +313,124 @@ class WeeklyScheduleViewModel {
             Logger.error.error("Error saving task changes: \(error.localizedDescription)")
             HapticManager.shared.trigger(.notification(.error))
         }
+    }
+    
+    // MARK: - QuickRecord Integration
+    
+    /// QuickRecordViewで記録を作成し、必要に応じてDailyTaskも作成する
+    func createQuickRecordWithTask(workoutType: WorkoutType, selectedDay: Int, recordData: Any) -> (task: DailyTask?, record: WorkoutRecord?) {
+        // アクティブなテンプレートを取得
+        let templateDescriptor = FetchDescriptor<WeeklyTemplate>(
+            predicate: #Predicate<WeeklyTemplate> { $0.isActive }
+        )
+        
+        guard let activeTemplate = try? modelContext.fetch(templateDescriptor).first else {
+            Logger.error.error("No active template found for quick record creation")
+            return (nil, nil)
+        }
+        
+        // 既存のタスクを検索
+        let existingTasks = activeTemplate.tasksForDay(selectedDay)
+        let matchingTask = existingTasks.first { $0.workoutType == workoutType }
+        
+        let task: DailyTask
+        
+        if let existing = matchingTask {
+            // 既存のタスクを使用
+            task = existing
+        } else {
+            // 新しいタスクを作成
+            task = createNewDailyTask(workoutType: workoutType, day: selectedDay, template: activeTemplate)
+        }
+        
+        // WorkoutRecordを作成
+        let record = WorkoutRecord.fromDailyTask(task)
+        record.markAsCompleted()
+        record.isQuickRecord = true
+        
+        // レコードにデータを設定
+        setRecordData(record: record, workoutType: workoutType, data: recordData)
+        
+        // データベースに保存
+        modelContext.insert(record)
+        
+        do {
+            try modelContext.save()
+            
+            // 完了済みタスクの状態を更新
+            completedTasks.insert(task.id)
+            
+            // アチーブメントチェック
+            checkForAchievements(record)
+            
+            Logger.general.info("Quick record created successfully: \(task.title)")
+            return (task, record)
+        } catch {
+            Logger.error.error("Error saving quick record: \(error.localizedDescription)")
+            return (nil, nil)
+        }
+    }
+    
+    /// 新しいDailyTaskを作成してテンプレートに追加
+    private func createNewDailyTask(workoutType: WorkoutType, day: Int, template: WeeklyTemplate) -> DailyTask {
+        let task = DailyTask(
+            dayOfWeek: day,
+            workoutType: workoutType,
+            title: generateTaskTitle(for: workoutType),
+            description: "クイック記録から追加",
+            isFlexible: false
+        )
+        
+        // ソート順序を設定（同じ曜日の最大値＋1）
+        let existingTasks = template.tasksForDay(day)
+        task.sortOrder = (existingTasks.map { $0.sortOrder }.max() ?? -1) + 1
+        
+        // テンプレートにタスクを追加
+        template.addTask(task)
+        modelContext.insert(task)
+        
+        Logger.general.info("New daily task created: \(task.title) for day \(day)")
+        return task
+    }
+    
+    /// ワークアウトタイプに基づいてタスクタイトルを生成
+    private func generateTaskTitle(for workoutType: WorkoutType) -> String {
+        switch workoutType {
+        case .cycling:
+            return "サイクリング"
+        case .strength:
+            return "筋トレ"
+        case .flexibility:
+            return "ストレッチ"
+        case .pilates:
+            return "ピラティス"
+        case .yoga:
+            return "ヨガ"
+        }
+    }
+    
+    /// WorkoutRecordにデータを設定
+    private func setRecordData(record: WorkoutRecord, workoutType: WorkoutType, data: Any) {
+        switch workoutType {
+        case .cycling:
+            if let cyclingData = data as? SimpleCyclingData {
+                record.cyclingData = cyclingData
+            }
+        case .strength:
+            if let strengthData = data as? SimpleStrengthData {
+                record.strengthData = strengthData
+            }
+        case .flexibility, .pilates, .yoga:
+            if let flexibilityData = data as? SimpleFlexibilityData {
+                record.flexibilityData = flexibilityData
+            }
+        }
+    }
+    
+    /// QuickRecordView完了後にスケジュールビューを更新
+    func refreshAfterQuickRecord() {
+        refreshCompletedTasks()
+        Logger.general.info("Schedule view refreshed after quick record")
     }
     
     // MARK: - Drag & Drop Support

@@ -7,6 +7,7 @@ struct WeeklyScheduleListView: View {
     
     let viewModel: WeeklyScheduleViewModel
     @State private var showingAddTaskSheet = false
+    @State private var showingQuickRecordSheet = false
     @State private var selectedDay = 0
     
     private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
@@ -34,7 +35,7 @@ struct WeeklyScheduleListView: View {
                         
                         Button(action: {
                             selectedDay = day
-                            showingAddTaskSheet = true
+                            showingQuickRecordSheet = true
                         }) {
                             Image(systemName: "plus.circle")
                                 .foregroundColor(.blue)
@@ -48,7 +49,7 @@ struct WeeklyScheduleListView: View {
                         if tasks.isEmpty {
                             Button(action: {
                                 selectedDay = day
-                                showingAddTaskSheet = true
+                                showingQuickRecordSheet = true
                             }) {
                                 HStack {
                                     Image(systemName: "moon.zzz")
@@ -85,20 +86,7 @@ struct WeeklyScheduleListView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .sheet(isPresented: $showingAddTaskSheet) {
-            AddCustomTaskSheet(
-                selectedDay: selectedDay,
-                onSave: { task in
-                    if let activeTemplate = activeTemplates.first {
-                        viewModel.addCustomTask(task, to: activeTemplate)
-                    }
-                    showingAddTaskSheet = false
-                },
-                onCancel: {
-                    showingAddTaskSheet = false
-                }
-            )
-        }
+        // AddCustomTaskSheet removed - now handled by QuickRecordView
         .alert("タスクを削除", isPresented: .constant(viewModel.showingDeleteConfirmation != nil)) {
             Button("削除", role: .destructive) {
                 if let task = viewModel.showingDeleteConfirmation {
@@ -119,6 +107,21 @@ struct WeeklyScheduleListView: View {
             set: { _ in viewModel.showingMoveTask = nil }
         )) { identifiableTask in
             TaskMoveSheet(task: identifiableTask.task, viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingQuickRecordSheet) {
+            let capturedDay = selectedDay  // selectedDayをキャプチャ
+            if let template = activeTemplates.first {
+                QuickRecordView(
+                    selectedDay: capturedDay,
+                    dayTasks: template.tasksForDay(capturedDay),
+                    scheduleViewModel: viewModel
+                )
+            } else {
+                QuickRecordView(
+                    selectedDay: capturedDay,
+                    scheduleViewModel: viewModel
+                )
+            }
         }
     }
     
