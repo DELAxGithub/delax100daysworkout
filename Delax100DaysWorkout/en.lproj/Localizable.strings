@@ -1,0 +1,152 @@
+/* 
+   Localizable.strings (Japanese)
+   Delax100DaysWorkout
+*/
+
+// Common Actions
+"common.done" = "完了";
+"common.cancel" = "キャンセル";
+"common.save" = "保存";
+"common.edit" = "編集";
+"common.delete" = "削除";
+"common.add" = "追加";
+"common.remove" = "削除";
+"common.close" = "閉じる";
+"common.back" = "戻る";
+"common.next" = "次へ";
+"common.previous" = "前へ";
+"common.refresh" = "更新";
+"common.loading" = "読み込み中...";
+"common.retry" = "再試行";
+
+// Navigation
+"navigation.home" = "ホーム";
+"navigation.schedule" = "スケジュール";
+"navigation.progress" = "進捗";
+"navigation.settings" = "設定";
+"navigation.today" = "今日";
+"navigation.history" = "履歴";
+
+// Workout Types
+"workout.cycling" = "サイクリング";
+"workout.strength" = "筋力トレーニング";
+"workout.flexibility" = "柔軟性";
+"workout.cardio" = "有酸素運動";
+"workout.general" = "ワークアウト";
+
+// Card Actions
+"card.tap.hint" = "タップして詳細を表示";
+"card.longpress.hint" = "長押しして編集";
+"card.edit.hint" = "編集";
+"card.delete.hint" = "削除";
+"card.select.hint" = "選択";
+
+// Accessibility Labels
+"accessibility.workout.card" = "%@のワークアウトカード";
+"accessibility.task.card" = "タスクカード";
+"accessibility.progress.card" = "進捗カード";
+"accessibility.metric.card" = "指標カード";
+"accessibility.summary.card" = "サマリーカード";
+
+// Status Messages
+"status.completed" = "完了";
+"status.inprogress" = "進行中";
+"status.pending" = "待機中";
+"status.error" = "エラー";
+"status.success" = "成功";
+"status.warning" = "警告";
+
+// Time & Duration
+"time.minutes" = "%d分";
+"time.hours" = "%d時間";
+"time.seconds" = "%d秒";
+"time.days" = "%d日";
+"time.weeks" = "%d週";
+"time.months" = "%dヶ月";
+
+// Units
+"units.watts" = "W";
+"units.bpm" = "bpm";
+"units.kg" = "kg";
+"units.cm" = "cm";
+"units.degrees" = "°";
+"units.percentage" = "%%";
+
+// Error Messages
+"error.generic" = "エラーが発生しました";
+"error.network" = "ネットワークエラーが発生しました";
+"error.save" = "保存に失敗しました";
+"error.load" = "読み込みに失敗しました";
+"error.invalid.input" = "入力が無効です";
+
+// Success Messages
+"success.save" = "保存しました";
+"success.delete" = "削除しました";
+"success.update" = "更新しました";
+"success.sync" = "同期しました";
+
+// Analysis Messages
+"analysis.data.format" = "分析回数: %d回, 最終分析: %dデータポイント";
+"analysis.no.result" = "分析結果が利用できません";
+"analysis.monthly.usage" = "月間分析回数: %d回";
+
+// Settings Screen
+"settings.title" = "設定";
+"settings.challenge.period" = "チャレンジ期間";
+"settings.goal.date" = "目標日";
+"settings.weight.goals" = "体重目標 (kg)";
+"settings.start.weight" = "開始体重";
+"settings.goal.weight" = "目標体重";
+"settings.cycling.ftp.goals" = "サイクリングFTP目標 (ワット)";
+"settings.start.ftp" = "開始FTP";
+"settings.goal.ftp" = "目標FTP";
+
+// Settings Sections
+"settings.healthcare.integration" = "ヘルスケア連携";
+"settings.apple.health" = "Apple Health";
+"settings.allow.authentication" = "認証を許可";
+"settings.last.sync" = "最終同期";
+"settings.manual.sync" = "手動同期";
+"settings.manual.syncing" = "手動同期中...";
+"settings.auto.syncing" = "自動同期中...";
+
+"settings.claude.api" = "Claude API設定";
+"settings.api.key" = "APIキー";
+"settings.api.key.cancel" = "キャンセル";
+"settings.api.key.set" = "設定";
+"settings.api.key.placeholder" = "sk-ant-api-03-...";
+"settings.api.key.test" = "テスト";
+"settings.api.key.save" = "保存";
+"settings.api.key.delete" = "削除";
+
+"settings.ai.analysis" = "AI分析設定";
+"settings.enable.ai.analysis" = "AI分析を有効にする";
+"settings.update.frequency.days" = "更新頻度（日）";
+"settings.days.unit" = "日数";
+"settings.last.analysis.date" = "最終分析日時";
+
+"settings.analysis.information" = "分析情報";
+"settings.analysis.target" = "分析対象";
+"settings.latest.results" = "最新の結果";
+"settings.usage.status" = "使用状況";
+"settings.total.analysis.count" = "累計分析回数";
+"settings.count.unit" = "回";
+
+"settings.counter.management" = "回数カウンター管理";
+"settings.migrate.from.history" = "履歴からカウンター移行";
+"settings.migrate.description" = "既存のワークアウト履歴から回数を自動集計し、カウンターを更新します（8月1日以降）";
+"settings.migration.in.progress" = "移行中...";
+"settings.migration.ready" = "準備完了";
+"settings.execute.migration" = "履歴移行を実行";
+
+"settings.ai.analysis.execution" = "AI分析実行";
+"settings.manual.analysis.execution" = "手動分析実行";
+"settings.analysis.description" = "あなたの進捗データを基に、最適なトレーニング調整を提案します";
+"settings.analysis.state" = "状態: %@";
+"settings.analyzing" = "分析中...";
+"settings.analyze.now" = "今すぐ分析";
+
+// Alert Messages
+"alert.saved.title" = "保存完了";
+"alert.saved.message" = "目標が正常に更新されました。";
+"alert.ok.button" = "OK";

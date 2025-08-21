@@ -1,0 +1,102 @@
+/* 
+   Localizable.strings (English)
+   Delax100DaysWorkout
+*/
+
+// Common Actions
+"common.done" = "Done";
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+"common.edit" = "Edit";
+"common.delete" = "Delete";
+"common.add" = "Add";
+"common.remove" = "Remove";
+"common.close" = "Close";
+"common.back" = "Back";
+"common.next" = "Next";
+"common.previous" = "Previous";
+"common.refresh" = "Refresh";
+"common.loading" = "Loading...";
+"common.retry" = "Retry";
+
+// Navigation
+"navigation.home" = "Home";
+"navigation.schedule" = "Schedule";
+"navigation.progress" = "Progress";
+"navigation.settings" = "Settings";
+"navigation.today" = "Today";
+"navigation.history" = "History";
+
+// Workout Types
+"workout.cycling" = "Cycling";
+"workout.strength" = "Strength Training";
+"workout.flexibility" = "Flexibility";
+"workout.cardio" = "Cardio";
+"workout.general" = "Workout";
+
+// Card Actions
+"card.tap.hint" = "Tap to view details";
+"card.longpress.hint" = "Long press to edit";
+"card.edit.hint" = "Edit";
+"card.delete.hint" = "Delete";
+"card.select.hint" = "Select";
+
+// Accessibility Labels
+"accessibility.workout.card" = "Workout card for %@";
+"accessibility.task.card" = "Task card";
+"accessibility.progress.card" = "Progress card";
+"accessibility.metric.card" = "Metric card";
+"accessibility.summary.card" = "Summary card";
+
+// Status Messages
+"status.completed" = "Completed";
+"status.inprogress" = "In Progress";
+"status.pending" = "Pending";
+"status.error" = "Error";
+"status.success" = "Success";
+"status.warning" = "Warning";
+
+// Time & Duration
+"time.minutes" = "%d minutes";
+"time.hours" = "%d hours";
+"time.seconds" = "%d seconds";
+"time.days" = "%d days";
+"time.weeks" = "%d weeks";
+"time.months" = "%d months";
+
+// Units
+"units.watts" = "W";
+"units.bpm" = "bpm";
+"units.kg" = "kg";
+"units.cm" = "cm";
+"units.degrees" = "°";
+"units.percentage" = "%%";
+
+// Error Messages
+"error.generic" = "An error occurred";
+"error.network" = "Network error occurred";
+"error.save" = "Save failed";
+"error.load" = "Load failed";
+"error.invalid.input" = "Invalid input";
+
+// Success Messages
+"success.save" = "Saved successfully";
+"success.delete" = "Deleted successfully";
+"success.update" = "Updated successfully";
+"success.sync" = "Synchronized successfully";
+
+// Analysis Messages
+"analysis.data.format" = "Analysis count: %d, Last analysis: %d data points";
+"analysis.no.result" = "No analysis result available";
+"analysis.monthly.usage" = "Monthly analysis count: %d";
+
+// Settings Screen
+"settings.title" = "Settings";
+"settings.challenge.period" = "Challenge Period";
+"settings.goal.date" = "Goal Date";
+"settings.weight.goals" = "Weight Goals (kg)";
+"settings.start.weight" = "Start Weight";
+"settings.goal.weight" = "Goal Weight";
+"settings.cycling.ftp.goals" = "Cycling FTP Goals (Watts)";
+"settings.start.ftp" = "Start FTP";
+"settings.goal.ftp" = "Goal FTP";

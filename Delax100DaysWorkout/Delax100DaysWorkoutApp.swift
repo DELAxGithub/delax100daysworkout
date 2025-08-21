@@ -5,7 +5,7 @@ import SwiftData
 @main
 struct Delax100DaysWorkoutApp: App {
     @StateObject private var bugReportManager = BugReportManager.shared
-    @StateObject private var diContainer = DIContainer.shared
+    @StateObject private var healthKitManager = HealthKitManager.shared
     
     private let modelContainer: ModelContainer
     
@@ -27,14 +27,12 @@ struct Delax100DaysWorkoutApp: App {
                 DailyMetric.self,
                 WPRTrackingSystem.self,
                 TrainingSavings.self,
-                TaskCompletionCounter.self
+                TaskCompletionCounter.self,
+                BugReport.self
             )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
-        
-        // Configure DI Container with app services
-        DIContainer.shared.configureAppServices(modelContainer: modelContainer)
         
         // BugReportManager設定（共有パッケージ互換）
         BugReportManager.shared.configure(
@@ -47,7 +45,7 @@ struct Delax100DaysWorkoutApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
-                .diContainer(diContainer)
+                .environmentObject(healthKitManager)
         }
         .modelContainer(modelContainer)
     }

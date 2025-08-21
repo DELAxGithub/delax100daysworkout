@@ -6,7 +6,8 @@ import OSLog
 struct UnifiedHomeDashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var sstViewModel = SSTDashboardViewModel()
-    @StateObject private var healthKitService = HealthKitService()
+    @EnvironmentObject var healthKitManager: HealthKitManager
+    @State private var todaySteps: Double = 0
     @State private var progressViewModel: ProgressChartViewModel? = nil
     @State private var dashboardViewModel: DashboardViewModel? = nil
     @State private var homeDashboardViewModel: HomeDashboardViewModel? = nil
@@ -169,6 +170,71 @@ struct UnifiedHomeDashboardView: View {
                                     }
                                 }
                             }
+                        }
+                    }
+                    
+                    // Health Summary Section
+                    SectionCard(title: "健康データ", icon: "heart.fill", iconColor: .red) {
+                        HStack(spacing: 20) {
+                            // Weight Display
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("体重")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                if let weight = latestWeight {
+                                    Text("\(weight, specifier: "%.1f")kg")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                } else {
+                                    Text("データなし")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            // Steps Display
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("今日の歩数")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(Int(todaySteps))")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.green)
+                                Text("歩")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        // HealthKit Authorization Status
+                        if !healthKitManager.isAuthorized {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundColor(.orange)
+                                Text("Apple Health連携が必要です")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button("設定") {
+                                    Task {
+                                        do {
+                                            try await healthKitManager.requestPermissions()
+                                            await loadTodaySteps()
+                                        } catch {
+                                            print("HealthKit authorization failed: \(error)")
+                                        }
+                                    }
+                                }
+                                .font(.caption)
+                                .buttonStyle(.bordered)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 8)
                         }
                     }
                     
@@ -381,6 +447,7 @@ struct UnifiedHomeDashboardView: View {
         // HealthKitデータも更新
         Task {
             await syncHealthKitData()
+            await loadTodaySteps()
         }
     }
     
@@ -393,9 +460,9 @@ struct UnifiedHomeDashboardView: View {
     
     private func initializeHealthKit() async {
         // HealthKit認証を確認・要求
-        if !healthKitService.isAuthorized {
+        if !healthKitManager.isAuthorized {
             do {
-                try await healthKitService.requestAuthorization()
+                try await healthKitManager.requestPermissions()
             } catch {
                 Logger.error.error("HealthKit認証エラー: \(error.localizedDescription)")
                 return
@@ -404,10 +471,11 @@ struct UnifiedHomeDashboardView: View {
         
         // 認証成功後、データを同期
         await syncHealthKitData()
+        await loadTodaySteps()
     }
     
     private func syncHealthKitData() async {
-        guard healthKitService.isAuthorized else { 
+        guard healthKitManager.isAuthorized else { 
             await loadLatestWeight()
             return 
         }
@@ -419,7 +487,7 @@ struct UnifiedHomeDashboardView: View {
         do {
             // 過去7日間のデータを同期
             let startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-            let _ = try await healthKitService.syncWeightData(from: startDate, modelContext: modelContext)
+            let _ = try await healthKitManager.syncWeightData(from: startDate, modelContext: modelContext)
             
             // 最新体重を取得して表示
             await loadLatestWeight()
@@ -445,6 +513,33 @@ struct UnifiedHomeDashboardView: View {
             latestWeight = metrics.first?.weightKg
         } catch {
             Logger.error.error("体重データ取得エラー: \(error.localizedDescription)")
+        }
+    }
+    
+    // 今日の歩数を取得
+    private func loadTodaySteps() async {
+        guard healthKitManager.isAuthorized else {
+            await MainActor.run {
+                todaySteps = 0
+            }
+            return
+        }
+        
+        do {
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: Date())
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? Date()
+            
+            let steps = try await healthKitManager.getStepCount(from: startOfDay, to: endOfDay)
+            
+            await MainActor.run {
+                todaySteps = steps
+            }
+        } catch {
+            Logger.error.error("歩数データ取得エラー: \(error.localizedDescription)")
+            await MainActor.run {
+                todaySteps = 0
+            }
         }
     }
 }

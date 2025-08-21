@@ -4,42 +4,63 @@ import SwiftData
 struct SettingsView: View {
     @State var viewModel: SettingsViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @State private var isMigratingCounters = false
+    @State private var hasInitializationError = false
 
     var body: some View {
+        if hasInitializationError {
+            // エラー状態の表示
+            NavigationStack {
+                VStack(spacing: 20) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundColor(.orange)
+                    Text("設定画面の初期化中にエラーが発生しました")
+                        .font(.headline)
+                    Button("再試行") {
+                        hasInitializationError = false
+                        // ViewModelを再作成
+                        viewModel = SettingsViewModel(modelContext: modelContext)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .navigationTitle("設定")
+            }
+        } else {
         NavigationStack {
             Form {
-                Section(header: Text("Challenge Period")) {
-                    DatePicker("Goal Date", selection: $viewModel.goalDate, displayedComponents: .date)
+                Section(header: Text("チャレンジ期間")) {
+                    DatePicker("目標日", selection: $viewModel.goalDate, displayedComponents: .date)
                 }
 
-                Section(header: Text("Weight Goals (kg)")) {
+                Section(header: Text("体重目標")) {
                     HStack {
-                        Text("Start Weight")
+                        Text("開始体重")
                         Spacer()
-                        TextField("Weight", value: $viewModel.startWeightKg, format: .number.precision(.fractionLength(1)))
+                        TextField("体重", value: $viewModel.startWeightKg, format: .number.precision(.fractionLength(1)))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                     }
                     HStack {
-                        Text("Goal Weight")
+                        Text("目標体重")
                         Spacer()
-                        TextField("Weight", value: $viewModel.goalWeightKg, format: .number.precision(.fractionLength(1)))
+                        TextField("体重", value: $viewModel.goalWeightKg, format: .number.precision(.fractionLength(1)))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                     }
                 }
 
-                Section(header: Text("Cycling FTP Goals (Watts)")) {
+                Section(header: Text("サイクリングFTP目標")) {
                     HStack {
-                        Text("Start FTP")
+                        Text("開始FTP")
                         Spacer()
                         TextField("FTP", value: $viewModel.startFtp, format: .number)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                     }
                     HStack {
-                        Text("Goal FTP")
+                        Text("目標FTP")
                         Spacer()
                         TextField("FTP", value: $viewModel.goalFtp, format: .number)
                             .keyboardType(.numberPad)
@@ -47,191 +68,22 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(header: Text("ヘルスケア連携")) {
-                    HStack {
-                        Image(systemName: "heart.text.square")
-                            .foregroundColor(.red)
-                        Text("Apple Health")
-                        Spacer()
-                        Text(viewModel.healthKitAuthStatus)
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
-                    
-                    if !viewModel.healthKitService.isAuthorized {
-                        Button("認証を許可") {
-                            Task {
-                                await viewModel.requestHealthKitAuthorization()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    } else {
-                        VStack(spacing: 8) {
-                            HStack {
-                                Text("最終同期")
-                                Spacer()
-                                Text(viewModel.lastHealthKitSyncDate)
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
-                            
-                            Button("手動同期") {
-                                Task {
-                                    await viewModel.syncHealthKitData()
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(viewModel.isHealthKitSyncing || viewModel.healthKitService.isAutoSyncing)
-                            
-                            if viewModel.isHealthKitSyncing {
-                                HStack {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                    Text("手動同期中...")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            } else if viewModel.healthKitService.isAutoSyncing {
-                                HStack {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                    Text("自動同期中...")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
+                HealthcareSection(viewModel: viewModel)
+                
+                // HealthKit テストビュー
+                Section(header: Text("HealthKit テスト")) {
+                    NavigationLink("健康データビュー") {
+                        HealthDataView()
+                            .navigationTitle("HealthKit テスト")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
                 }
                 
-                Section(header: Text("Claude API設定")) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("APIキー")
-                            Spacer()
-                            Text(viewModel.apiKeyDisplayStatus)
-                                .foregroundColor(.secondary)
-                            
-                            Button(viewModel.showingAPIKeyField ? "キャンセル" : "設定") {
-                                viewModel.showingAPIKeyField.toggle()
-                                if !viewModel.showingAPIKeyField {
-                                    viewModel.apiKeyTestResult = ""
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                        
-                        if viewModel.showingAPIKeyField {
-                            VStack(alignment: .leading, spacing: 8) {
-                                SecureField("sk-ant-api-03-...", text: $viewModel.claudeAPIKey)
-                                    .textFieldStyle(.roundedBorder)
-                                
-                                if !viewModel.apiKeyTestResult.isEmpty {
-                                    Text(viewModel.apiKeyTestResult)
-                                        .font(.caption)
-                                        .foregroundColor(
-                                            viewModel.apiKeyTestResult.contains("✅") ? .green :
-                                            viewModel.apiKeyTestResult.contains("❌") ? .red : .orange
-                                        )
-                                }
-                                
-                                HStack {
-                                    Button("テスト") {
-                                        Task {
-                                            await viewModel.testAPIKey()
-                                        }
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .disabled(viewModel.isTestingAPIKey || viewModel.claudeAPIKey.isEmpty)
-                                    
-                                    Button("保存") {
-                                        viewModel.saveAPIKey()
-                                        viewModel.showingAPIKeyField = false
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .disabled(viewModel.claudeAPIKey.isEmpty)
-                                    
-                                    if !viewModel.claudeAPIKey.isEmpty {
-                                        Button("削除") {
-                                            viewModel.clearAPIKey()
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .foregroundColor(.red)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if viewModel.isTestingAPIKey {
-                                        ProgressView()
-                                            .scaleEffect(0.8)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                // ClaudeApiSection(viewModel: viewModel) // Temporarily disabled
                 
-                Section(header: Text("AI分析設定")) {
-                    Toggle("AI分析を有効にする", isOn: $viewModel.aiAnalysisEnabled)
-                        .onChange(of: viewModel.aiAnalysisEnabled) { _, _ in
-                            viewModel.updateAISettings()
-                        }
-                    
-                    if viewModel.aiAnalysisEnabled {
-                        HStack {
-                            Text("更新頻度（日）")
-                            Spacer()
-                            TextField("日数", value: $viewModel.updateFrequencyDays, format: .number)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 60)
-                                .onChange(of: viewModel.updateFrequencyDays) { _, _ in
-                                    viewModel.updateAISettings()
-                                }
-                        }
-                        
-                        if let lastDate = viewModel.lastAnalysisDate {
-                            HStack {
-                                Text("最終分析日時")
-                                Spacer()
-                                Text(lastDate.formatted(date: .abbreviated, time: .shortened))
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                }
+                AIAnalysisSection(viewModel: $viewModel)
                 
-                Section(header: Text("分析情報")) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("分析対象")
-                            Spacer()
-                            Text(viewModel.analysisDataDescription)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            Text("最新の結果")
-                            Spacer()
-                            Text(viewModel.analysisResultDescription)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            Text("使用状況")
-                            Spacer()
-                            Text(viewModel.monthlyUsageDescription)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            Text("累計分析回数")
-                            Spacer()
-                            Text("\(viewModel.analysisCount)回")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
+                AnalysisInfoSection(viewModel: $viewModel)
                 
                 Section(header: Text("回数カウンター管理")) {
                     VStack(alignment: .leading, spacing: 12) {
@@ -322,23 +174,48 @@ struct SettingsView: View {
                         }
                     }
                 }
+                
+                // 開発時用データベースリセット
+                #if DEBUG
+                Section(header: Text("開発者ツール")) {
+                    Button("データベースをリセット") {
+                        viewModel.resetDatabase()
+                    }
+                    .foregroundColor(.red)
+                }
+                #endif
             }
-            .navigationTitle("Settings")
+            .navigationTitle("設定")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save", action: viewModel.save)
+                    Button("保存") {
+                        if viewModel.save() {
+                            dismiss()
+                        }
+                        // 保存失敗時は画面を閉じないでエラーを表示
+                    }
                 }
-            }
-            .alert("Saved", isPresented: $viewModel.showSaveConfirmation) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Your goals have been updated successfully.")
             }
             .onAppear {
                 Task {
                     await viewModel.refreshHealthKitStatus()
                 }
             }
+            .alert("保存エラー", isPresented: $viewModel.showSaveError) {
+                Button("OK", role: .cancel) {
+                    viewModel.showSaveError = false
+                }
+            } message: {
+                Text(viewModel.saveError)
+            }
+            .alert("保存完了", isPresented: $viewModel.showSaveConfirmation) {
+                Button("OK", role: .cancel) {
+                    viewModel.showSaveConfirmation = false
+                }
+            } message: {
+                Text("設定が正常に保存されました。")
+            }
+        }
         }
     }
     
