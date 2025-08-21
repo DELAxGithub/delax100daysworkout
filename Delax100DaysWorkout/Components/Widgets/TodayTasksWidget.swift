@@ -79,9 +79,7 @@ struct TodayTasksWidget: View {
     // MARK: - Computed Properties
     
     private var todaysTasks: [DailyTask] {
-        // For now return empty array - will be populated by the parent view
-        // TODO: Get today's tasks from WeeklyScheduleViewModel
-        return []
+        return scheduleViewModel.getTodaysTasks()
     }
     
     private var completedTasksCount: Int {

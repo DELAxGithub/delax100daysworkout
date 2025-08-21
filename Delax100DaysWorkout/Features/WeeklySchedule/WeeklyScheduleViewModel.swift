@@ -165,6 +165,30 @@ class WeeklyScheduleViewModel {
         checkCompletedTasks()
     }
     
+    // MARK: - Today's Tasks for Home Dashboard
+    
+    func getTodaysTasks() -> [DailyTask] {
+        let today = Calendar.current.component(.weekday, from: Date()) - 1 // 0=Sunday, 1=Monday, etc.
+        
+        let templateDescriptor = FetchDescriptor<WeeklyTemplate>(
+            predicate: #Predicate<WeeklyTemplate> { $0.isActive }
+        )
+        
+        do {
+            let activeTemplates = try modelContext.fetch(templateDescriptor)
+            guard let template = activeTemplates.first else { 
+                Logger.error.error("No active template found")
+                return [] 
+            }
+            
+            let todaysTasks = template.tasksForDay(today).sorted { $0.sortOrder < $1.sortOrder }
+            return todaysTasks
+        } catch {
+            Logger.error.error("Error fetching today's tasks: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
     func addCustomTask(_ task: DailyTask, to template: WeeklyTemplate) {
         // ソート順序を設定（同じ曜日の最大値＋1）
         let existingTasks = template.tasksForDay(task.dayOfWeek)

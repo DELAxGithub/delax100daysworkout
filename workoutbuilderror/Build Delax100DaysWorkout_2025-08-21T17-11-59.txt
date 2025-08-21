@@ -1,0 +1,3440 @@
+
+Showing Recent Errors Only
+
+Build target Delax100DaysWorkout of project Delax100DaysWorkout with configuration Debug
+
+SwiftCompile normal arm64 Compiling\ Delax100DaysWorkoutApp.swift,\ FieldTypeAnalysis.swift,\ InteractionStandards.swift,\ HistoryViewTemplate.swift,\ EnvironmentConfig.swift,\ AdditionalOptimizedQueries.swift,\ DailyLog.swift,\ UniversalEditSheetDemo.swift,\ WorkoutSearchExtensions.swift,\ Achievement.swift,\ TextFieldRenderer.swift,\ HistorySearchViewModel.swift,\ WeeklyScheduleView.swift,\ EnumFieldRenderer.swift,\ HapticManager.swift,\ MetricsHistoryView.swift,\ WeeklyTemplate.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Delax100DaysWorkoutApp.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/Core/FieldTypeAnalysis.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/InteractionStandards.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/HistoryViewTemplate.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/EnvironmentConfig.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Queries/AdditionalOptimizedQueries.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/DailyLog.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/UniversalEditSheetDemo.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Extensions/WorkoutSearchExtensions.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/Achievement.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/TextFieldRenderer.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Core/HistorySearchViewModel.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/WeeklySchedule/WeeklyScheduleView.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/EnumFieldRenderer.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/Haptics/HapticManager.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/MetricsHistoryView.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/WeeklyTemplate.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+
+not on a macro expansion node: UnexpectedNodesSyntax
+├─[0]: rightBrace
+├─[1]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[2]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[3]: identifier("setupViewModels")
+├─[4]: leftParen
+├─[5]: rightParen
+├─[6]: leftBrace
+├─[7]: identifier("sstViewModel")
+├─[8]: period
+├─[9]: identifier("setModelContext")
+├─[10]: leftParen
+├─[11]: identifier("modelContext")
+├─[12]: rightParen
+├─[13]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[14]: identifier("progressViewModel")
+├─[15]: binaryOperator("==")
+├─[16]: keyword(_CompilerSwiftSyntax.Keyword.nil)
+├─[17]: leftBrace
+├─[18]: identifier("progressViewModel")
+├─[19]: equal
+├─[20]: identifier("ProgressChartViewModel")
+├─[21]: leftParen
+├─[22]: identifier("modelContext")
+├─[23]: colon
+├─[24]: identifier("modelContext")
+├─[25]: rightParen
+├─[26]: rightBrace
+├─[27]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[28]: identifier("scheduleViewModel")
+├─[29]: binaryOperator("==")
+├─[30]: keyword(_CompilerSwiftSyntax.Keyword.nil)
+├─[31]: leftBrace
+├─[32]: identifier("scheduleViewModel")
+├─[33]: equal
+├─[34]: identifier("WeeklyScheduleViewModel")
+├─[35]: leftParen
+├─[36]: identifier("modelContext")
+├─[37]: colon
+├─[38]: identifier("modelContext")
+├─[39]: rightParen
+├─[40]: rightBrace
+├─[41]: rightBrace
+├─[42]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[43]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[44]: identifier("loadUserProfile")
+├─[45]: leftParen
+├─[46]: rightParen
+├─[47]: leftBrace
+├─[48]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[49]: identifier("descriptor")
+├─[50]: equal
+├─[51]: identifier("FetchDescriptor")
+├─[52]: binaryOperator("<")
+├─[53]: identifier("UserProfile")
+├─[54]: binaryOperator(">")
+├─[55]: leftParen
+├─[56]: rightParen
+├─[57]: keyword(_CompilerSwiftSyntax.Keyword.do)
+├─[58]: leftBrace
+├─[59]: identifier("userProfile")
+├─[60]: equal
+├─[61]: keyword(_CompilerSwiftSyntax.Keyword.try)
+├─[62]: identifier("modelContext")
+├─[63]: period
+├─[64]: identifier("fetch")
+├─[65]: leftParen
+├─[66]: identifier("descriptor")
+├─[67]: rightParen
+├─[68]: period
+├─[69]: identifier("first")
+├─[70]: rightBrace
+├─[71]: keyword(_CompilerSwiftSyntax.Keyword.catch)
+├─[72]: leftBrace
+├─[73]: identifier("Logger")
+├─[74]: period
+├─[75]: identifier("error")
+├─[76]: period
+├─[77]: identifier("error")
+├─[78]: leftParen
+├─[79]: stringQuote
+├─[80]: stringSegment("Failed to fetch UserProfile: ")
+├─[81]: backslash
+├─[82]: leftParen
+├─[83]: identifier("error")
+├─[84]: period
+├─[85]: identifier("localizedDescription")
+├─[86]: rightParen
+├─[87]: stringSegment("")
+├─[88]: stringQuote
+├─[89]: rightParen
+├─[90]: rightBrace
+├─[91]: rightBrace
+├─[92]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[93]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[94]: identifier("loadAllData")
+├─[95]: leftParen
+├─[96]: rightParen
+├─[97]: leftBrace
+├─[98]: identifier("Task")
+├─[99]: leftBrace
+├─[100]: identifier("async")
+├─[101]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[102]: identifier("sstData")
+├─[103]: colon
+├─[104]: identifier("Void")
+├─[105]: equal
+├─[106]: identifier("sstViewModel")
+├─[107]: period
+├─[108]: identifier("loadData")
+├─[109]: leftParen
+├─[110]: rightParen
+├─[111]: identifier("async")
+├─[112]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[113]: identifier("progressData")
+├─[114]: colon
+├─[115]: identifier("Void")
+├─[116]: equal
+├─[117]: identifier("progressViewModel")
+├─[118]: postfixQuestionMark
+├─[119]: period
+├─[120]: identifier("fetchData")
+├─[121]: leftParen
+├─[122]: rightParen
+├─[123]: binaryOperator("??")
+├─[124]: leftParen
+├─[125]: rightParen
+├─[126]: identifier("async")
+├─[127]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[128]: identifier("userProfileData")
+├─[129]: colon
+├─[130]: identifier("Void")
+├─[131]: equal
+├─[132]: identifier("loadUserProfile")
+├─[133]: leftParen
+├─[134]: rightParen
+├─[135]: identifier("await")
+├─[136]: identifier("sstData")
+├─[137]: identifier("await")
+├─[138]: identifier("progressData")
+├─[139]: identifier("await")
+├─[140]: identifier("userProfileData")
+├─[141]: rightBrace
+├─[142]: rightBrace
+├─[143]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[144]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[145]: identifier("refreshAllData")
+├─[146]: leftParen
+├─[147]: rightParen
+├─[148]: leftBrace
+├─[149]: identifier("Task")
+├─[150]: leftBrace
+├─[151]: identifier("await")
+├─[152]: identifier("MainActor")
+├─[153]: period
+├─[154]: identifier("run")
+├─[155]: leftBrace
+├─[156]: identifier("loadUserProfile")
+├─[157]: leftParen
+├─[158]: rightParen
+├─[159]: identifier("scheduleViewModel")
+├─[160]: postfixQuestionMark
+├─[161]: period
+├─[162]: identifier("refreshCompletedTasks")
+├─[163]: leftParen
+├─[164]: rightParen
+├─[165]: rightBrace
+├─[166]: identifier("async")
+├─[167]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[168]: identifier("sstRefresh")
+├─[169]: colon
+├─[170]: identifier("Void")
+├─[171]: equal
+├─[172]: identifier("sstViewModel")
+├─[173]: period
+├─[174]: identifier("refreshData")
+├─[175]: leftParen
+├─[176]: rightParen
+├─[177]: identifier("async")
+├─[178]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[179]: identifier("progressRefresh")
+├─[180]: colon
+├─[181]: identifier("Void")
+├─[182]: equal
+├─[183]: identifier("progressViewModel")
+├─[184]: postfixQuestionMark
+├─[185]: period
+├─[186]: identifier("fetchData")
+├─[187]: leftParen
+├─[188]: rightParen
+├─[189]: binaryOperator("??")
+├─[190]: leftParen
+├─[191]: rightParen
+├─[192]: identifier("async")
+├─[193]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[194]: identifier("healthKitSync")
+├─[195]: colon
+├─[196]: identifier("Void")
+├─[197]: equal
+├─[198]: identifier("syncHealthKitData")
+├─[199]: leftParen
+├─[200]: rightParen
+├─[201]: identifier("async")
+├─[202]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[203]: identifier("stepsLoad")
+├─[204]: colon
+├─[205]: identifier("Void")
+├─[206]: equal
+├─[207]: identifier("loadTodaySteps")
+├─[208]: leftParen
+├─[209]: rightParen
+├─[210]: identifier("await")
+├─[211]: identifier("sstRefresh")
+├─[212]: identifier("await")
+├─[213]: identifier("progressRefresh")
+├─[214]: identifier("await")
+├─[215]: identifier("healthKitSync")
+├─[216]: identifier("await")
+├─[217]: identifier("stepsLoad")
+├─[218]: rightBrace
+├─[219]: rightBrace
+├─[220]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[221]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[222]: identifier("handleCardTap")
+├─[223]: leftParen
+├─[224]: wildcard
+├─[225]: identifier("config")
+├─[226]: colon
+├─[227]: identifier("SummaryCardConfiguration")
+├─[228]: rightParen
+├─[229]: leftBrace
+├─[230]: identifier("HapticManager")
+├─[231]: period
+├─[232]: identifier("shared")
+├─[233]: period
+├─[234]: identifier("trigger")
+├─[235]: leftParen
+├─[236]: period
+├─[237]: identifier("impact")
+├─[238]: leftParen
+├─[239]: period
+├─[240]: identifier("medium")
+├─[241]: rightParen
+├─[242]: rightParen
+├─[243]: rightBrace
+├─[244]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[245]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[246]: identifier("initializeHealthKit")
+├─[247]: leftParen
+├─[248]: rightParen
+├─[249]: identifier("async")
+├─[250]: leftBrace
+├─[251]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[252]: prefixOperator("!")
+├─[253]: identifier("healthKitManager")
+├─[254]: period
+├─[255]: identifier("isAuthorized")
+├─[256]: leftBrace
+├─[257]: keyword(_CompilerSwiftSyntax.Keyword.do)
+├─[258]: leftBrace
+├─[259]: keyword(_CompilerSwiftSyntax.Keyword.try)
+├─[260]: identifier("await")
+├─[261]: identifier("healthKitManager")
+├─[262]: period
+├─[263]: identifier("requestPermissions")
+├─[264]: leftParen
+├─[265]: rightParen
+├─[266]: rightBrace
+├─[267]: keyword(_CompilerSwiftSyntax.Keyword.catch)
+├─[268]: leftBrace
+├─[269]: identifier("Logger")
+├─[270]: period
+├─[271]: identifier("error")
+├─[272]: period
+├─[273]: identifier("error")
+├─[274]: leftParen
+├─[275]: stringQuote
+├─[276]: stringSegment("HealthKit認証エラー: ")
+├─[277]: backslash
+├─[278]: leftParen
+├─[279]: identifier("error")
+├─[280]: period
+├─[281]: identifier("localizedDescription")
+├─[282]: rightParen
+├─[283]: stringSegment("")
+├─[284]: stringQuote
+├─[285]: rightParen
+├─[286]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[287]: rightBrace
+├─[288]: rightBrace
+├─[289]: identifier("await")
+├─[290]: identifier("syncHealthKitData")
+├─[291]: leftParen
+├─[292]: rightParen
+├─[293]: identifier("await")
+├─[294]: identifier("loadTodaySteps")
+├─[295]: leftParen
+├─[296]: rightParen
+├─[297]: rightBrace
+├─[298]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[299]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[300]: identifier("syncHealthKitData")
+├─[301]: leftParen
+├─[302]: rightParen
+├─[303]: identifier("async")
+├─[304]: leftBrace
+├─[305]: keyword(_CompilerSwiftSyntax.Keyword.guard)
+├─[306]: identifier("healthKitManager")
+├─[307]: period
+├─[308]: identifier("isAuthorized")
+├─[309]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[310]: leftBrace
+├─[311]: identifier("await")
+├─[312]: identifier("loadLatestWeight")
+├─[313]: leftParen
+├─[314]: rightParen
+├─[315]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[316]: rightBrace
+├─[317]: identifier("await")
+├─[318]: identifier("MainActor")
+├─[319]: period
+├─[320]: identifier("run")
+├─[321]: leftBrace
+├─[322]: identifier("isHealthKitSyncing")
+├─[323]: equal
+├─[324]: keyword(_CompilerSwiftSyntax.Keyword.true)
+├─[325]: rightBrace
+├─[326]: keyword(_CompilerSwiftSyntax.Keyword.do)
+├─[327]: leftBrace
+├─[328]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[329]: identifier("startDate")
+├─[330]: equal
+├─[331]: identifier("Calendar")
+├─[332]: period
+├─[333]: identifier("current")
+├─[334]: period
+├─[335]: identifier("date")
+├─[336]: leftParen
+├─[337]: identifier("byAdding")
+├─[338]: colon
+├─[339]: period
+├─[340]: identifier("day")
+├─[341]: comma
+├─[342]: identifier("value")
+├─[343]: colon
+├─[344]: prefixOperator("-")
+├─[345]: integerLiteral("7")
+├─[346]: comma
+├─[347]: identifier("to")
+├─[348]: colon
+├─[349]: identifier("Date")
+├─[350]: leftParen
+├─[351]: rightParen
+├─[352]: rightParen
+├─[353]: binaryOperator("??")
+├─[354]: identifier("Date")
+├─[355]: leftParen
+├─[356]: rightParen
+├─[357]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[358]: wildcard
+├─[359]: equal
+├─[360]: keyword(_CompilerSwiftSyntax.Keyword.try)
+├─[361]: identifier("await")
+├─[362]: identifier("healthKitManager")
+├─[363]: period
+├─[364]: identifier("syncWeightData")
+├─[365]: leftParen
+├─[366]: identifier("from")
+├─[367]: colon
+├─[368]: identifier("startDate")
+├─[369]: comma
+├─[370]: identifier("modelContext")
+├─[371]: colon
+├─[372]: identifier("modelContext")
+├─[373]: rightParen
+├─[374]: identifier("await")
+├─[375]: identifier("loadLatestWeight")
+├─[376]: leftParen
+├─[377]: rightParen
+├─[378]: rightBrace
+├─[379]: keyword(_CompilerSwiftSyntax.Keyword.catch)
+├─[380]: leftBrace
+├─[381]: identifier("Logger")
+├─[382]: period
+├─[383]: identifier("error")
+├─[384]: period
+├─[385]: identifier("error")
+├─[386]: leftParen
+├─[387]: stringQuote
+├─[388]: stringSegment("HealthKitデータ同期エラー: ")
+├─[389]: backslash
+├─[390]: leftParen
+├─[391]: identifier("error")
+├─[392]: period
+├─[393]: identifier("localizedDescription")
+├─[394]: rightParen
+├─[395]: stringSegment("")
+├─[396]: stringQuote
+├─[397]: rightParen
+├─[398]: rightBrace
+├─[399]: identifier("await")
+├─[400]: identifier("MainActor")
+├─[401]: period
+├─[402]: identifier("run")
+├─[403]: leftBrace
+├─[404]: identifier("isHealthKitSyncing")
+├─[405]: equal
+├─[406]: keyword(_CompilerSwiftSyntax.Keyword.false)
+├─[407]: rightBrace
+├─[408]: rightBrace
+├─[409]: atSign
+├─[410]: identifier("MainActor")
+├─[411]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[412]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[413]: identifier("loadLatestWeight")
+├─[414]: leftParen
+├─[415]: rightParen
+├─[416]: identifier("async")
+├─[417]: leftBrace
+├─[418]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[419]: identifier("descriptor")
+├─[420]: equal
+├─[421]: identifier("FetchDescriptor")
+├─[422]: binaryOperator("<")
+├─[423]: identifier("DailyMetric")
+├─[424]: binaryOperator(">")
+├─[425]: leftParen
+├─[426]: identifier("sortBy")
+├─[427]: colon
+├─[428]: leftSquare
+├─[429]: identifier("SortDescriptor")
+├─[430]: leftParen
+├─[431]: backslash
+├─[432]: period
+├─[433]: identifier("date")
+├─[434]: comma
+├─[435]: identifier("order")
+├─[436]: colon
+├─[437]: period
+├─[438]: identifier("reverse")
+├─[439]: rightParen
+├─[440]: rightSquare
+├─[441]: rightParen
+├─[442]: keyword(_CompilerSwiftSyntax.Keyword.do)
+├─[443]: leftBrace
+├─[444]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[445]: identifier("metrics")
+├─[446]: equal
+├─[447]: keyword(_CompilerSwiftSyntax.Keyword.try)
+├─[448]: identifier("modelContext")
+├─[449]: period
+├─[450]: identifier("fetch")
+├─[451]: leftParen
+├─[452]: identifier("descriptor")
+├─[453]: rightParen
+├─[454]: identifier("latestWeight")
+├─[455]: equal
+├─[456]: identifier("metrics")
+├─[457]: period
+├─[458]: identifier("first")
+├─[459]: postfixQuestionMark
+├─[460]: period
+├─[461]: identifier("weightKg")
+├─[462]: rightBrace
+├─[463]: keyword(_CompilerSwiftSyntax.Keyword.catch)
+├─[464]: leftBrace
+├─[465]: identifier("Logger")
+├─[466]: period
+├─[467]: identifier("error")
+├─[468]: period
+├─[469]: identifier("error")
+├─[470]: leftParen
+├─[471]: stringQuote
+├─[472]: stringSegment("体重データ取得エラー: ")
+├─[473]: backslash
+├─[474]: leftParen
+├─[475]: identifier("error")
+├─[476]: period
+├─[477]: identifier("localizedDescription")
+├─[478]: rightParen
+├─[479]: stringSegment("")
+├─[480]: stringQuote
+├─[481]: rightParen
+├─[482]: rightBrace
+├─[483]: rightBrace
+├─[484]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[485]: keyword(_CompilerSwiftSyntax.Keyword.func)
+├─[486]: identifier("loadTodaySteps")
+├─[487]: leftParen
+├─[488]: rightParen
+├─[489]: identifier("async")
+├─[490]: leftBrace
+├─[491]: keyword(_CompilerSwiftSyntax.Keyword.guard)
+├─[492]: identifier("healthKitManager")
+├─[493]: period
+├─[494]: identifier("isAuthorized")
+├─[495]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[496]: leftBrace
+├─[497]: identifier("await")
+├─[498]: identifier("MainActor")
+├─[499]: period
+├─[500]: identifier("run")
+├─[501]: leftBrace
+├─[502]: identifier("todaySteps")
+├─[503]: equal
+├─[504]: integerLiteral("0")
+├─[505]: rightBrace
+├─[506]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[507]: rightBrace
+├─[508]: keyword(_CompilerSwiftSyntax.Keyword.do)
+├─[509]: leftBrace
+├─[510]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[511]: identifier("calendar")
+├─[512]: equal
+├─[513]: identifier("Calendar")
+├─[514]: period
+├─[515]: identifier("current")
+├─[516]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[517]: identifier("startOfDay")
+├─[518]: equal
+├─[519]: identifier("calendar")
+├─[520]: period
+├─[521]: identifier("startOfDay")
+├─[522]: leftParen
+├─[523]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[524]: colon
+├─[525]: identifier("Date")
+├─[526]: leftParen
+├─[527]: rightParen
+├─[528]: rightParen
+├─[529]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[530]: identifier("endOfDay")
+├─[531]: equal
+├─[532]: identifier("calendar")
+├─[533]: period
+├─[534]: identifier("date")
+├─[535]: leftParen
+├─[536]: identifier("byAdding")
+├─[537]: colon
+├─[538]: period
+├─[539]: identifier("day")
+├─[540]: comma
+├─[541]: identifier("value")
+├─[542]: colon
+├─[543]: integerLiteral("1")
+├─[544]: comma
+├─[545]: identifier("to")
+├─[546]: colon
+├─[547]: identifier("startOfDay")
+├─[548]: rightParen
+├─[549]: binaryOperator("??")
+├─[550]: identifier("Date")
+├─[551]: leftParen
+├─[552]: rightParen
+├─[553]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[554]: identifier("steps")
+├─[555]: equal
+├─[556]: keyword(_CompilerSwiftSyntax.Keyword.try)
+├─[557]: identifier("await")
+├─[558]: identifier("healthKitManager")
+├─[559]: period
+├─[560]: identifier("getStepCount")
+├─[561]: leftParen
+├─[562]: identifier("from")
+├─[563]: colon
+├─[564]: identifier("startOfDay")
+├─[565]: comma
+├─[566]: identifier("to")
+├─[567]: colon
+├─[568]: identifier("endOfDay")
+├─[569]: rightParen
+├─[570]: identifier("await")
+├─[571]: identifier("MainActor")
+├─[572]: period
+├─[573]: identifier("run")
+├─[574]: leftBrace
+├─[575]: identifier("todaySteps")
+├─[576]: equal
+├─[577]: identifier("steps")
+├─[578]: rightBrace
+├─[579]: rightBrace
+├─[580]: keyword(_CompilerSwiftSyntax.Keyword.catch)
+├─[581]: leftBrace
+├─[582]: identifier("Logger")
+├─[583]: period
+├─[584]: identifier("error")
+├─[585]: period
+├─[586]: identifier("error")
+├─[587]: leftParen
+├─[588]: stringQuote
+├─[589]: stringSegment("歩数データ取得エラー: ")
+├─[590]: backslash
+├─[591]: leftParen
+├─[592]: identifier("error")
+├─[593]: period
+├─[594]: identifier("localizedDescription")
+├─[595]: rightParen
+├─[596]: stringSegment("")
+├─[597]: stringQuote
+├─[598]: rightParen
+├─[599]: identifier("await")
+├─[600]: identifier("MainActor")
+├─[601]: period
+├─[602]: identifier("run")
+├─[603]: leftBrace
+├─[604]: identifier("todaySteps")
+├─[605]: equal
+├─[606]: integerLiteral("0")
+├─[607]: rightBrace
+├─[608]: rightBrace
+├─[609]: rightBrace
+├─[610]: rightBrace
+├─[611]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[612]: identifier("SummaryCard")
+├─[613]: colon
+├─[614]: identifier("View")
+├─[615]: leftBrace
+├─[616]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[617]: identifier("title")
+├─[618]: colon
+├─[619]: identifier("String")
+├─[620]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[621]: identifier("value")
+├─[622]: colon
+├─[623]: identifier("String")
+├─[624]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[625]: identifier("subtitle")
+├─[626]: colon
+├─[627]: identifier("String")
+├─[628]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[629]: identifier("color")
+├─[630]: colon
+├─[631]: identifier("Color")
+├─[632]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[633]: identifier("icon")
+├─[634]: colon
+├─[635]: identifier("String")
+├─[636]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[637]: identifier("body")
+├─[638]: colon
+├─[639]: identifier("some")
+├─[640]: identifier("View")
+├─[641]: leftBrace
+├─[642]: identifier("BaseCard")
+├─[643]: leftParen
+├─[644]: identifier("style")
+├─[645]: colon
+├─[646]: identifier("ElevatedCardStyle")
+├─[647]: leftParen
+├─[648]: rightParen
+├─[649]: rightParen
+├─[650]: leftBrace
+├─[651]: identifier("VStack")
+├─[652]: leftParen
+├─[653]: identifier("alignment")
+├─[654]: colon
+├─[655]: period
+├─[656]: identifier("leading")
+├─[657]: comma
+├─[658]: identifier("spacing")
+├─[659]: colon
+├─[660]: identifier("Spacing")
+├─[661]: period
+├─[662]: identifier("sm")
+├─[663]: period
+├─[664]: identifier("value")
+├─[665]: rightParen
+├─[666]: leftBrace
+├─[667]: identifier("HStack")
+├─[668]: leftBrace
+├─[669]: identifier("Image")
+├─[670]: leftParen
+├─[671]: identifier("systemName")
+├─[672]: colon
+├─[673]: identifier("icon")
+├─[674]: rightParen
+├─[675]: period
+├─[676]: identifier("foregroundColor")
+├─[677]: leftParen
+├─[678]: identifier("color")
+├─[679]: rightParen
+├─[680]: period
+├─[681]: identifier("font")
+├─[682]: leftParen
+├─[683]: identifier("Typography")
+├─[684]: period
+├─[685]: identifier("headlineMedium")
+├─[686]: period
+├─[687]: identifier("font")
+├─[688]: rightParen
+├─[689]: identifier("Spacer")
+├─[690]: leftParen
+├─[691]: rightParen
+├─[692]: rightBrace
+├─[693]: identifier("Text")
+├─[694]: leftParen
+├─[695]: identifier("value")
+├─[696]: rightParen
+├─[697]: period
+├─[698]: identifier("font")
+├─[699]: leftParen
+├─[700]: identifier("Typography")
+├─[701]: period
+├─[702]: identifier("displaySmall")
+├─[703]: period
+├─[704]: identifier("font")
+├─[705]: rightParen
+├─[706]: period
+├─[707]: identifier("fontWeight")
+├─[708]: leftParen
+├─[709]: period
+├─[710]: identifier("bold")
+├─[711]: rightParen
+├─[712]: period
+├─[713]: identifier("foregroundColor")
+├─[714]: leftParen
+├─[715]: identifier("SemanticColor")
+├─[716]: period
+├─[717]: identifier("primaryText")
+├─[718]: rightParen
+├─[719]: identifier("Text")
+├─[720]: leftParen
+├─[721]: identifier("title")
+├─[722]: rightParen
+├─[723]: period
+├─[724]: identifier("font")
+├─[725]: leftParen
+├─[726]: identifier("Typography")
+├─[727]: period
+├─[728]: identifier("captionMedium")
+├─[729]: period
+├─[730]: identifier("font")
+├─[731]: rightParen
+├─[732]: period
+├─[733]: identifier("foregroundColor")
+├─[734]: leftParen
+├─[735]: identifier("SemanticColor")
+├─[736]: period
+├─[737]: identifier("secondaryText")
+├─[738]: rightParen
+├─[739]: identifier("Text")
+├─[740]: leftParen
+├─[741]: identifier("subtitle")
+├─[742]: rightParen
+├─[743]: period
+├─[744]: identifier("font")
+├─[745]: leftParen
+├─[746]: identifier("Typography")
+├─[747]: period
+├─[748]: identifier("captionSmall")
+├─[749]: period
+├─[750]: identifier("font")
+├─[751]: rightParen
+├─[752]: period
+├─[753]: identifier("foregroundColor")
+├─[754]: leftParen
+├─[755]: identifier("color")
+├─[756]: rightParen
+├─[757]: rightBrace
+├─[758]: period
+├─[759]: identifier("frame")
+├─[760]: leftParen
+├─[761]: identifier("maxWidth")
+├─[762]: colon
+├─[763]: period
+├─[764]: identifier("infinity")
+├─[765]: comma
+├─[766]: identifier("alignment")
+├─[767]: colon
+├─[768]: period
+├─[769]: identifier("leading")
+├─[770]: rightParen
+├─[771]: rightBrace
+├─[772]: rightBrace
+├─[773]: rightBrace
+├─[774]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[775]: identifier("SectionCard")
+├─[776]: binaryOperator("<")
+├─[777]: identifier("Content")
+├─[778]: colon
+├─[779]: identifier("View")
+├─[780]: postfixOperator(">")
+├─[781]: colon
+├─[782]: identifier("View")
+├─[783]: leftBrace
+├─[784]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[785]: identifier("title")
+├─[786]: colon
+├─[787]: identifier("String")
+├─[788]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[789]: identifier("icon")
+├─[790]: colon
+├─[791]: identifier("String")
+├─[792]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[793]: identifier("iconColor")
+├─[794]: colon
+├─[795]: identifier("Color")
+├─[796]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[797]: identifier("content")
+├─[798]: colon
+├─[799]: identifier("Content")
+├─[800]: keyword(_CompilerSwiftSyntax.Keyword.init)
+├─[801]: leftParen
+├─[802]: identifier("title")
+├─[803]: colon
+├─[804]: identifier("String")
+├─[805]: comma
+├─[806]: identifier("icon")
+├─[807]: colon
+├─[808]: identifier("String")
+├─[809]: comma
+├─[810]: identifier("iconColor")
+├─[811]: colon
+├─[812]: identifier("Color")
+├─[813]: comma
+├─[814]: atSign
+├─[815]: identifier("ViewBuilder")
+├─[816]: identifier("content")
+├─[817]: colon
+├─[818]: leftParen
+├─[819]: rightParen
+├─[820]: arrow
+├─[821]: identifier("Content")
+├─[822]: rightParen
+├─[823]: leftBrace
+├─[824]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[825]: period
+├─[826]: identifier("title")
+├─[827]: equal
+├─[828]: identifier("title")
+├─[829]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[830]: period
+├─[831]: identifier("icon")
+├─[832]: equal
+├─[833]: identifier("icon")
+├─[834]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[835]: period
+├─[836]: identifier("iconColor")
+├─[837]: equal
+├─[838]: identifier("iconColor")
+├─[839]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[840]: period
+├─[841]: identifier("content")
+├─[842]: equal
+├─[843]: identifier("content")
+├─[844]: leftParen
+├─[845]: rightParen
+├─[846]: rightBrace
+├─[847]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[848]: identifier("body")
+├─[849]: colon
+├─[850]: identifier("some")
+├─[851]: identifier("View")
+├─[852]: leftBrace
+├─[853]: identifier("BaseCard")
+├─[854]: leftParen
+├─[855]: identifier("style")
+├─[856]: colon
+├─[857]: identifier("ElevatedCardStyle")
+├─[858]: leftParen
+├─[859]: rightParen
+├─[860]: rightParen
+├─[861]: leftBrace
+├─[862]: identifier("VStack")
+├─[863]: leftParen
+├─[864]: identifier("alignment")
+├─[865]: colon
+├─[866]: period
+├─[867]: identifier("leading")
+├─[868]: comma
+├─[869]: identifier("spacing")
+├─[870]: colon
+├─[871]: identifier("Spacing")
+├─[872]: period
+├─[873]: identifier("md")
+├─[874]: period
+├─[875]: identifier("value")
+├─[876]: rightParen
+├─[877]: leftBrace
+├─[878]: identifier("HStack")
+├─[879]: leftBrace
+├─[880]: identifier("Image")
+├─[881]: leftParen
+├─[882]: identifier("systemName")
+├─[883]: colon
+├─[884]: identifier("icon")
+├─[885]: rightParen
+├─[886]: period
+├─[887]: identifier("font")
+├─[888]: leftParen
+├─[889]: identifier("Typography")
+├─[890]: period
+├─[891]: identifier("headlineMedium")
+├─[892]: period
+├─[893]: identifier("font")
+├─[894]: rightParen
+├─[895]: period
+├─[896]: identifier("foregroundColor")
+├─[897]: leftParen
+├─[898]: identifier("iconColor")
+├─[899]: rightParen
+├─[900]: identifier("Text")
+├─[901]: leftParen
+├─[902]: identifier("title")
+├─[903]: rightParen
+├─[904]: period
+├─[905]: identifier("font")
+├─[906]: leftParen
+├─[907]: identifier("Typography")
+├─[908]: period
+├─[909]: identifier("headlineMedium")
+├─[910]: period
+├─[911]: identifier("font")
+├─[912]: rightParen
+├─[913]: period
+├─[914]: identifier("foregroundColor")
+├─[915]: leftParen
+├─[916]: identifier("SemanticColor")
+├─[917]: period
+├─[918]: identifier("primaryText")
+├─[919]: rightParen
+├─[920]: identifier("Spacer")
+├─[921]: leftParen
+├─[922]: rightParen
+├─[923]: rightBrace
+├─[924]: identifier("content")
+├─[925]: rightBrace
+├─[926]: rightBrace
+├─[927]: rightBrace
+├─[928]: rightBrace
+├─[929]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[930]: identifier("StatView")
+├─[931]: colon
+├─[932]: identifier("View")
+├─[933]: leftBrace
+├─[934]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[935]: identifier("title")
+├─[936]: colon
+├─[937]: identifier("String")
+├─[938]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[939]: identifier("value")
+├─[940]: colon
+├─[941]: identifier("String")
+├─[942]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[943]: identifier("unit")
+├─[944]: colon
+├─[945]: identifier("String")
+├─[946]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[947]: identifier("color")
+├─[948]: colon
+├─[949]: identifier("Color")
+├─[950]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[951]: identifier("body")
+├─[952]: colon
+├─[953]: identifier("some")
+├─[954]: identifier("View")
+├─[955]: leftBrace
+├─[956]: identifier("VStack")
+├─[957]: leftParen
+├─[958]: identifier("spacing")
+├─[959]: colon
+├─[960]: identifier("Spacing")
+├─[961]: period
+├─[962]: identifier("xs")
+├─[963]: period
+├─[964]: identifier("value")
+├─[965]: rightParen
+├─[966]: leftBrace
+├─[967]: identifier("Text")
+├─[968]: leftParen
+├─[969]: identifier("value")
+├─[970]: rightParen
+├─[971]: period
+├─[972]: identifier("font")
+├─[973]: leftParen
+├─[974]: identifier("Typography")
+├─[975]: period
+├─[976]: identifier("displaySmall")
+├─[977]: period
+├─[978]: identifier("font")
+├─[979]: rightParen
+├─[980]: period
+├─[981]: identifier("fontWeight")
+├─[982]: leftParen
+├─[983]: period
+├─[984]: identifier("bold")
+├─[985]: rightParen
+├─[986]: period
+├─[987]: identifier("foregroundColor")
+├─[988]: leftParen
+├─[989]: identifier("color")
+├─[990]: rightParen
+├─[991]: identifier("Text")
+├─[992]: leftParen
+├─[993]: identifier("unit")
+├─[994]: rightParen
+├─[995]: period
+├─[996]: identifier("font")
+├─[997]: leftParen
+├─[998]: identifier("Typography")
+├─[999]: period
+├─[1000]: identifier("captionSmall")
+├─[1001]: period
+├─[1002]: identifier("font")
+├─[1003]: rightParen
+├─[1004]: period
+├─[1005]: identifier("foregroundColor")
+├─[1006]: leftParen
+├─[1007]: identifier("SemanticColor")
+├─[1008]: period
+├─[1009]: identifier("secondaryText")
+├─[1010]: rightParen
+├─[1011]: identifier("Text")
+├─[1012]: leftParen
+├─[1013]: identifier("title")
+├─[1014]: rightParen
+├─[1015]: period
+├─[1016]: identifier("font")
+├─[1017]: leftParen
+├─[1018]: identifier("Typography")
+├─[1019]: period
+├─[1020]: identifier("captionMedium")
+├─[1021]: period
+├─[1022]: identifier("font")
+├─[1023]: rightParen
+├─[1024]: period
+├─[1025]: identifier("foregroundColor")
+├─[1026]: leftParen
+├─[1027]: identifier("SemanticColor")
+├─[1028]: period
+├─[1029]: identifier("secondaryText")
+├─[1030]: rightParen
+├─[1031]: rightBrace
+├─[1032]: period
+├─[1033]: identifier("frame")
+├─[1034]: leftParen
+├─[1035]: identifier("maxWidth")
+├─[1036]: colon
+├─[1037]: period
+├─[1038]: identifier("infinity")
+├─[1039]: rightParen
+├─[1040]: rightBrace
+├─[1041]: rightBrace
+├─[1042]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[1043]: identifier("QuickActionButton")
+├─[1044]: colon
+├─[1045]: identifier("View")
+├─[1046]: leftBrace
+├─[1047]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1048]: identifier("title")
+├─[1049]: colon
+├─[1050]: identifier("String")
+├─[1051]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1052]: identifier("icon")
+├─[1053]: colon
+├─[1054]: identifier("String")
+├─[1055]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1056]: identifier("color")
+├─[1057]: colon
+├─[1058]: identifier("Color")
+├─[1059]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1060]: identifier("action")
+├─[1061]: colon
+├─[1062]: leftParen
+├─[1063]: rightParen
+├─[1064]: arrow
+├─[1065]: identifier("Void")
+├─[1066]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1067]: identifier("body")
+├─[1068]: colon
+├─[1069]: identifier("some")
+├─[1070]: identifier("View")
+├─[1071]: leftBrace
+├─[1072]: identifier("Button")
+├─[1073]: leftParen
+├─[1074]: identifier("action")
+├─[1075]: colon
+├─[1076]: identifier("action")
+├─[1077]: rightParen
+├─[1078]: leftBrace
+├─[1079]: identifier("VStack")
+├─[1080]: leftParen
+├─[1081]: identifier("spacing")
+├─[1082]: colon
+├─[1083]: identifier("Spacing")
+├─[1084]: period
+├─[1085]: identifier("sm")
+├─[1086]: period
+├─[1087]: identifier("value")
+├─[1088]: rightParen
+├─[1089]: leftBrace
+├─[1090]: identifier("Image")
+├─[1091]: leftParen
+├─[1092]: identifier("systemName")
+├─[1093]: colon
+├─[1094]: identifier("icon")
+├─[1095]: rightParen
+├─[1096]: period
+├─[1097]: identifier("font")
+├─[1098]: leftParen
+├─[1099]: identifier("Typography")
+├─[1100]: period
+├─[1101]: identifier("headlineMedium")
+├─[1102]: period
+├─[1103]: identifier("font")
+├─[1104]: rightParen
+├─[1105]: period
+├─[1106]: identifier("foregroundColor")
+├─[1107]: leftParen
+├─[1108]: identifier("color")
+├─[1109]: rightParen
+├─[1110]: identifier("Text")
+├─[1111]: leftParen
+├─[1112]: identifier("title")
+├─[1113]: rightParen
+├─[1114]: period
+├─[1115]: identifier("font")
+├─[1116]: leftParen
+├─[1117]: identifier("Typography")
+├─[1118]: period
+├─[1119]: identifier("captionMedium")
+├─[1120]: period
+├─[1121]: identifier("font")
+├─[1122]: rightParen
+├─[1123]: period
+├─[1124]: identifier("foregroundColor")
+├─[1125]: leftParen
+├─[1126]: identifier("SemanticColor")
+├─[1127]: period
+├─[1128]: identifier("primaryText")
+├─[1129]: rightParen
+├─[1130]: rightBrace
+├─[1131]: period
+├─[1132]: identifier("frame")
+├─[1133]: leftParen
+├─[1134]: identifier("maxWidth")
+├─[1135]: colon
+├─[1136]: period
+├─[1137]: identifier("infinity")
+├─[1138]: rightParen
+├─[1139]: period
+├─[1140]: identifier("padding")
+├─[1141]: leftParen
+├─[1142]: period
+├─[1143]: identifier("vertical")
+├─[1144]: comma
+├─[1145]: identifier("Spacing")
+├─[1146]: period
+├─[1147]: identifier("listItemSpacing")
+├─[1148]: period
+├─[1149]: identifier("value")
+├─[1150]: rightParen
+├─[1151]: period
+├─[1152]: identifier("background")
+├─[1153]: leftParen
+├─[1154]: identifier("color")
+├─[1155]: period
+├─[1156]: identifier("opacity")
+├─[1157]: leftParen
+├─[1158]: floatLiteral("0.1")
+├─[1159]: rightParen
+├─[1160]: rightParen
+├─[1161]: period
+├─[1162]: identifier("cornerRadius")
+├─[1163]: leftParen
+├─[1164]: identifier("CornerRadius")
+├─[1165]: period
+├─[1166]: identifier("large")
+├─[1167]: period
+├─[1168]: identifier("radius")
+├─[1169]: rightParen
+├─[1170]: rightBrace
+├─[1171]: period
+├─[1172]: identifier("buttonStyle")
+├─[1173]: leftParen
+├─[1174]: period
+├─[1175]: identifier("plain")
+├─[1176]: rightParen
+├─[1177]: rightBrace
+├─[1178]: rightBrace
+├─[1179]: keyword(_CompilerSwiftSyntax.Keyword.extension)
+├─[1180]: identifier("ProgressChartViewModel")
+├─[1181]: leftBrace
+├─[1182]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1183]: identifier("thisWeekWorkouts")
+├─[1184]: colon
+├─[1185]: identifier("Int")
+├─[1186]: leftBrace
+├─[1187]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1188]: identifier("calendar")
+├─[1189]: equal
+├─[1190]: identifier("Calendar")
+├─[1191]: period
+├─[1192]: identifier("current")
+├─[1193]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1194]: identifier("weekStart")
+├─[1195]: equal
+├─[1196]: identifier("calendar")
+├─[1197]: period
+├─[1198]: identifier("dateInterval")
+├─[1199]: leftParen
+├─[1200]: identifier("of")
+├─[1201]: colon
+├─[1202]: period
+├─[1203]: identifier("weekOfYear")
+├─[1204]: comma
+├─[1205]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[1206]: colon
+├─[1207]: identifier("Date")
+├─[1208]: leftParen
+├─[1209]: rightParen
+├─[1210]: rightParen
+├─[1211]: postfixQuestionMark
+├─[1212]: period
+├─[1213]: identifier("start")
+├─[1214]: binaryOperator("??")
+├─[1215]: identifier("Date")
+├─[1216]: leftParen
+├─[1217]: rightParen
+├─[1218]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[1219]: identifier("workoutRecords")
+├─[1220]: period
+├─[1221]: identifier("filter")
+├─[1222]: leftBrace
+├─[1223]: dollarIdentifier("$0")
+├─[1224]: period
+├─[1225]: identifier("date")
+├─[1226]: binaryOperator(">=")
+├─[1227]: identifier("weekStart")
+├─[1228]: rightBrace
+├─[1229]: period
+├─[1230]: identifier("count")
+├─[1231]: rightBrace
+├─[1232]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1233]: identifier("currentMonthWorkouts")
+├─[1234]: colon
+├─[1235]: identifier("Int")
+├─[1236]: leftBrace
+├─[1237]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1238]: identifier("calendar")
+├─[1239]: equal
+├─[1240]: identifier("Calendar")
+├─[1241]: period
+├─[1242]: identifier("current")
+├─[1243]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1244]: identifier("monthStart")
+├─[1245]: equal
+├─[1246]: identifier("calendar")
+├─[1247]: period
+├─[1248]: identifier("dateInterval")
+├─[1249]: leftParen
+├─[1250]: identifier("of")
+├─[1251]: colon
+├─[1252]: period
+├─[1253]: identifier("month")
+├─[1254]: comma
+├─[1255]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[1256]: colon
+├─[1257]: identifier("Date")
+├─[1258]: leftParen
+├─[1259]: rightParen
+├─[1260]: rightParen
+├─[1261]: postfixQuestionMark
+├─[1262]: period
+├─[1263]: identifier("start")
+├─[1264]: binaryOperator("??")
+├─[1265]: identifier("Date")
+├─[1266]: leftParen
+├─[1267]: rightParen
+├─[1268]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[1269]: identifier("workoutRecords")
+├─[1270]: period
+├─[1271]: identifier("filter")
+├─[1272]: leftBrace
+├─[1273]: dollarIdentifier("$0")
+├─[1274]: period
+├─[1275]: identifier("date")
+├─[1276]: binaryOperator(">=")
+├─[1277]: identifier("monthStart")
+├─[1278]: rightBrace
+├─[1279]: period
+├─[1280]: identifier("count")
+├─[1281]: rightBrace
+├─[1282]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1283]: identifier("currentStreak")
+├─[1284]: colon
+├─[1285]: identifier("Int")
+├─[1286]: leftBrace
+├─[1287]: keyword(_CompilerSwiftSyntax.Keyword.guard)
+├─[1288]: prefixOperator("!")
+├─[1289]: identifier("workoutRecords")
+├─[1290]: period
+├─[1291]: identifier("isEmpty")
+├─[1292]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[1293]: leftBrace
+├─[1294]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[1295]: integerLiteral("0")
+├─[1296]: rightBrace
+├─[1297]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1298]: identifier("calendar")
+├─[1299]: equal
+├─[1300]: identifier("Calendar")
+├─[1301]: period
+├─[1302]: identifier("current")
+├─[1303]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1304]: identifier("sortedWorkouts")
+├─[1305]: equal
+├─[1306]: identifier("workoutRecords")
+├─[1307]: period
+├─[1308]: identifier("sorted")
+├─[1309]: leftBrace
+├─[1310]: dollarIdentifier("$0")
+├─[1311]: period
+├─[1312]: identifier("date")
+├─[1313]: binaryOperator(">")
+├─[1314]: dollarIdentifier("$1")
+├─[1315]: period
+├─[1316]: identifier("date")
+├─[1317]: rightBrace
+├─[1318]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1319]: identifier("streak")
+├─[1320]: equal
+├─[1321]: integerLiteral("0")
+├─[1322]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1323]: identifier("currentDate")
+├─[1324]: equal
+├─[1325]: identifier("Date")
+├─[1326]: leftParen
+├─[1327]: rightParen
+├─[1328]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[1329]: identifier("workout")
+├─[1330]: keyword(_CompilerSwiftSyntax.Keyword.in)
+├─[1331]: identifier("sortedWorkouts")
+├─[1332]: leftBrace
+├─[1333]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1334]: identifier("workoutDay")
+├─[1335]: equal
+├─[1336]: identifier("calendar")
+├─[1337]: period
+├─[1338]: identifier("startOfDay")
+├─[1339]: leftParen
+├─[1340]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[1341]: colon
+├─[1342]: identifier("workout")
+├─[1343]: period
+├─[1344]: identifier("date")
+├─[1345]: rightParen
+├─[1346]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1347]: identifier("checkDay")
+├─[1348]: equal
+├─[1349]: identifier("calendar")
+├─[1350]: period
+├─[1351]: identifier("startOfDay")
+├─[1352]: leftParen
+├─[1353]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[1354]: colon
+├─[1355]: identifier("currentDate")
+├─[1356]: rightParen
+├─[1357]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[1358]: identifier("calendar")
+├─[1359]: period
+├─[1360]: identifier("dateInterval")
+├─[1361]: leftParen
+├─[1362]: identifier("of")
+├─[1363]: colon
+├─[1364]: period
+├─[1365]: identifier("day")
+├─[1366]: comma
+├─[1367]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[1368]: colon
+├─[1369]: identifier("workoutDay")
+├─[1370]: rightParen
+├─[1371]: postfixQuestionMark
+├─[1372]: period
+├─[1373]: identifier("contains")
+├─[1374]: leftParen
+├─[1375]: identifier("checkDay")
+├─[1376]: rightParen
+├─[1377]: binaryOperator("==")
+├─[1378]: keyword(_CompilerSwiftSyntax.Keyword.true)
+├─[1379]: leftBrace
+├─[1380]: identifier("streak")
+├─[1381]: binaryOperator("+=")
+├─[1382]: integerLiteral("1")
+├─[1383]: identifier("currentDate")
+├─[1384]: equal
+├─[1385]: identifier("calendar")
+├─[1386]: period
+├─[1387]: identifier("date")
+├─[1388]: leftParen
+├─[1389]: identifier("byAdding")
+├─[1390]: colon
+├─[1391]: period
+├─[1392]: identifier("day")
+├─[1393]: comma
+├─[1394]: identifier("value")
+├─[1395]: colon
+├─[1396]: prefixOperator("-")
+├─[1397]: integerLiteral("1")
+├─[1398]: comma
+├─[1399]: identifier("to")
+├─[1400]: colon
+├─[1401]: identifier("currentDate")
+├─[1402]: rightParen
+├─[1403]: binaryOperator("??")
+├─[1404]: identifier("currentDate")
+├─[1405]: rightBrace
+├─[1406]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[1407]: leftBrace
+├─[1408]: keyword(_CompilerSwiftSyntax.Keyword.break)
+├─[1409]: rightBrace
+├─[1410]: rightBrace
+├─[1411]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[1412]: identifier("streak")
+├─[1413]: rightBrace
+├─[1414]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1415]: identifier("totalWorkouts")
+├─[1416]: colon
+├─[1417]: identifier("Int")
+├─[1418]: leftBrace
+├─[1419]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[1420]: identifier("workoutRecords")
+├─[1421]: period
+├─[1422]: identifier("count")
+├─[1423]: rightBrace
+├─[1424]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1425]: identifier("recentWorkouts")
+├─[1426]: colon
+├─[1427]: leftSquare
+├─[1428]: identifier("WorkoutRecord")
+├─[1429]: rightSquare
+├─[1430]: leftBrace
+├─[1431]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[1432]: identifier("Array")
+├─[1433]: leftParen
+├─[1434]: identifier("workoutRecords")
+├─[1435]: period
+├─[1436]: identifier("sorted")
+├─[1437]: leftBrace
+├─[1438]: dollarIdentifier("$0")
+├─[1439]: period
+├─[1440]: identifier("date")
+├─[1441]: binaryOperator(">")
+├─[1442]: dollarIdentifier("$1")
+├─[1443]: period
+├─[1444]: identifier("date")
+├─[1445]: rightBrace
+├─[1446]: period
+├─[1447]: identifier("prefix")
+├─[1448]: leftParen
+├─[1449]: integerLiteral("5")
+├─[1450]: rightParen
+├─[1451]: rightParen
+├─[1452]: rightBrace
+├─[1453]: rightBrace
+├─[1454]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[1455]: identifier("QuickActionsSection")
+├─[1456]: colon
+├─[1457]: identifier("View")
+├─[1458]: leftBrace
+├─[1459]: atSign
+├─[1460]: identifier("Binding")
+├─[1461]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1462]: identifier("showingFTPEntry")
+├─[1463]: colon
+├─[1464]: identifier("Bool")
+├─[1465]: atSign
+├─[1466]: identifier("Binding")
+├─[1467]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1468]: identifier("showingWorkoutEntry")
+├─[1469]: colon
+├─[1470]: identifier("Bool")
+├─[1471]: atSign
+├─[1472]: identifier("Binding")
+├─[1473]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1474]: identifier("showingMetricsHistory")
+├─[1475]: colon
+├─[1476]: identifier("Bool")
+├─[1477]: atSign
+├─[1478]: identifier("Binding")
+├─[1479]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1480]: identifier("showingProgressDetails")
+├─[1481]: colon
+├─[1482]: identifier("Bool")
+├─[1483]: atSign
+├─[1484]: identifier("Binding")
+├─[1485]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1486]: identifier("showingHistoryManagement")
+├─[1487]: colon
+├─[1488]: identifier("Bool")
+├─[1489]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1490]: identifier("body")
+├─[1491]: colon
+├─[1492]: identifier("some")
+├─[1493]: identifier("View")
+├─[1494]: leftBrace
+├─[1495]: identifier("SectionCard")
+├─[1496]: leftParen
+├─[1497]: identifier("title")
+├─[1498]: colon
+├─[1499]: stringQuote
+├─[1500]: stringSegment("クイックアクション")
+├─[1501]: stringQuote
+├─[1502]: comma
+├─[1503]: identifier("icon")
+├─[1504]: colon
+├─[1505]: stringQuote
+├─[1506]: stringSegment("plus.circle.fill")
+├─[1507]: stringQuote
+├─[1508]: comma
+├─[1509]: identifier("iconColor")
+├─[1510]: colon
+├─[1511]: period
+├─[1512]: identifier("blue")
+├─[1513]: rightParen
+├─[1514]: leftBrace
+├─[1515]: identifier("LazyVGrid")
+├─[1516]: leftParen
+├─[1517]: identifier("columns")
+├─[1518]: colon
+├─[1519]: identifier("Array")
+├─[1520]: leftParen
+├─[1521]: identifier("repeating")
+├─[1522]: colon
+├─[1523]: identifier("GridItem")
+├─[1524]: leftParen
+├─[1525]: period
+├─[1526]: identifier("flexible")
+├─[1527]: leftParen
+├─[1528]: rightParen
+├─[1529]: rightParen
+├─[1530]: comma
+├─[1531]: identifier("count")
+├─[1532]: colon
+├─[1533]: integerLiteral("2")
+├─[1534]: rightParen
+├─[1535]: comma
+├─[1536]: identifier("spacing")
+├─[1537]: colon
+├─[1538]: integerLiteral("12")
+├─[1539]: rightParen
+├─[1540]: leftBrace
+├─[1541]: identifier("QuickActionButton")
+├─[1542]: leftParen
+├─[1543]: identifier("title")
+├─[1544]: colon
+├─[1545]: stringQuote
+├─[1546]: stringSegment("ワークアウト")
+├─[1547]: stringQuote
+├─[1548]: comma
+├─[1549]: identifier("icon")
+├─[1550]: colon
+├─[1551]: stringQuote
+├─[1552]: stringSegment("plus.circle.fill")
+├─[1553]: stringQuote
+├─[1554]: comma
+├─[1555]: identifier("color")
+├─[1556]: colon
+├─[1557]: period
+├─[1558]: identifier("green")
+├─[1559]: comma
+├─[1560]: identifier("action")
+├─[1561]: colon
+├─[1562]: leftBrace
+├─[1563]: identifier("showingWorkoutEntry")
+├─[1564]: equal
+├─[1565]: keyword(_CompilerSwiftSyntax.Keyword.true)
+├─[1566]: rightBrace
+├─[1567]: rightParen
+├─[1568]: identifier("QuickActionButton")
+├─[1569]: leftParen
+├─[1570]: identifier("title")
+├─[1571]: colon
+├─[1572]: stringQuote
+├─[1573]: stringSegment("FTP記録")
+├─[1574]: stringQuote
+├─[1575]: comma
+├─[1576]: identifier("icon")
+├─[1577]: colon
+├─[1578]: stringQuote
+├─[1579]: stringSegment("bolt.fill")
+├─[1580]: stringQuote
+├─[1581]: comma
+├─[1582]: identifier("color")
+├─[1583]: colon
+├─[1584]: period
+├─[1585]: identifier("blue")
+├─[1586]: comma
+├─[1587]: identifier("action")
+├─[1588]: colon
+├─[1589]: leftBrace
+├─[1590]: identifier("showingFTPEntry")
+├─[1591]: equal
+├─[1592]: keyword(_CompilerSwiftSyntax.Keyword.true)
+├─[1593]: rightBrace
+├─[1594]: rightParen
+├─[1595]: identifier("QuickActionButton")
+├─[1596]: leftParen
+├─[1597]: identifier("title")
+├─[1598]: colon
+├─[1599]: stringQuote
+├─[1600]: stringSegment("体重記録")
+├─[1601]: stringQuote
+├─[1602]: comma
+├─[1603]: identifier("icon")
+├─[1604]: colon
+├─[1605]: stringQuote
+├─[1606]: stringSegment("scalemass.fill")
+├─[1607]: stringQuote
+├─[1608]: comma
+├─[1609]: identifier("color")
+├─[1610]: colon
+├─[1611]: period
+├─[1612]: identifier("orange")
+├─[1613]: comma
+├─[1614]: identifier("action")
+├─[1615]: colon
+├─[1616]: leftBrace
+├─[1617]: identifier("showingMetricsHistory")
+├─[1618]: equal
+├─[1619]: keyword(_CompilerSwiftSyntax.Keyword.true)
+├─[1620]: rightBrace
+├─[1621]: rightParen
+├─[1622]: identifier("QuickActionButton")
+├─[1623]: leftParen
+├─[1624]: identifier("title")
+├─[1625]: colon
+├─[1626]: stringQuote
+├─[1627]: stringSegment("進捗詳細")
+├─[1628]: stringQuote
+├─[1629]: comma
+├─[1630]: identifier("icon")
+├─[1631]: colon
+├─[1632]: stringQuote
+├─[1633]: stringSegment("chart.line.uptrend.xyaxis")
+├─[1634]: stringQuote
+├─[1635]: comma
+├─[1636]: identifier("color")
+├─[1637]: colon
+├─[1638]: period
+├─[1639]: identifier("purple")
+├─[1640]: comma
+├─[1641]: identifier("action")
+├─[1642]: colon
+├─[1643]: leftBrace
+├─[1644]: identifier("showingProgressDetails")
+├─[1645]: equal
+├─[1646]: keyword(_CompilerSwiftSyntax.Keyword.true)
+├─[1647]: rightBrace
+├─[1648]: rightParen
+├─[1649]: rightBrace
+├─[1650]: period
+├─[1651]: identifier("padding")
+├─[1652]: leftParen
+├─[1653]: period
+├─[1654]: identifier("horizontal")
+├─[1655]: comma
+├─[1656]: integerLiteral("4")
+├─[1657]: rightParen
+├─[1658]: rightBrace
+├─[1659]: rightBrace
+├─[1660]: rightBrace
+├─[1661]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[1662]: identifier("ExpandableDetailsSections")
+├─[1663]: colon
+├─[1664]: identifier("View")
+├─[1665]: leftBrace
+├─[1666]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1667]: identifier("sstViewModel")
+├─[1668]: colon
+├─[1669]: identifier("SSTDashboardViewModel")
+├─[1670]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1671]: identifier("userProfile")
+├─[1672]: colon
+├─[1673]: identifier("UserProfile")
+├─[1674]: postfixQuestionMark
+├─[1675]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1676]: identifier("latestWeight")
+├─[1677]: colon
+├─[1678]: identifier("Double")
+├─[1679]: postfixQuestionMark
+├─[1680]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1681]: identifier("progressViewModel")
+├─[1682]: colon
+├─[1683]: identifier("ProgressChartViewModel")
+├─[1684]: postfixQuestionMark
+├─[1685]: atSign
+├─[1686]: identifier("State")
+├─[1687]: keyword(_CompilerSwiftSyntax.Keyword.private)
+├─[1688]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1689]: identifier("showingDetailedMetrics")
+├─[1690]: equal
+├─[1691]: keyword(_CompilerSwiftSyntax.Keyword.false)
+├─[1692]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1693]: identifier("body")
+├─[1694]: colon
+├─[1695]: identifier("some")
+├─[1696]: identifier("View")
+├─[1697]: leftBrace
+├─[1698]: identifier("VStack")
+├─[1699]: leftParen
+├─[1700]: identifier("spacing")
+├─[1701]: colon
+├─[1702]: integerLiteral("16")
+├─[1703]: rightParen
+├─[1704]: leftBrace
+├─[1705]: identifier("Button")
+├─[1706]: leftParen
+├─[1707]: identifier("action")
+├─[1708]: colon
+├─[1709]: leftBrace
+├─[1710]: identifier("withAnimation")
+├─[1711]: leftParen
+├─[1712]: period
+├─[1713]: identifier("spring")
+├─[1714]: leftParen
+├─[1715]: identifier("response")
+├─[1716]: colon
+├─[1717]: floatLiteral("0.5")
+├─[1718]: comma
+├─[1719]: identifier("dampingFraction")
+├─[1720]: colon
+├─[1721]: floatLiteral("0.7")
+├─[1722]: rightParen
+├─[1723]: rightParen
+├─[1724]: leftBrace
+├─[1725]: identifier("showingDetailedMetrics")
+├─[1726]: period
+├─[1727]: identifier("toggle")
+├─[1728]: leftParen
+├─[1729]: rightParen
+├─[1730]: rightBrace
+├─[1731]: identifier("HapticManager")
+├─[1732]: period
+├─[1733]: identifier("shared")
+├─[1734]: period
+├─[1735]: identifier("trigger")
+├─[1736]: leftParen
+├─[1737]: period
+├─[1738]: identifier("impact")
+├─[1739]: leftParen
+├─[1740]: period
+├─[1741]: identifier("light")
+├─[1742]: rightParen
+├─[1743]: rightParen
+├─[1744]: rightBrace
+├─[1745]: rightParen
+├─[1746]: leftBrace
+├─[1747]: identifier("HStack")
+├─[1748]: leftBrace
+├─[1749]: identifier("Text")
+├─[1750]: leftParen
+├─[1751]: identifier("showingDetailedMetrics")
+├─[1752]: infixQuestionMark
+├─[1753]: stringQuote
+├─[1754]: stringSegment("詳細を隠す")
+├─[1755]: stringQuote
+├─[1756]: colon
+├─[1757]: stringQuote
+├─[1758]: stringSegment("詳細を表示")
+├─[1759]: stringQuote
+├─[1760]: rightParen
+├─[1761]: period
+├─[1762]: identifier("font")
+├─[1763]: leftParen
+├─[1764]: identifier("Typography")
+├─[1765]: period
+├─[1766]: identifier("bodyMedium")
+├─[1767]: period
+├─[1768]: identifier("font")
+├─[1769]: rightParen
+├─[1770]: period
+├─[1771]: identifier("foregroundColor")
+├─[1772]: leftParen
+├─[1773]: identifier("SemanticColor")
+├─[1774]: period
+├─[1775]: identifier("primaryAction")
+├─[1776]: rightParen
+├─[1777]: identifier("Spacer")
+├─[1778]: leftParen
+├─[1779]: rightParen
+├─[1780]: identifier("Image")
+├─[1781]: leftParen
+├─[1782]: identifier("systemName")
+├─[1783]: colon
+├─[1784]: identifier("showingDetailedMetrics")
+├─[1785]: infixQuestionMark
+├─[1786]: stringQuote
+├─[1787]: stringSegment("chevron.up")
+├─[1788]: stringQuote
+├─[1789]: colon
+├─[1790]: stringQuote
+├─[1791]: stringSegment("chevron.down")
+├─[1792]: stringQuote
+├─[1793]: rightParen
+├─[1794]: period
+├─[1795]: identifier("font")
+├─[1796]: leftParen
+├─[1797]: identifier("Typography")
+├─[1798]: period
+├─[1799]: identifier("captionMedium")
+├─[1800]: period
+├─[1801]: identifier("font")
+├─[1802]: rightParen
+├─[1803]: period
+├─[1804]: identifier("foregroundColor")
+├─[1805]: leftParen
+├─[1806]: identifier("SemanticColor")
+├─[1807]: period
+├─[1808]: identifier("primaryAction")
+├─[1809]: rightParen
+├─[1810]: rightBrace
+├─[1811]: period
+├─[1812]: identifier("padding")
+├─[1813]: leftParen
+├─[1814]: rightParen
+├─[1815]: period
+├─[1816]: identifier("background")
+├─[1817]: leftParen
+├─[1818]: identifier("SemanticColor")
+├─[1819]: period
+├─[1820]: identifier("primaryAction")
+├─[1821]: period
+├─[1822]: identifier("color")
+├─[1823]: period
+├─[1824]: identifier("opacity")
+├─[1825]: leftParen
+├─[1826]: floatLiteral("0.1")
+├─[1827]: rightParen
+├─[1828]: rightParen
+├─[1829]: period
+├─[1830]: identifier("cornerRadius")
+├─[1831]: leftParen
+├─[1832]: identifier("CornerRadius")
+├─[1833]: period
+├─[1834]: identifier("medium")
+├─[1835]: period
+├─[1836]: identifier("radius")
+├─[1837]: rightParen
+├─[1838]: rightBrace
+├─[1839]: period
+├─[1840]: identifier("buttonStyle")
+├─[1841]: leftParen
+├─[1842]: period
+├─[1843]: identifier("plain")
+├─[1844]: rightParen
+├─[1845]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[1846]: identifier("showingDetailedMetrics")
+├─[1847]: leftBrace
+├─[1848]: identifier("VStack")
+├─[1849]: leftParen
+├─[1850]: identifier("spacing")
+├─[1851]: colon
+├─[1852]: integerLiteral("16")
+├─[1853]: rightParen
+├─[1854]: leftBrace
+├─[1855]: identifier("CompactFTPSection")
+├─[1856]: leftParen
+├─[1857]: identifier("sstViewModel")
+├─[1858]: colon
+├─[1859]: identifier("sstViewModel")
+├─[1860]: comma
+├─[1861]: identifier("userProfile")
+├─[1862]: colon
+├─[1863]: identifier("userProfile")
+├─[1864]: rightParen
+├─[1865]: identifier("CompactHealthSection")
+├─[1866]: leftParen
+├─[1867]: identifier("latestWeight")
+├─[1868]: colon
+├─[1869]: identifier("latestWeight")
+├─[1870]: comma
+├─[1871]: identifier("userProfile")
+├─[1872]: colon
+├─[1873]: identifier("userProfile")
+├─[1874]: rightParen
+├─[1875]: identifier("CompactOverallProgressSection")
+├─[1876]: leftParen
+├─[1877]: identifier("progressViewModel")
+├─[1878]: colon
+├─[1879]: identifier("progressViewModel")
+├─[1880]: comma
+├─[1881]: identifier("userProfile")
+├─[1882]: colon
+├─[1883]: identifier("userProfile")
+├─[1884]: rightParen
+├─[1885]: rightBrace
+├─[1886]: period
+├─[1887]: identifier("transition")
+├─[1888]: leftParen
+├─[1889]: period
+├─[1890]: identifier("asymmetric")
+├─[1891]: leftParen
+├─[1892]: identifier("insertion")
+├─[1893]: colon
+├─[1894]: period
+├─[1895]: identifier("opacity")
+├─[1896]: period
+├─[1897]: identifier("combined")
+├─[1898]: leftParen
+├─[1899]: identifier("with")
+├─[1900]: colon
+├─[1901]: period
+├─[1902]: identifier("move")
+├─[1903]: leftParen
+├─[1904]: identifier("edge")
+├─[1905]: colon
+├─[1906]: period
+├─[1907]: identifier("top")
+├─[1908]: rightParen
+├─[1909]: rightParen
+├─[1910]: comma
+├─[1911]: identifier("removal")
+├─[1912]: colon
+├─[1913]: period
+├─[1914]: identifier("opacity")
+├─[1915]: period
+├─[1916]: identifier("combined")
+├─[1917]: leftParen
+├─[1918]: identifier("with")
+├─[1919]: colon
+├─[1920]: period
+├─[1921]: identifier("move")
+├─[1922]: leftParen
+├─[1923]: identifier("edge")
+├─[1924]: colon
+├─[1925]: period
+├─[1926]: identifier("top")
+├─[1927]: rightParen
+├─[1928]: rightParen
+├─[1929]: rightParen
+├─[1930]: rightParen
+├─[1931]: rightBrace
+├─[1932]: rightBrace
+├─[1933]: rightBrace
+├─[1934]: rightBrace
+├─[1935]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[1936]: identifier("CompactFTPSection")
+├─[1937]: colon
+├─[1938]: identifier("View")
+├─[1939]: leftBrace
+├─[1940]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1941]: identifier("sstViewModel")
+├─[1942]: colon
+├─[1943]: identifier("SSTDashboardViewModel")
+├─[1944]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1945]: identifier("userProfile")
+├─[1946]: colon
+├─[1947]: identifier("UserProfile")
+├─[1948]: postfixQuestionMark
+├─[1949]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[1950]: identifier("body")
+├─[1951]: colon
+├─[1952]: identifier("some")
+├─[1953]: identifier("View")
+├─[1954]: leftBrace
+├─[1955]: identifier("SectionCard")
+├─[1956]: leftParen
+├─[1957]: identifier("title")
+├─[1958]: colon
+├─[1959]: stringQuote
+├─[1960]: stringSegment("FTP詳細")
+├─[1961]: stringQuote
+├─[1962]: comma
+├─[1963]: identifier("icon")
+├─[1964]: colon
+├─[1965]: stringQuote
+├─[1966]: stringSegment("bolt.fill")
+├─[1967]: stringQuote
+├─[1968]: comma
+├─[1969]: identifier("iconColor")
+├─[1970]: colon
+├─[1971]: period
+├─[1972]: identifier("blue")
+├─[1973]: rightParen
+├─[1974]: leftBrace
+├─[1975]: identifier("HStack")
+├─[1976]: leftBrace
+├─[1977]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[1978]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[1979]: identifier("currentFTP")
+├─[1980]: equal
+├─[1981]: identifier("sstViewModel")
+├─[1982]: period
+├─[1983]: identifier("currentFTP")
+├─[1984]: leftBrace
+├─[1985]: identifier("StatView")
+├─[1986]: leftParen
+├─[1987]: identifier("title")
+├─[1988]: colon
+├─[1989]: stringQuote
+├─[1990]: stringSegment("現在")
+├─[1991]: stringQuote
+├─[1992]: comma
+├─[1993]: identifier("value")
+├─[1994]: colon
+├─[1995]: stringQuote
+├─[1996]: stringSegment("")
+├─[1997]: backslash
+├─[1998]: leftParen
+├─[1999]: identifier("currentFTP")
+├─[2000]: rightParen
+├─[2001]: stringSegment("")
+├─[2002]: stringQuote
+├─[2003]: comma
+├─[2004]: identifier("unit")
+├─[2005]: colon
+├─[2006]: stringQuote
+├─[2007]: stringSegment("W")
+├─[2008]: stringQuote
+├─[2009]: comma
+├─[2010]: identifier("color")
+├─[2011]: colon
+├─[2012]: period
+├─[2013]: identifier("blue")
+├─[2014]: rightParen
+├─[2015]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[2016]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2017]: identifier("goalFTP")
+├─[2018]: equal
+├─[2019]: identifier("userProfile")
+├─[2020]: postfixQuestionMark
+├─[2021]: period
+├─[2022]: identifier("goalFtp")
+├─[2023]: comma
+├─[2024]: identifier("goalFTP")
+├─[2025]: binaryOperator(">")
+├─[2026]: integerLiteral("0")
+├─[2027]: comma
+├─[2028]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2029]: identifier("startFTP")
+├─[2030]: equal
+├─[2031]: identifier("userProfile")
+├─[2032]: postfixQuestionMark
+├─[2033]: period
+├─[2034]: identifier("startFtp")
+├─[2035]: leftBrace
+├─[2036]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2037]: identifier("progress")
+├─[2038]: equal
+├─[2039]: identifier("Double")
+├─[2040]: leftParen
+├─[2041]: identifier("currentFTP")
+├─[2042]: binaryOperator("-")
+├─[2043]: identifier("startFTP")
+├─[2044]: rightParen
+├─[2045]: binaryOperator("/")
+├─[2046]: identifier("Double")
+├─[2047]: leftParen
+├─[2048]: identifier("goalFTP")
+├─[2049]: binaryOperator("-")
+├─[2050]: identifier("startFTP")
+├─[2051]: rightParen
+├─[2052]: binaryOperator("*")
+├─[2053]: integerLiteral("100")
+├─[2054]: identifier("StatView")
+├─[2055]: leftParen
+├─[2056]: identifier("title")
+├─[2057]: colon
+├─[2058]: stringQuote
+├─[2059]: stringSegment("進捗")
+├─[2060]: stringQuote
+├─[2061]: comma
+├─[2062]: identifier("value")
+├─[2063]: colon
+├─[2064]: stringQuote
+├─[2065]: stringSegment("")
+├─[2066]: backslash
+├─[2067]: leftParen
+├─[2068]: identifier("Int")
+├─[2069]: leftParen
+├─[2070]: identifier("max")
+├─[2071]: leftParen
+├─[2072]: integerLiteral("0")
+├─[2073]: comma
+├─[2074]: identifier("min")
+├─[2075]: leftParen
+├─[2076]: integerLiteral("100")
+├─[2077]: comma
+├─[2078]: identifier("progress")
+├─[2079]: rightParen
+├─[2080]: rightParen
+├─[2081]: rightParen
+├─[2082]: rightParen
+├─[2083]: stringSegment("")
+├─[2084]: stringQuote
+├─[2085]: comma
+├─[2086]: identifier("unit")
+├─[2087]: colon
+├─[2088]: stringQuote
+├─[2089]: stringSegment("%")
+├─[2090]: stringQuote
+├─[2091]: comma
+├─[2092]: identifier("color")
+├─[2093]: colon
+├─[2094]: identifier("progress")
+├─[2095]: binaryOperator(">=")
+├─[2096]: integerLiteral("100")
+├─[2097]: infixQuestionMark
+├─[2098]: period
+├─[2099]: identifier("green")
+├─[2100]: colon
+├─[2101]: period
+├─[2102]: identifier("orange")
+├─[2103]: rightParen
+├─[2104]: rightBrace
+├─[2105]: rightBrace
+├─[2106]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[2107]: leftBrace
+├─[2108]: identifier("Text")
+├─[2109]: leftParen
+├─[2110]: stringQuote
+├─[2111]: stringSegment("FTPデータがありません")
+├─[2112]: stringQuote
+├─[2113]: rightParen
+├─[2114]: period
+├─[2115]: identifier("font")
+├─[2116]: leftParen
+├─[2117]: identifier("Typography")
+├─[2118]: period
+├─[2119]: identifier("bodyMedium")
+├─[2120]: period
+├─[2121]: identifier("font")
+├─[2122]: rightParen
+├─[2123]: period
+├─[2124]: identif1214
+{
+  "kind": "finished",
+  "name": "compile",
+  "pid": -1089,
+  "output": "\/Users\/hiroshikodera\/repos\/_active\/apps\/delax100daysworkout\/Delax100DaysWorkout\/Features\/Home\/UnifiedHomeDashboardView.swift:134:13: error: expected declaration\n            .navigationTitle(\"ホーム\")\n\/Users\/hiroshikodera\/repos\/_active\/apps\/delax100daysworkout\/Delax100DaysWorkout\/Features\/Home\/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'\nstruct UnifiedHomeDashboardView: View {\n       ^\n\/Users\/hiroshikodera\/repos\/_active\/apps\/delax100daysworkout\/Delax100DaysWorkout\/Features\/Home\/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level\n        .modalNavigation(\n        ^\n\/Users\/hiroshikodera\/repos\/_active\/apps\/delax100daysworkout\/Delax100DaysWorkout\/Features\/Home\/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level\n    }\n    ^\n    \n\/Users\/hiroshikodera\/repos\/_active\/apps\/delax100daysworkout\/Delax100DaysWorkout\/Features\/Home\/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level\n}\n^\n",
+  "process": {
+    "real_pid": 77937
+  },
+  "exit-status": 1
+}
+ier("foregroundColor")
+├─[2125]: leftParen
+├─[2126]: identifier("SemanticColor")
+├─[2127]: period
+├─[2128]: identifier("secondaryText")
+├─[2129]: rightParen
+├─[2130]: period
+├─[2131]: identifier("frame")
+├─[2132]: leftParen
+├─[2133]: identifier("maxWidth")
+├─[2134]: colon
+├─[2135]: period
+├─[2136]: identifier("infinity")
+├─[2137]: comma
+├─[2138]: identifier("alignment")
+├─[2139]: colon
+├─[2140]: period
+├─[2141]: identifier("center")
+├─[2142]: rightParen
+├─[2143]: rightBrace
+├─[2144]: rightBrace
+├─[2145]: rightBrace
+├─[2146]: rightBrace
+├─[2147]: rightBrace
+├─[2148]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[2149]: identifier("CompactHealthSection")
+├─[2150]: colon
+├─[2151]: identifier("View")
+├─[2152]: leftBrace
+├─[2153]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2154]: identifier("latestWeight")
+├─[2155]: colon
+├─[2156]: identifier("Double")
+├─[2157]: postfixQuestionMark
+├─[2158]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2159]: identifier("userProfile")
+├─[2160]: colon
+├─[2161]: identifier("UserProfile")
+├─[2162]: postfixQuestionMark
+├─[2163]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[2164]: identifier("body")
+├─[2165]: colon
+├─[2166]: identifier("some")
+├─[2167]: identifier("View")
+├─[2168]: leftBrace
+├─[2169]: identifier("SectionCard")
+├─[2170]: leftParen
+├─[2171]: identifier("title")
+├─[2172]: colon
+├─[2173]: stringQuote
+├─[2174]: stringSegment("健康データ詳細")
+├─[2175]: stringQuote
+├─[2176]: comma
+├─[2177]: identifier("icon")
+├─[2178]: colon
+├─[2179]: stringQuote
+├─[2180]: stringSegment("heart.fill")
+├─[2181]: stringQuote
+├─[2182]: comma
+├─[2183]: identifier("iconColor")
+├─[2184]: colon
+├─[2185]: period
+├─[2186]: identifier("red")
+├─[2187]: rightParen
+├─[2188]: leftBrace
+├─[2189]: identifier("HStack")
+├─[2190]: leftBrace
+├─[2191]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[2192]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2193]: identifier("weight")
+├─[2194]: equal
+├─[2195]: identifier("latestWeight")
+├─[2196]: leftBrace
+├─[2197]: identifier("StatView")
+├─[2198]: leftParen
+├─[2199]: identifier("title")
+├─[2200]: colon
+├─[2201]: stringQuote
+├─[2202]: stringSegment("体重")
+├─[2203]: stringQuote
+├─[2204]: comma
+├─[2205]: identifier("value")
+├─[2206]: colon
+├─[2207]: identifier("String")
+├─[2208]: leftParen
+├─[2209]: identifier("format")
+├─[2210]: colon
+├─[2211]: stringQuote
+├─[2212]: stringSegment("%.1f")
+├─[2213]: stringQuote
+├─[2214]: comma
+├─[2215]: identifier("weight")
+├─[2216]: rightParen
+├─[2217]: comma
+├─[2218]: identifier("unit")
+├─[2219]: colon
+├─[2220]: stringQuote
+├─[2221]: stringSegment("kg")
+├─[2222]: stringQuote
+├─[2223]: comma
+├─[2224]: identifier("color")
+├─[2225]: colon
+├─[2226]: period
+├─[2227]: identifier("orange")
+├─[2228]: rightParen
+├─[2229]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[2230]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2231]: identifier("goalWeight")
+├─[2232]: equal
+├─[2233]: identifier("userProfile")
+├─[2234]: postfixQuestionMark
+├─[2235]: period
+├─[2236]: identifier("goalWeightKg")
+├─[2237]: comma
+├─[2238]: identifier("goalWeight")
+├─[2239]: binaryOperator(">")
+├─[2240]: integerLiteral("0")
+├─[2241]: comma
+├─[2242]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2243]: identifier("startWeight")
+├─[2244]: equal
+├─[2245]: identifier("userProfile")
+├─[2246]: postfixQuestionMark
+├─[2247]: period
+├─[2248]: identifier("startWeightKg")
+├─[2249]: leftBrace
+├─[2250]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2251]: identifier("progress")
+├─[2252]: equal
+├─[2253]: leftParen
+├─[2254]: identifier("startWeight")
+├─[2255]: binaryOperator("-")
+├─[2256]: identifier("weight")
+├─[2257]: rightParen
+├─[2258]: binaryOperator("/")
+├─[2259]: leftParen
+├─[2260]: identifier("startWeight")
+├─[2261]: binaryOperator("-")
+├─[2262]: identifier("goalWeight")
+├─[2263]: rightParen
+├─[2264]: binaryOperator("*")
+├─[2265]: integerLiteral("100")
+├─[2266]: identifier("StatView")
+├─[2267]: leftParen
+├─[2268]: identifier("title")
+├─[2269]: colon
+├─[2270]: stringQuote
+├─[2271]: stringSegment("減量進捗")
+├─[2272]: stringQuote
+├─[2273]: comma
+├─[2274]: identifier("value")
+├─[2275]: colon
+├─[2276]: stringQuote
+├─[2277]: stringSegment("")
+├─[2278]: backslash
+├─[2279]: leftParen
+├─[2280]: identifier("Int")
+├─[2281]: leftParen
+├─[2282]: identifier("max")
+├─[2283]: leftParen
+├─[2284]: integerLiteral("0")
+├─[2285]: comma
+├─[2286]: identifier("min")
+├─[2287]: leftParen
+├─[2288]: integerLiteral("100")
+├─[2289]: comma
+├─[2290]: identifier("progress")
+├─[2291]: rightParen
+├─[2292]: rightParen
+├─[2293]: rightParen
+├─[2294]: rightParen
+├─[2295]: stringSegment("")
+├─[2296]: stringQuote
+├─[2297]: comma
+├─[2298]: identifier("unit")
+├─[2299]: colon
+├─[2300]: stringQuote
+├─[2301]: stringSegment("%")
+├─[2302]: stringQuote
+├─[2303]: comma
+├─[2304]: identifier("color")
+├─[2305]: colon
+├─[2306]: identifier("progress")
+├─[2307]: binaryOperator(">=")
+├─[2308]: integerLiteral("100")
+├─[2309]: infixQuestionMark
+├─[2310]: period
+├─[2311]: identifier("green")
+├─[2312]: colon
+├─[2313]: period
+├─[2314]: identifier("orange")
+├─[2315]: rightParen
+├─[2316]: rightBrace
+├─[2317]: rightBrace
+├─[2318]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[2319]: leftBrace
+├─[2320]: identifier("Text")
+├─[2321]: leftParen
+├─[2322]: stringQuote
+├─[2323]: stringSegment("体重データがありません")
+├─[2324]: stringQuote
+├─[2325]: rightParen
+├─[2326]: period
+├─[2327]: identifier("font")
+├─[2328]: leftParen
+├─[2329]: identifier("Typography")
+├─[2330]: period
+├─[2331]: identifier("bodyMedium")
+├─[2332]: period
+├─[2333]: identifier("font")
+├─[2334]: rightParen
+├─[2335]: period
+├─[2336]: identifier("foregroundColor")
+├─[2337]: leftParen
+├─[2338]: identifier("SemanticColor")
+├─[2339]: period
+├─[2340]: identifier("secondaryText")
+├─[2341]: rightParen
+├─[2342]: period
+├─[2343]: identifier("frame")
+├─[2344]: leftParen
+├─[2345]: identifier("maxWidth")
+├─[2346]: colon
+├─[2347]: period
+├─[2348]: identifier("infinity")
+├─[2349]: comma
+├─[2350]: identifier("alignment")
+├─[2351]: colon
+├─[2352]: period
+├─[2353]: identifier("center")
+├─[2354]: rightParen
+├─[2355]: rightBrace
+├─[2356]: rightBrace
+├─[2357]: rightBrace
+├─[2358]: rightBrace
+├─[2359]: rightBrace
+├─[2360]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[2361]: identifier("CompactOverallProgressSection")
+├─[2362]: colon
+├─[2363]: identifier("View")
+├─[2364]: leftBrace
+├─[2365]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2366]: identifier("progressViewModel")
+├─[2367]: colon
+├─[2368]: identifier("ProgressChartViewModel")
+├─[2369]: postfixQuestionMark
+├─[2370]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2371]: identifier("userProfile")
+├─[2372]: colon
+├─[2373]: identifier("UserProfile")
+├─[2374]: postfixQuestionMark
+├─[2375]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[2376]: identifier("body")
+├─[2377]: colon
+├─[2378]: identifier("some")
+├─[2379]: identifier("View")
+├─[2380]: leftBrace
+├─[2381]: identifier("SectionCard")
+├─[2382]: leftParen
+├─[2383]: identifier("title")
+├─[2384]: colon
+├─[2385]: stringQuote
+├─[2386]: stringSegment("全体進捗詳細")
+├─[2387]: stringQuote
+├─[2388]: comma
+├─[2389]: identifier("icon")
+├─[2390]: colon
+├─[2391]: stringQuote
+├─[2392]: stringSegment("chart.bar.fill")
+├─[2393]: stringQuote
+├─[2394]: comma
+├─[2395]: identifier("iconColor")
+├─[2396]: colon
+├─[2397]: period
+├─[2398]: identifier("green")
+├─[2399]: rightParen
+├─[2400]: leftBrace
+├─[2401]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[2402]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2403]: identifier("progressViewModel")
+├─[2404]: equal
+├─[2405]: identifier("progressViewModel")
+├─[2406]: leftBrace
+├─[2407]: identifier("HStack")
+├─[2408]: leftBrace
+├─[2409]: identifier("StatView")
+├─[2410]: leftParen
+├─[2411]: identifier("title")
+├─[2412]: colon
+├─[2413]: stringQuote
+├─[2414]: stringSegment("今月")
+├─[2415]: stringQuote
+├─[2416]: comma
+├─[2417]: identifier("value")
+├─[2418]: colon
+├─[2419]: stringQuote
+├─[2420]: stringSegment("")
+├─[2421]: backslash
+├─[2422]: leftParen
+├─[2423]: identifier("progressViewModel")
+├─[2424]: period
+├─[2425]: identifier("currentMonthWorkouts")
+├─[2426]: rightParen
+├─[2427]: stringSegment("")
+├─[2428]: stringQuote
+├─[2429]: comma
+├─[2430]: identifier("unit")
+├─[2431]: colon
+├─[2432]: stringQuote
+├─[2433]: stringSegment("回")
+├─[2434]: stringQuote
+├─[2435]: comma
+├─[2436]: identifier("color")
+├─[2437]: colon
+├─[2438]: period
+├─[2439]: identifier("green")
+├─[2440]: rightParen
+├─[2441]: identifier("StatView")
+├─[2442]: leftParen
+├─[2443]: identifier("title")
+├─[2444]: colon
+├─[2445]: stringQuote
+├─[2446]: stringSegment("連続")
+├─[2447]: stringQuote
+├─[2448]: comma
+├─[2449]: identifier("value")
+├─[2450]: colon
+├─[2451]: stringQuote
+├─[2452]: stringSegment("")
+├─[2453]: backslash
+├─[2454]: leftParen
+├─[2455]: identifier("progressViewModel")
+├─[2456]: period
+├─[2457]: identifier("currentStreak")
+├─[2458]: rightParen
+├─[2459]: stringSegment("")
+├─[2460]: stringQuote
+├─[2461]: comma
+├─[2462]: identifier("unit")
+├─[2463]: colon
+├─[2464]: stringQuote
+├─[2465]: stringSegment("日")
+├─[2466]: stringQuote
+├─[2467]: comma
+├─[2468]: identifier("color")
+├─[2469]: colon
+├─[2470]: period
+├─[2471]: identifier("orange")
+├─[2472]: rightParen
+├─[2473]: identifier("StatView")
+├─[2474]: leftParen
+├─[2475]: identifier("title")
+├─[2476]: colon
+├─[2477]: stringQuote
+├─[2478]: stringSegment("合計")
+├─[2479]: stringQuote
+├─[2480]: comma
+├─[2481]: identifier("value")
+├─[2482]: colon
+├─[2483]: stringQuote
+├─[2484]: stringSegment("")
+├─[2485]: backslash
+├─[2486]: leftParen
+├─[2487]: identifier("progressViewModel")
+├─[2488]: period
+├─[2489]: identifier("totalWorkouts")
+├─[2490]: rightParen
+├─[2491]: stringSegment("")
+├─[2492]: stringQuote
+├─[2493]: comma
+├─[2494]: identifier("unit")
+├─[2495]: colon
+├─[2496]: stringQuote
+├─[2497]: stringSegment("回")
+├─[2498]: stringQuote
+├─[2499]: comma
+├─[2500]: identifier("color")
+├─[2501]: colon
+├─[2502]: period
+├─[2503]: identifier("blue")
+├─[2504]: rightParen
+├─[2505]: rightBrace
+├─[2506]: rightBrace
+├─[2507]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[2508]: leftBrace
+├─[2509]: identifier("Text")
+├─[2510]: leftParen
+├─[2511]: stringQuote
+├─[2512]: stringSegment("進捗データを読み込み中...")
+├─[2513]: stringQuote
+├─[2514]: rightParen
+├─[2515]: period
+├─[2516]: identifier("font")
+├─[2517]: leftParen
+├─[2518]: identifier("Typography")
+├─[2519]: period
+├─[2520]: identifier("bodyMedium")
+├─[2521]: period
+├─[2522]: identifier("font")
+├─[2523]: rightParen
+├─[2524]: period
+├─[2525]: identifier("foregroundColor")
+├─[2526]: leftParen
+├─[2527]: identifier("SemanticColor")
+├─[2528]: period
+├─[2529]: identifier("secondaryText")
+├─[2530]: rightParen
+├─[2531]: period
+├─[2532]: identifier("frame")
+├─[2533]: leftParen
+├─[2534]: identifier("maxWidth")
+├─[2535]: colon
+├─[2536]: period
+├─[2537]: identifier("infinity")
+├─[2538]: comma
+├─[2539]: identifier("alignment")
+├─[2540]: colon
+├─[2541]: period
+├─[2542]: identifier("center")
+├─[2543]: rightParen
+├─[2544]: rightBrace
+├─[2545]: rightBrace
+├─[2546]: rightBrace
+├─[2547]: rightBrace
+├─[2548]: keyword(_CompilerSwiftSyntax.Keyword.struct)
+├─[2549]: identifier("TodayProgressSummaryCard")
+├─[2550]: colon
+├─[2551]: identifier("View")
+├─[2552]: leftBrace
+├─[2553]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2554]: identifier("completedTasks")
+├─[2555]: colon
+├─[2556]: identifier("Int")
+├─[2557]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2558]: identifier("totalTasks")
+├─[2559]: colon
+├─[2560]: identifier("Int")
+├─[2561]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2562]: identifier("todaySteps")
+├─[2563]: colon
+├─[2564]: identifier("Int")
+├─[2565]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2566]: identifier("currentWeight")
+├─[2567]: colon
+├─[2568]: identifier("Double")
+├─[2569]: postfixQuestionMark
+├─[2570]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[2571]: identifier("taskProgress")
+├─[2572]: colon
+├─[2573]: identifier("Double")
+├─[2574]: leftBrace
+├─[2575]: keyword(_CompilerSwiftSyntax.Keyword.guard)
+├─[2576]: identifier("totalTasks")
+├─[2577]: binaryOperator(">")
+├─[2578]: integerLiteral("0")
+├─[2579]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[2580]: leftBrace
+├─[2581]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[2582]: integerLiteral("0")
+├─[2583]: rightBrace
+├─[2584]: keyword(_CompilerSwiftSyntax.Keyword.return)
+├─[2585]: identifier("Double")
+├─[2586]: leftParen
+├─[2587]: identifier("completedTasks")
+├─[2588]: rightParen
+├─[2589]: binaryOperator("/")
+├─[2590]: identifier("Double")
+├─[2591]: leftParen
+├─[2592]: identifier("totalTasks")
+├─[2593]: rightParen
+├─[2594]: rightBrace
+├─[2595]: keyword(_CompilerSwiftSyntax.Keyword.var)
+├─[2596]: identifier("body")
+├─[2597]: colon
+├─[2598]: identifier("some")
+├─[2599]: identifier("View")
+├─[2600]: leftBrace
+├─[2601]: identifier("BaseCard")
+├─[2602]: leftParen
+├─[2603]: identifier("style")
+├─[2604]: colon
+├─[2605]: identifier("ElevatedCardStyle")
+├─[2606]: leftParen
+├─[2607]: rightParen
+├─[2608]: rightParen
+├─[2609]: leftBrace
+├─[2610]: identifier("VStack")
+├─[2611]: leftParen
+├─[2612]: identifier("alignment")
+├─[2613]: colon
+├─[2614]: period
+├─[2615]: identifier("leading")
+├─[2616]: comma
+├─[2617]: identifier("spacing")
+├─[2618]: colon
+├─[2619]: identifier("Spacing")
+├─[2620]: period
+├─[2621]: identifier("md")
+├─[2622]: period
+├─[2623]: identifier("value")
+├─[2624]: rightParen
+├─[2625]: leftBrace
+├─[2626]: identifier("HStack")
+├─[2627]: leftBrace
+├─[2628]: identifier("Image")
+├─[2629]: leftParen
+├─[2630]: identifier("systemName")
+├─[2631]: colon
+├─[2632]: stringQuote
+├─[2633]: stringSegment("chart.bar.fill")
+├─[2634]: stringQuote
+├─[2635]: rightParen
+├─[2636]: period
+├─[2637]: identifier("font")
+├─[2638]: leftParen
+├─[2639]: identifier("Typography")
+├─[2640]: period
+├─[2641]: identifier("headlineMedium")
+├─[2642]: period
+├─[2643]: identifier("font")
+├─[2644]: rightParen
+├─[2645]: period
+├─[2646]: identifier("foregroundColor")
+├─[2647]: leftParen
+├─[2648]: identifier("SemanticColor")
+├─[2649]: period
+├─[2650]: identifier("primaryAction")
+├─[2651]: rightParen
+├─[2652]: identifier("Text")
+├─[2653]: leftParen
+├─[2654]: stringQuote
+├─[2655]: stringSegment("今日の進捗")
+├─[2656]: stringQuote
+├─[2657]: rightParen
+├─[2658]: period
+├─[2659]: identifier("font")
+├─[2660]: leftParen
+├─[2661]: identifier("Typography")
+├─[2662]: period
+├─[2663]: identifier("headlineMedium")
+├─[2664]: period
+├─[2665]: identifier("font")
+├─[2666]: rightParen
+├─[2667]: period
+├─[2668]: identifier("foregroundColor")
+├─[2669]: leftParen
+├─[2670]: identifier("SemanticColor")
+├─[2671]: period
+├─[2672]: identifier("primaryText")
+├─[2673]: rightParen
+├─[2674]: identifier("Spacer")
+├─[2675]: leftParen
+├─[2676]: rightParen
+├─[2677]: identifier("Text")
+├─[2678]: leftParen
+├─[2679]: stringQuote
+├─[2680]: stringSegment("")
+├─[2681]: backslash
+├─[2682]: leftParen
+├─[2683]: identifier("Int")
+├─[2684]: leftParen
+├─[2685]: identifier("taskProgress")
+├─[2686]: binaryOperator("*")
+├─[2687]: integerLiteral("100")
+├─[2688]: rightParen
+├─[2689]: rightParen
+├─[2690]: stringSegment("%")
+├─[2691]: stringQuote
+├─[2692]: rightParen
+├─[2693]: period
+├─[2694]: identifier("font")
+├─[2695]: leftParen
+├─[2696]: identifier("Typography")
+├─[2697]: period
+├─[2698]: identifier("headlineSmall")
+├─[2699]: period
+├─[2700]: identifier("font")
+├─[2701]: rightParen
+├─[2702]: period
+├─[2703]: identifier("foregroundColor")
+├─[2704]: leftParen
+├─[2705]: identifier("taskProgress")
+├─[2706]: binaryOperator("==")
+├─[2707]: floatLiteral("1.0")
+├─[2708]: infixQuestionMark
+├─[2709]: identifier("SemanticColor")
+├─[2710]: period
+├─[2711]: identifier("successAction")
+├─[2712]: colon
+├─[2713]: identifier("SemanticColor")
+├─[2714]: period
+├─[2715]: identifier("primaryAction")
+├─[2716]: rightParen
+├─[2717]: rightBrace
+├─[2718]: identifier("ProgressView")
+├─[2719]: leftParen
+├─[2720]: identifier("value")
+├─[2721]: colon
+├─[2722]: identifier("taskProgress")
+├─[2723]: rightParen
+├─[2724]: period
+├─[2725]: identifier("progressViewStyle")
+├─[2726]: leftParen
+├─[2727]: identifier("LinearProgressViewStyle")
+├─[2728]: leftParen
+├─[2729]: identifier("tint")
+├─[2730]: colon
+├─[2731]: identifier("taskProgress")
+├─[2732]: binaryOperator("==")
+├─[2733]: floatLiteral("1.0")
+├─[2734]: infixQuestionMark
+├─[2735]: period
+├─[2736]: identifier("green")
+├─[2737]: colon
+├─[2738]: period
+├─[2739]: identifier("blue")
+├─[2740]: rightParen
+├─[2741]: rightParen
+├─[2742]: period
+├─[2743]: identifier("scaleEffect")
+├─[2744]: leftParen
+├─[2745]: identifier("y")
+├─[2746]: colon
+├─[2747]: integerLiteral("2")
+├─[2748]: comma
+├─[2749]: identifier("anchor")
+├─[2750]: colon
+├─[2751]: period
+├─[2752]: identifier("center")
+├─[2753]: rightParen
+├─[2754]: identifier("HStack")
+├─[2755]: leftParen
+├─[2756]: identifier("spacing")
+├─[2757]: colon
+├─[2758]: identifier("Spacing")
+├─[2759]: period
+├─[2760]: identifier("lg")
+├─[2761]: period
+├─[2762]: identifier("value")
+├─[2763]: rightParen
+├─[2764]: leftBrace
+├─[2765]: identifier("StatView")
+├─[2766]: leftParen
+├─[2767]: identifier("title")
+├─[2768]: colon
+├─[2769]: stringQuote
+├─[2770]: stringSegment("タスク")
+├─[2771]: stringQuote
+├─[2772]: comma
+├─[2773]: identifier("value")
+├─[2774]: colon
+├─[2775]: stringQuote
+├─[2776]: stringSegment("")
+├─[2777]: backslash
+├─[2778]: leftParen
+├─[2779]: identifier("completedTasks")
+├─[2780]: rightParen
+├─[2781]: stringSegment("")
+├─[2782]: stringQuote
+├─[2783]: comma
+├─[2784]: identifier("unit")
+├─[2785]: colon
+├─[2786]: stringQuote
+├─[2787]: stringSegment("/")
+├─[2788]: backslash
+├─[2789]: leftParen
+├─[2790]: identifier("totalTasks")
+├─[2791]: rightParen
+├─[2792]: stringSegment("")
+├─[2793]: stringQuote
+├─[2794]: comma
+├─[2795]: identifier("color")
+├─[2796]: colon
+├─[2797]: identifier("taskProgress")
+├─[2798]: binaryOperator("==")
+├─[2799]: floatLiteral("1.0")
+├─[2800]: infixQuestionMark
+├─[2801]: period
+├─[2802]: identifier("green")
+├─[2803]: colon
+├─[2804]: period
+├─[2805]: identifier("blue")
+├─[2806]: rightParen
+├─[2807]: identifier("StatView")
+├─[2808]: leftParen
+├─[2809]: identifier("title")
+├─[2810]: colon
+├─[2811]: stringQuote
+├─[2812]: stringSegment("歩数")
+├─[2813]: stringQuote
+├─[2814]: comma
+├─[2815]: identifier("value")
+├─[2816]: colon
+├─[2817]: stringQuote
+├─[2818]: stringSegment("")
+├─[2819]: backslash
+├─[2820]: leftParen
+├─[2821]: identifier("todaySteps")
+├─[2822]: rightParen
+├─[2823]: stringSegment("")
+├─[2824]: stringQuote
+├─[2825]: comma
+├─[2826]: identifier("unit")
+├─[2827]: colon
+├─[2828]: stringQuote
+├─[2829]: stringSegment("歩")
+├─[2830]: stringQuote
+├─[2831]: comma
+├─[2832]: identifier("color")
+├─[2833]: colon
+├─[2834]: period
+├─[2835]: identifier("orange")
+├─[2836]: rightParen
+├─[2837]: keyword(_CompilerSwiftSyntax.Keyword.if)
+├─[2838]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2839]: identifier("weight")
+├─[2840]: equal
+├─[2841]: identifier("currentWeight")
+├─[2842]: leftBrace
+├─[2843]: identifier("StatView")
+├─[2844]: leftParen
+├─[2845]: identifier("title")
+├─[2846]: colon
+├─[2847]: stringQuote
+├─[2848]: stringSegment("体重")
+├─[2849]: stringQuote
+├─[2850]: comma
+├─[2851]: identifier("value")
+├─[2852]: colon
+├─[2853]: identifier("String")
+├─[2854]: leftParen
+├─[2855]: identifier("format")
+├─[2856]: colon
+├─[2857]: stringQuote
+├─[2858]: stringSegment("%.1f")
+├─[2859]: stringQuote
+├─[2860]: comma
+├─[2861]: identifier("weight")
+├─[2862]: rightParen
+├─[2863]: comma
+├─[2864]: identifier("unit")
+├─[2865]: colon
+├─[2866]: stringQuote
+├─[2867]: stringSegment("kg")
+├─[2868]: stringQuote
+├─[2869]: comma
+├─[2870]: identifier("color")
+├─[2871]: colon
+├─[2872]: period
+├─[2873]: identifier("purple")
+├─[2874]: rightParen
+├─[2875]: rightBrace
+├─[2876]: keyword(_CompilerSwiftSyntax.Keyword.else)
+├─[2877]: leftBrace
+├─[2878]: identifier("StatView")
+├─[2879]: leftParen
+├─[2880]: identifier("title")
+├─[2881]: colon
+├─[2882]: stringQuote
+├─[2883]: stringSegment("体重")
+├─[2884]: stringQuote
+├─[2885]: comma
+├─[2886]: identifier("value")
+├─[2887]: colon
+├─[2888]: stringQuote
+├─[2889]: stringSegment("未測定")
+├─[2890]: stringQuote
+├─[2891]: comma
+├─[2892]: identifier("unit")
+├─[2893]: colon
+├─[2894]: stringQuote
+├─[2895]: stringSegment("")
+├─[2896]: stringQuote
+├─[2897]: comma
+├─[2898]: identifier("color")
+├─[2899]: colon
+├─[2900]: period
+├─[2901]: identifier("gray")
+├─[2902]: rightParen
+├─[2903]: rightBrace
+├─[2904]: rightBrace
+├─[2905]: rightBrace
+├─[2906]: rightBrace
+├─[2907]: rightBrace
+├─[2908]: rightBrace
+├─[2909]: keyword(_CompilerSwiftSyntax.Keyword.extension)
+├─[2910]: identifier("Notification")
+├─[2911]: period
+├─[2912]: identifier("Name")
+├─[2913]: leftBrace
+├─[2914]: keyword(_CompilerSwiftSyntax.Keyword.static)
+├─[2915]: keyword(_CompilerSwiftSyntax.Keyword.let)
+├─[2916]: identifier("userProfileUpdated")
+├─[2917]: equal
+├─[2918]: identifier("Notification")
+├─[2919]: period
+├─[2920]: identifier("Name")
+├─[2921]: leftParen
+├─[2922]: stringQuote
+├─[2923]: stringSegment("userProfileUpdated")
+├─[2924]: stringQuote
+├─[2925]: rightParen
+├─[2926]: rightBrace
+├─[2927]: pound
+├─[2928]: identifier("Preview")
+├─[2929]: leftBrace
+├─[2930]: identifier("UnifiedHomeDashboardView")
+├─[2931]: leftParen
+├─[2932]: rightParen
+├─[2933]: period
+├─[2934]: identifier("modelContainer")
+├─[2935]: leftParen
+├─[2936]: keyword(_CompilerSwiftSyntax.Keyword.for)
+├─[2937]: colon
+├─[2938]: leftSquare
+├─[2939]: identifier("FTPHistory")
+├─[2940]: period
+├─[2941]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[2942]: comma
+├─[2943]: identifier("DailyMetric")
+├─[2944]: period
+├─[2945]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[2946]: comma
+├─[2947]: identifier("WorkoutRecord")
+├─[2948]: period
+├─[2949]: keyword(_CompilerSwiftSyntax.Keyword.self)
+├─[2950]: rightSquare
+├─[2951]: rightParen
+╰─[2952]: rightBrace
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c -filelist /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/sources-30 -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Delax100DaysWorkoutApp.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/Core/FieldTypeAnalysis.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/InteractionStandards.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/HistoryViewTemplate.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/EnvironmentConfig.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Queries/AdditionalOptimizedQueries.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/DailyLog.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/UniversalEditSheetDemo.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Extensions/WorkoutSearchExtensions.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/Achievement.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/TextFieldRenderer.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Core/HistorySearchViewModel.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/WeeklySchedule/WeeklyScheduleView.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/EnumFieldRenderer.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/Haptics/HapticManager.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/MetricsHistoryView.swift -primary-file /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/WeeklyTemplate.swift -supplementary-output-file-map /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/supplementaryOutputs-586 -emit-localized-strings -emit-localized-strings-path /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64 -target arm64-apple-ios18.5 -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -I /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Products/Debug-iphoneos -F /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Products/Debug-iphoneos -no-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -module-cache-path /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -swift-version 5 -enforce-exclusivity\=checked -Onone -D DEBUG -serialize-debugging-options -const-gather-protocols-file /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/Delax100DaysWorkout_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/hiroshikodera/repos/_active/apps/delax100daysworkout -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift -enable-anonymous-context-mangled-names -file-compilation-dir /Users/hiroshikodera/repos/_active/apps/delax100daysworkout -Xcc -ivfsstatcache -Xcc /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphoneos18.5-22F76-7fa4eea80a99bbfdc046826b63ec4baf.sdkstatcache -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/swift-overrides.hmap -Xcc -iquote -Xcc /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Delax100DaysWorkout-generated-files.hmap -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Delax100DaysWorkout-own-target-headers.hmap -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Delax100DaysWorkout-all-target-headers.hmap -Xcc -iquote -Xcc /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Delax100DaysWorkout-project-headers.hmap -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Products/Debug-iphoneos/include -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/DerivedSources-normal/arm64 -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/DerivedSources/arm64 -Xcc -I/Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/DerivedSources -Xcc -DDEBUG\=1 -module-name Delax100DaysWorkout -frontend-parseable-output -disable-clang-spi -target-sdk-version 18.5 -target-sdk-name iphoneos18.5 -external-plugin-path /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server -external-plugin-path /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/local/lib/swift/host/plugins\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/lib/swift/host/plugins -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/Delax100DaysWorkoutApp.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/FieldTypeAnalysis.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/InteractionStandards.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/HistoryViewTemplate.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/EnvironmentConfig.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/AdditionalOptimizedQueries.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/DailyLog.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/UniversalEditSheetDemo.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/WorkoutSearchExtensions.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/Achievement.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/TextFieldRenderer.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/HistorySearchViewModel.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/WeeklyScheduleView.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/EnumFieldRenderer.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/HapticManager.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/MetricsHistoryView.o -o /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/WeeklyTemplate.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/Delax100DaysWorkoutApp.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/FieldTypeAnalysis.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/InteractionStandards.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/HistoryViewTemplate.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/EnvironmentConfig.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/AdditionalOptimizedQueries.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/DailyLog.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/UniversalEditSheetDemo.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/WorkoutSearchExtensions.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/Achievement.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/TextFieldRenderer.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/HistorySearchViewModel.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/WeeklyScheduleView.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/EnumFieldRenderer.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/HapticManager.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/MetricsHistoryView.o -index-unit-output-path /Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/Objects-normal/arm64/WeeklyTemplate.o -index-store-path /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Index.noindex/DataStore -index-system-modules
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Delax100DaysWorkoutApp.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+Command SwiftCompile failed with a nonzero exit code
+
+Command SwiftCompile failed with a nonzero exit code
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/Core/FieldTypeAnalysis.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/InteractionStandards.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/HistoryViewTemplate.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/EnvironmentConfig.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Queries/AdditionalOptimizedQueries.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/DailyLog.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/UniversalEditSheetDemo.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Extensions/WorkoutSearchExtensions.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/Achievement.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/TextFieldRenderer.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Core/HistorySearchViewModel.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/WeeklySchedule/WeeklyScheduleView.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/EnumFieldRenderer.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/Haptics/HapticManager.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/MetricsHistoryView.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/WeeklyTemplate.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+    cd /Users/hiroshikodera/repos/_active/apps/delax100daysworkout
+    
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: error: expected declaration
+            .navigationTitle("ホーム")
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:6:8: note: in declaration of 'UnifiedHomeDashboardView'
+struct UnifiedHomeDashboardView: View {
+       ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: error: expressions are not allowed at the top level
+        .modalNavigation(
+        ^
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: error: extraneous '}' at top level
+    }
+    ^
+    
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: error: extraneous '}' at top level
+}
+^
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:134:13: Expected declaration
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:148:9: Expressions are not allowed at the top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:207:5: Extraneous '}' at top level
+
+/Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/Home/UnifiedHomeDashboardView.swift:360:1: Extraneous '}' at top level
+
+SwiftCompile normal arm64 Compiling\ EditableModelProtocol.swift,\ AdditionalModelSearchExtensions.swift,\ ToggleRenderer.swift,\ SearchEngine.swift,\ WeeklyScheduleViewModel.swift,\ NumberFieldRenderer.swift,\ ArrayRenderer.swift,\ WeeklyReviewView.swift,\ ProgressChartViewModel.swift,\ UnifiedSearchBar.swift,\ WorkoutRecord.swift,\ HealthDataView.swift,\ ComponentCatalog.swift,\ TrainingSavings.swift,\ EditableWorkoutCardView.swift,\ ModalNavigationWrapper.swift,\ GeneratedAssetSymbols.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/Protocols/EditableModelProtocol.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Extensions/AdditionalModelSearchExtensions.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/ToggleRenderer.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/HistoryOperations/Core/SearchEngine.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/WeeklySchedule/WeeklyScheduleViewModel.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/NumberFieldRenderer.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Utils/UniversalEditSheet/FieldRenderers/ArrayRenderer.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/WeeklyReview/WeeklyReviewView.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/ProgressChartViewModel.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Components/SearchComponents/UnifiedSearchBar.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/WorkoutRecord.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/HealthDataView.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Components/Preview/ComponentCatalog.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Models/TrainingSavings.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Features/EditableWorkoutCardView.swift /Users/hiroshikodera/repos/_active/apps/delax100daysworkout/Delax100DaysWorkout/Components/Navigation/ModalNavigationWrapper.swift /Users/hiroshikodera/Library/Developer/Xcode/DerivedData/Delax100DaysWorkout-bnyakathkacxvuftjmbxxqornwjd/Build/Intermediates.noindex/Delax100DaysWorkout.build/Debug-iphoneos/Delax100DaysWorkout.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Delax100DaysWorkout' from project 'Delax100DaysWorkout')
+
+Command SwiftCompile failed with a nonzero exit code
+
+Command SwiftCompile failed with a nonzero exit code
+
+
+
+Build failed    2025-08-21, 5:12 PM    6.2 seconds
