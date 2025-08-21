@@ -381,6 +381,9 @@ class WeeklyScheduleViewModel {
             isFlexible: false
         )
         
+        // ワークアウトタイプに応じてデフォルトのターゲット詳細を設定
+        task.targetDetails = createDefaultTargetDetails(for: workoutType)
+        
         // ソート順序を設定（同じ曜日の最大値＋1）
         let existingTasks = template.tasksForDay(day)
         task.sortOrder = (existingTasks.map { $0.sortOrder }.max() ?? -1) + 1
@@ -391,6 +394,32 @@ class WeeklyScheduleViewModel {
         
         Logger.general.info("New daily task created: \(task.title) for day \(day)")
         return task
+    }
+    
+    /// ワークアウトタイプに応じてデフォルトのTargetDetailsを作成
+    private func createDefaultTargetDetails(for workoutType: WorkoutType) -> TargetDetails {
+        var details = TargetDetails()
+        
+        switch workoutType {
+        case .cycling:
+            details.duration = 60
+            details.intensity = .z2  // デフォルトでZ2（有酸素）
+            details.targetPower = 200
+            
+        case .strength:
+            details.targetSets = 3
+            details.targetReps = 12
+            details.exercises = ["基本トレーニング"]
+            
+        case .flexibility, .pilates, .yoga:
+            details.targetDuration = 30
+            if workoutType == .flexibility {
+                details.targetForwardBend = 0.0
+                details.targetSplitAngle = 90.0
+            }
+        }
+        
+        return details
     }
     
     /// ワークアウトタイプに基づいてタスクタイトルを生成

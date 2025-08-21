@@ -282,11 +282,14 @@ struct WeeklyTaskListRow: View {
                     HStack(spacing: 6) {
                         switch task.workoutType {
                         case .cycling:
+                            if let intensity = details.intensity {
+                                CompactDetailLabel(icon: "bolt.fill", text: intensity.shortDisplayName)
+                            }
                             if let duration = details.duration {
                                 CompactDetailLabel(icon: "clock.fill", text: "\(duration)分")
                             }
-                            if let intensity = details.intensity {
-                                CompactDetailLabel(icon: "bolt.fill", text: intensity.displayName)
+                            if let power = details.targetPower {
+                                CompactDetailLabel(icon: "gauge", text: "\(power)W")
                             }
                         case .strength:
                             if let sets = details.targetSets, let reps = details.targetReps {
