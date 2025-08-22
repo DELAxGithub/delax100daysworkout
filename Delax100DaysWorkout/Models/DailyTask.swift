@@ -62,11 +62,22 @@ final class DailyTask {
         case .strength:
             if let exercises = details.exercises, !exercises.isEmpty {
                 let exerciseName = exercises.first ?? "筋トレ"
-                if let sets = details.targetSets, let reps = details.targetReps {
-                    return "\(exerciseName) \(sets)×\(reps)"
-                } else {
-                    return exerciseName
+                // 筋群名を抽出（例：「背中トレーニング」→「背中」、「足トレーニング」→「足」）
+                let muscleGroupName = exerciseName.replacingOccurrences(of: "トレーニング", with: "")
+                
+                var components: [String] = [muscleGroupName]
+                
+                // 重量があれば追加
+                if let weight = details.targetWeight, weight > 0 {
+                    components.append("\(Int(weight))kg")
                 }
+                
+                // レップ×セットがあれば追加
+                if let sets = details.targetSets, let reps = details.targetReps {
+                    components.append("\(reps)×\(sets)")
+                }
+                
+                return components.joined(separator: " ")
             }
             return title
             
@@ -106,9 +117,7 @@ final class DailyTask {
                 components.append(String(format: "%.2f W/bpm", wattsPerBpm))
             }
             
-            if let intensity = details.intensity {
-                components.append(intensity.displayName)
-            }
+            // ゾーン情報はタイトルに表示されるため除外
             
             return components.isEmpty ? taskDescription : components.joined(separator: " • ")
             
@@ -119,7 +128,7 @@ final class DailyTask {
                 components.append("\(exercises.count)種目")
             }
             
-            // 筋群や部位の情報があれば追加
+            // 筋群や部位の情報があれば追加（重量情報はタイトルに表示されるため除外）
             if let description = taskDescription, !description.contains("クイック記録") {
                 components.append(description)
             }

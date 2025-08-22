@@ -13,6 +13,7 @@ struct TargetDetails: Codable {
     var exercises: [String]?
     var targetSets: Int?
     var targetReps: Int?
+    var targetWeight: Double?
     
     // 柔軟性用
     var targetDuration: Int?

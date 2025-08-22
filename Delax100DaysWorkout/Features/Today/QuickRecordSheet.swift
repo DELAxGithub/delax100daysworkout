@@ -394,6 +394,7 @@ struct QuickRecordSheet: View {
             } else if let target = task.targetDetails {
                 sets = target.targetSets ?? 3
                 reps = target.targetReps ?? 10
+                weight = target.targetWeight ?? 0
             }
             
         case .flexibility, .pilates, .yoga:
@@ -429,6 +430,21 @@ struct QuickRecordSheet: View {
                 sets: sets
             )
             workoutRecord.strengthData = strengthData
+            
+            // TargetDetailsも同時更新（双方向データ同期）
+            if var targetDetails = task.targetDetails {
+                targetDetails.targetWeight = weight > 0 ? weight : nil
+                targetDetails.targetSets = sets
+                targetDetails.targetReps = reps
+                task.targetDetails = targetDetails
+            } else {
+                // TargetDetailsが存在しない場合は新規作成
+                var newTargetDetails = TargetDetails()
+                newTargetDetails.targetWeight = weight > 0 ? weight : nil
+                newTargetDetails.targetSets = sets
+                newTargetDetails.targetReps = reps
+                task.targetDetails = newTargetDetails
+            }
             
         case .flexibility, .pilates, .yoga:
             let flexibilityData = SimpleFlexibilityData(

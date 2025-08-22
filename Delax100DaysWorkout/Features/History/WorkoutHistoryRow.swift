@@ -12,6 +12,58 @@ struct WorkoutHistoryRow: View {
     let onSelect: (Bool) -> Void
     
     @State private var showingEditSheet = false
+    @Environment(\.modelContext) private var modelContext
+    @Query private var workoutRecords: [WorkoutRecord]
+    
+    private var workoutDetailText: String? {
+        switch workout.workoutType {
+        case .strength:
+            if let strengthData = workout.strengthData {
+                let periodCount = WorkoutRecord.countStrengthInPeriod(
+                    records: workoutRecords,
+                    muscleGroup: strengthData.muscleGroup,
+                    startDate: Calendar.current.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+                )
+                return "\(strengthData.muscleGroup.displayName) \(Int(strengthData.weight))kg×\(strengthData.reps)×\(strengthData.sets)セット (今週\(periodCount)回目)"
+            }
+            
+        case .cycling:
+            if let cyclingData = workout.cyclingData {
+                let periodCount = WorkoutRecord.countCyclingZoneInPeriod(
+                    records: workoutRecords,
+                    zone: cyclingData.zone,
+                    startDate: Calendar.current.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+                )
+                var details = "\(cyclingData.zone.shortDisplayName) \(cyclingData.duration)分"
+                if let power = cyclingData.power {
+                    details += " \(power)W"
+                }
+                details += " (今週\(periodCount)回目)"
+                return details
+            }
+            
+        case .flexibility:
+            if let flexibilityData = workout.flexibilityData {
+                let periodCount = WorkoutRecord.countFlexibilityTypeInPeriod(
+                    records: workoutRecords,
+                    type: flexibilityData.type,
+                    startDate: Calendar.current.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+                )
+                var details = "\(flexibilityData.type.displayName) \(flexibilityData.duration)分"
+                if let measurement = flexibilityData.measurement {
+                    details += " \(Int(measurement))cm"
+                }
+                details += " (今週\(periodCount)回目)"
+                return details
+            }
+            
+        case .pilates, .yoga:
+            // これらは現在flexibilityに移行されている
+            break
+        }
+        
+        return nil
+    }
     
     var body: some View {
         BaseCard(style: DefaultCardStyle()) {
@@ -40,9 +92,17 @@ struct WorkoutHistoryRow: View {
                             .foregroundColor(SemanticColor.primaryText)
                             .lineLimit(2)
                         
-                        Text(workout.workoutType.rawValue)
-                            .font(Typography.captionMedium.font)
-                            .foregroundColor(SemanticColor.secondaryText)
+                        // 詳細情報の表示
+                        if let detailText = workoutDetailText {
+                            Text(detailText)
+                                .font(Typography.captionSmall.font)
+                                .foregroundColor(SemanticColor.secondaryText)
+                                .lineLimit(1)
+                        } else {
+                            Text(workout.workoutType.rawValue)
+                                .font(Typography.captionMedium.font)
+                                .foregroundColor(SemanticColor.secondaryText)
+                        }
                     }
                     
                     Spacer()

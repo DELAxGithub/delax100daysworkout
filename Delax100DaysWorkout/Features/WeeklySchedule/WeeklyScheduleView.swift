@@ -1,61 +1,20 @@
 import SwiftUI
 import SwiftData
 
-enum ScheduleViewMode: String, CaseIterable {
-    case day = "日表示"
-    case week = "週表示"
-    
-    var systemImage: String {
-        switch self {
-        case .day: return "calendar.day.timeline.left"
-        case .week: return "list.bullet"
-        }
-    }
-}
 
 struct WeeklyScheduleView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<WeeklyTemplate> { $0.isActive }) private var activeTemplates: [WeeklyTemplate]
     
-    @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date()) - 1
     @State private var viewModel: WeeklyScheduleViewModel?
-    @State private var viewMode: ScheduleViewMode = .day
     
-    private let dayNames = ["日", "月", "火", "水", "木", "金", "土"]
-    private let dayColors: [Color] = [.red, .gray, .gray, .gray, .gray, .gray, .blue]
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // ビューモード切り替え
-                Picker("表示モード", selection: $viewMode) {
-                    ForEach(ScheduleViewMode.allCases, id: \.self) { mode in
-                        Label(mode.rawValue, systemImage: mode.systemImage)
-                            .tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                
-                // 表示内容をビューモードに応じて切り替え
-                if viewMode == .day {
-                    dayView
-                } else {
-                    weekView
-                }
-            }
-            .navigationTitle("スケジュール")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar(content: {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        jumpToToday()
-                    } label: {
-                        Label("今日へ", systemImage: "calendar.day.timeline.left")
-                    }
-                }
-            })
+            // 週表示
+            weekView
+                .navigationTitle("スケジュール")
+                .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
             ensureActiveTemplate()
@@ -74,82 +33,12 @@ struct WeeklyScheduleView: View {
         // AddCustomTaskSheet removed - using QuickRecordView instead
     }
     
-    private func jumpToToday() {
-        withAnimation(.spring(response: 0.3)) {
-            selectedDay = Calendar.current.component(.weekday, from: Date()) - 1
-        }
-    }
     
     private func ensureActiveTemplate() {
         if activeTemplates.isEmpty {
             let defaultTemplate = WeeklyTemplate.createDefaultTemplate()
             defaultTemplate.activate()
             modelContext.insert(defaultTemplate)
-        }
-    }
-    
-    // MARK: - View Components
-    
-    private var dayView: some View {
-        VStack(spacing: 0) {
-            // 曜日セレクター
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(0..<7) { day in
-                        DayButton(
-                            day: day,
-                            dayName: dayNames[day],
-                            isSelected: selectedDay == day,
-                            color: dayColors[day]
-                        ) {
-                            withAnimation(.spring(response: 0.3)) {
-                                selectedDay = day
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .padding(.vertical)
-            .background(Color(.systemBackground))
-            
-            Divider()
-            
-            // タスクリスト - スクロール可能エリア
-            if let template = activeTemplates.first {
-                let tasks = template.tasksForDay(selectedDay)
-                
-                if tasks.isEmpty {
-                    Spacer()
-                    ContentUnavailableView(
-                        "休息日",
-                        systemImage: "moon.zzz",
-                        description: Text("\(dayNames[selectedDay])曜日はトレーニングがありません")
-                    )
-                    Spacer()
-                } else {
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            ForEach(tasks) { task in
-                                WeeklyTaskCard(
-                                    task: task,
-                                    selectedDay: selectedDay,
-                                    viewModel: viewModel
-                                )
-                            }
-                        }
-                        .padding()
-                    }
-                }
-            } else {
-                Spacer()
-                ContentUnavailableView(
-                    "テンプレートがありません",
-                    systemImage: "calendar.badge.exclamationmark",
-                    description: Text("アクティブなテンプレートを作成してください")
-                )
-                Spacer()
-            }
         }
     }
     
@@ -164,41 +53,6 @@ struct WeeklyScheduleView: View {
     }
 }
 
-struct DayButton: View {
-    let day: Int
-    let dayName: String
-    let isSelected: Bool
-    let color: Color
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Text(dayName)
-                    .font(.caption)
-                    .foregroundColor(isSelected ? .white : color)
-                
-                if isToday() {
-                    Circle()
-                        .fill(isSelected ? Color.white : color)
-                        .frame(width: 6, height: 6)
-                } else {
-                    Spacer()
-                        .frame(height: 6)
-                }
-            }
-            .frame(width: 44, height: 44)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? color : Color(.systemGray6))
-            )
-        }
-    }
-    
-    private func isToday() -> Bool {
-        Calendar.current.component(.weekday, from: Date()) - 1 == day
-    }
-}
 
 struct WeeklyTaskCard: View {
     let task: DailyTask
@@ -338,6 +192,26 @@ struct WeeklyTaskCard: View {
 
 struct CyclingDetailsView: View {
     let details: TargetDetails
+    @Environment(\.modelContext) private var modelContext
+    @Query private var workoutRecords: [WorkoutRecord]
+    
+    private var cyclingZone: CyclingZone {
+        if let intensity = details.intensity {
+            return intensity
+        }
+        return .z2 // デフォルト
+    }
+    
+    private var periodCount: Int {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+        
+        return WorkoutRecord.countCyclingZoneInPeriod(
+            records: workoutRecords,
+            zone: cyclingZone,
+            startDate: startOfWeek
+        )
+    }
     
     var body: some View {
         VStack(spacing: 12) {
@@ -354,8 +228,16 @@ struct CyclingDetailsView: View {
                 if let intensity = details.intensity {
                     DetailItem(
                         icon: "bolt",
-                        label: "強度",
-                        value: intensity.displayName
+                        label: "ゾーン",
+                        value: intensity.shortDisplayName
+                    )
+                }
+                
+                if periodCount > 0 {
+                    DetailItem(
+                        icon: "calendar.badge.clock",
+                        label: "今週",
+                        value: "\(periodCount)回目"
                     )
                 }
             }
@@ -397,6 +279,56 @@ struct CyclingDetailsView: View {
 
 struct StrengthDetailsView: View {
     let details: TargetDetails
+    @Environment(\.modelContext) private var modelContext
+    @Query private var workoutRecords: [WorkoutRecord]
+    
+    private var periodCount: Int {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+        
+        // 主要な筋肉部位を特定
+        if let exercises = details.exercises, !exercises.isEmpty {
+            let exercise = exercises.first?.lowercased() ?? ""
+            let muscleGroup = determineMuscleGroup(from: exercise)
+            return WorkoutRecord.countStrengthInPeriod(
+                records: workoutRecords,
+                muscleGroup: muscleGroup,
+                startDate: startOfWeek
+            )
+        }
+        return 0
+    }
+    
+    private func determineMuscleGroup(from exercise: String) -> WorkoutMuscleGroup {
+        let lowerExercise = exercise.lowercased()
+        
+        // 胸筋群
+        if lowerExercise.contains("胸") || lowerExercise.contains("プッシュアップ") || lowerExercise.contains("ベンチプレス") || lowerExercise.contains("chest") {
+            return .chest
+        }
+        // 脚筋群
+        else if lowerExercise.contains("脚") || lowerExercise.contains("足") || lowerExercise.contains("スクワット") || lowerExercise.contains("ランジ") || lowerExercise.contains("leg") || lowerExercise.contains("太もも") || lowerExercise.contains("ふくらはぎ") {
+            return .legs
+        }
+        // 背筋群
+        else if lowerExercise.contains("背中") || lowerExercise.contains("背筋") || lowerExercise.contains("プルアップ") || lowerExercise.contains("ロー") || lowerExercise.contains("back") || lowerExercise.contains("懸垂") {
+            return .back
+        }
+        // 肩筋群
+        else if lowerExercise.contains("肩") || lowerExercise.contains("ショルダー") || lowerExercise.contains("shoulder") || lowerExercise.contains("三角筋") {
+            return .shoulders
+        }
+        // 腕筋群
+        else if lowerExercise.contains("腕") || lowerExercise.contains("アーム") || lowerExercise.contains("カール") || lowerExercise.contains("arm") || lowerExercise.contains("上腕") || lowerExercise.contains("前腕") {
+            return .arms
+        }
+        // 体幹・腹筋群
+        else if lowerExercise.contains("腹筋") || lowerExercise.contains("プランク") || lowerExercise.contains("コア") || lowerExercise.contains("core") || lowerExercise.contains("体幹") {
+            return .core
+        }
+        
+        return .custom
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -406,9 +338,12 @@ struct StrengthDetailsView: View {
                         .foregroundColor(.secondary)
                     Text(exercises.joined(separator: ", "))
                         .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
                 }
             }
             
+            // 第1行: セット数とレップ数
             HStack(spacing: 20) {
                 if let sets = details.targetSets {
                     DetailItem(
@@ -426,37 +361,98 @@ struct StrengthDetailsView: View {
                     )
                 }
             }
+            
+            // 第2行: 重量と今週の回数
+            HStack(spacing: 20) {
+                if let weight = details.targetWeight, weight > 0 {
+                    DetailItem(
+                        icon: "scalemass",
+                        label: "重量",
+                        value: "\(Int(weight))kg"
+                    )
+                }
+                
+                if periodCount > 0 {
+                    DetailItem(
+                        icon: "calendar.badge.clock",
+                        label: "今週",
+                        value: "\(periodCount)回目"
+                    )
+                }
+            }
         }
     }
 }
 
 struct FlexibilityDetailsView: View {
     let details: TargetDetails
+    @Environment(\.modelContext) private var modelContext
+    @Query private var workoutRecords: [WorkoutRecord]
+    
+    private var flexibilityType: FlexibilityType {
+        if details.targetForwardBend != nil {
+            return .forwardBend
+        } else if details.targetSplitAngle != nil {
+            return .split
+        }
+        return .general
+    }
+    
+    private var periodCount: Int {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+        
+        return WorkoutRecord.countFlexibilityTypeInPeriod(
+            records: workoutRecords,
+            type: flexibilityType,
+            startDate: startOfWeek
+        )
+    }
     
     var body: some View {
-        HStack(spacing: 20) {
-            if let duration = details.targetDuration {
+        VStack(alignment: .leading, spacing: 8) {
+            // 第1行: 時間とタイプ
+            HStack(spacing: 20) {
+                if let duration = details.targetDuration {
+                    DetailItem(
+                        icon: "clock",
+                        label: "時間",
+                        value: "\(duration)分"
+                    )
+                }
+                
                 DetailItem(
-                    icon: "clock",
-                    label: "時間",
-                    value: "\(duration)分"
+                    icon: "figure.flexibility",
+                    label: "種類",
+                    value: flexibilityType.displayName
                 )
             }
             
-            if let forwardBend = details.targetForwardBend {
-                DetailItem(
-                    icon: "arrow.down",
-                    label: "前屈",
-                    value: "\(forwardBend)cm"
-                )
-            }
-            
-            if let splitAngle = details.targetSplitAngle {
-                DetailItem(
-                    icon: "angle",
-                    label: "開脚",
-                    value: "\(splitAngle)°"
-                )
+            // 第2行: 測定値と今週の回数
+            HStack(spacing: 20) {
+                if let forwardBend = details.targetForwardBend {
+                    DetailItem(
+                        icon: "arrow.down",
+                        label: "前屈",
+                        value: "\(forwardBend)cm"
+                    )
+                }
+                
+                if let splitAngle = details.targetSplitAngle {
+                    DetailItem(
+                        icon: "angle",
+                        label: "開脚",
+                        value: "\(splitAngle)°"
+                    )
+                }
+                
+                if periodCount > 0 {
+                    DetailItem(
+                        icon: "calendar.badge.clock",
+                        label: "今週",
+                        value: "\(periodCount)回目"
+                    )
+                }
             }
         }
     }
@@ -472,15 +468,11 @@ struct DetailItem: View {
             Image(systemName: icon)
                 .font(.caption2)
                 .foregroundColor(.secondary)
+                .frame(width: 12)
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                Text(value)
-                    .font(.caption)
-                    .fontWeight(.medium)
-            }
+            Text(value)
+                .font(.caption)
+                .fontWeight(.medium)
         }
     }
 }

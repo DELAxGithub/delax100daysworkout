@@ -170,6 +170,71 @@ final class WorkoutRecord {
             break
         }
     }
+    
+    // MARK: - Period Statistics
+    
+    /// 指定期間内での同一ワークアウトタイプの実行回数を計算
+    static func countInPeriod(
+        records: [WorkoutRecord],
+        workoutType: WorkoutType,
+        startDate: Date,
+        endDate: Date = Date()
+    ) -> Int {
+        return records.filter { record in
+            record.workoutType == workoutType &&
+            record.date >= startDate &&
+            record.date <= endDate &&
+            record.isCompleted
+        }.count
+    }
+    
+    /// 指定期間内での同一筋肉部位のトレーニング回数を計算
+    static func countStrengthInPeriod(
+        records: [WorkoutRecord],
+        muscleGroup: WorkoutMuscleGroup,
+        startDate: Date,
+        endDate: Date = Date()
+    ) -> Int {
+        return records.filter { record in
+            record.workoutType == .strength &&
+            record.strengthData?.muscleGroup == muscleGroup &&
+            record.date >= startDate &&
+            record.date <= endDate &&
+            record.isCompleted
+        }.count
+    }
+    
+    /// 指定期間内での同一サイクリングゾーンの実行回数を計算
+    static func countCyclingZoneInPeriod(
+        records: [WorkoutRecord],
+        zone: CyclingZone,
+        startDate: Date,
+        endDate: Date = Date()
+    ) -> Int {
+        return records.filter { record in
+            record.workoutType == .cycling &&
+            record.cyclingData?.zone == zone &&
+            record.date >= startDate &&
+            record.date <= endDate &&
+            record.isCompleted
+        }.count
+    }
+    
+    /// 指定期間内での同一柔軟性タイプの実行回数を計算
+    static func countFlexibilityTypeInPeriod(
+        records: [WorkoutRecord],
+        type: FlexibilityType,
+        startDate: Date,
+        endDate: Date = Date()
+    ) -> Int {
+        return records.filter { record in
+            record.workoutType == .flexibility &&
+            record.flexibilityData?.type == type &&
+            record.date >= startDate &&
+            record.date <= endDate &&
+            record.isCompleted
+        }.count
+    }
 }
 
 // MARK: - Protocol Conformances

@@ -169,17 +169,7 @@ struct DraggableTaskRow: View {
             }
             .tint(SemanticColor.destructiveAction.color)
         }
-        .swipeActions(edge: .leading) {
-            Button("編集") {
-                viewModel.startEditingTask(task)
-            }
-            .tint(SemanticColor.primaryAction.color)
-        }
         .contextMenu {
-            Button("編集", systemImage: "pencil") {
-                viewModel.startEditingTask(task)
-            }
-            
             Button("複製", systemImage: "doc.on.doc") {
                 viewModel.duplicateTask(task)
             }
@@ -204,6 +194,8 @@ struct WeeklyTaskListRow: View {
     let isToday: Bool
     
     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    @Environment(\.modelContext) private var modelContext
+    @Query private var workoutRecords: [WorkoutRecord]
     @State private var isPressed = false
     
     private var isEditing: Bool {
@@ -248,6 +240,88 @@ struct WeeklyTaskListRow: View {
         reduceMotion ? .none : .spring(response: 0.3, dampingFraction: 0.7)
     }
     
+    private var periodCount: Int {
+        let calendar = Calendar.current
+        let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+        
+        switch task.workoutType {
+        case .strength:
+            if let details = task.targetDetails, let exercises = details.exercises, !exercises.isEmpty {
+                let exercise = exercises.first?.lowercased() ?? ""
+                let muscleGroup = determineMuscleGroup(from: exercise)
+                return WorkoutRecord.countStrengthInPeriod(
+                    records: workoutRecords,
+                    muscleGroup: muscleGroup,
+                    startDate: startOfWeek
+                )
+            }
+            
+        case .cycling:
+            if let details = task.targetDetails, let intensity = details.intensity {
+                return WorkoutRecord.countCyclingZoneInPeriod(
+                    records: workoutRecords,
+                    zone: intensity,
+                    startDate: startOfWeek
+                )
+            }
+            
+        case .flexibility:
+            if let details = task.targetDetails {
+                let flexibilityType: FlexibilityType
+                if details.targetForwardBend != nil {
+                    flexibilityType = .forwardBend
+                } else if details.targetSplitAngle != nil {
+                    flexibilityType = .split
+                } else {
+                    flexibilityType = .general
+                }
+                
+                return WorkoutRecord.countFlexibilityTypeInPeriod(
+                    records: workoutRecords,
+                    type: flexibilityType,
+                    startDate: startOfWeek
+                )
+            }
+            
+        case .pilates, .yoga:
+            // These should be migrated to flexibility
+            break
+        }
+        
+        return 0
+    }
+    
+    private func determineMuscleGroup(from exercise: String) -> WorkoutMuscleGroup {
+        let lowerExercise = exercise.lowercased()
+        
+        // 胸筋群
+        if lowerExercise.contains("胸") || lowerExercise.contains("プッシュアップ") || lowerExercise.contains("ベンチプレス") || lowerExercise.contains("chest") {
+            return .chest
+        }
+        // 脚筋群
+        else if lowerExercise.contains("脚") || lowerExercise.contains("足") || lowerExercise.contains("スクワット") || lowerExercise.contains("ランジ") || lowerExercise.contains("leg") || lowerExercise.contains("太もも") || lowerExercise.contains("ふくらはぎ") {
+            return .legs
+        }
+        // 背筋群
+        else if lowerExercise.contains("背中") || lowerExercise.contains("背筋") || lowerExercise.contains("プルアップ") || lowerExercise.contains("ロー") || lowerExercise.contains("back") || lowerExercise.contains("懸垂") {
+            return .back
+        }
+        // 肩筋群
+        else if lowerExercise.contains("肩") || lowerExercise.contains("ショルダー") || lowerExercise.contains("shoulder") || lowerExercise.contains("三角筋") {
+            return .shoulders
+        }
+        // 腕筋群
+        else if lowerExercise.contains("腕") || lowerExercise.contains("アーム") || lowerExercise.contains("カール") || lowerExercise.contains("arm") || lowerExercise.contains("上腕") || lowerExercise.contains("前腕") {
+            return .arms
+        }
+        // 体幹・腹筋群
+        else if lowerExercise.contains("腹筋") || lowerExercise.contains("プランク") || lowerExercise.contains("コア") || lowerExercise.contains("core") || lowerExercise.contains("体幹") {
+            return .core
+        }
+        
+        return .custom
+    }
+    
     var body: some View {
         Group {
             if isEditing {
@@ -262,12 +336,25 @@ struct WeeklyTaskListRow: View {
     
     private var regularTaskRow: some View {
         HStack(spacing: Spacing.listItemSpacing.value) {
-            // Apple Reminders-style checkbox
-            RemindersStyleCheckbox(
-                isCompleted: isCompleted,
-                action: { viewModel.toggleTaskCompletion(task) },
-                style: .workout
-            )
+            // Apple Reminders-style checkbox with period count
+            VStack(spacing: 4) {
+                RemindersStyleCheckbox(
+                    isCompleted: isCompleted,
+                    action: { viewModel.toggleTaskCompletion(task) },
+                    style: .workout
+                )
+                
+                // 期間中回数表示
+                if periodCount > 0 {
+                    Text("\(periodCount)回目")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(workoutColor)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(workoutColor.opacity(0.1))
+                        .cornerRadius(8)
+                }
+            }
             
             // ワークアウトアイコン
             Image(systemName: workoutIcon)
@@ -311,10 +398,8 @@ struct WeeklyTaskListRow: View {
                                 CompactDetailLabel(icon: "bolt.heart.fill", text: String(format: "%.2f W/bpm", wattsPerBpm))
                             }
                         case .strength:
-                            // セット×レップがタイトルに含まれていない場合のみ表示
-                            if let sets = details.targetSets, let reps = details.targetReps, !task.displayTitle.contains("\(sets)×\(reps)") {
-                                CompactDetailLabel(icon: "repeat", text: "\(sets)×\(reps)")
-                            }
+                            // 筋トレの詳細情報はタイトルに統合されたため、追加表示なし
+                            EmptyView()
                         case .flexibility, .pilates, .yoga:
                             // 時間がタイトルに含まれていない場合のみ表示
                             if let duration = details.targetDuration, !task.displayTitle.contains("\(duration)分") {
@@ -378,9 +463,6 @@ struct WeeklyTaskListRow: View {
             Button("完了切り替え") {
                 viewModel.toggleTaskCompletion(task)
             }
-            Button("編集") {
-                viewModel.startEditingTask(task)
-            }
             Button("削除") {
                 viewModel.confirmDeleteTask(task)
             }
@@ -404,6 +486,7 @@ struct CompactDetailLabel: View {
         HStack(spacing: 3) {
             Image(systemName: icon)
                 .font(.system(size: 9, weight: .medium))
+                .frame(width: 10)
             Text(text)
                 .font(.system(size: 11, weight: .medium))
         }
