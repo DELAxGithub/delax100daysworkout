@@ -1,5 +1,6 @@
 import SwiftUI
 import HealthKit
+import OSLog
 
 // Reference Guide Implementation: HealthDataView
 // この画面は手引書通りの実装を提供し、HealthKitの基本機能をテスト・デモできます
@@ -107,7 +108,7 @@ struct HealthDataView: View {
                 todaySteps = steps
             }
         } catch {
-            print("HealthKitデータの取得に失敗: \(error)")
+            Logger.error.error("HealthKitデータの取得に失敗: \(error.localizedDescription)")
         }
     }
     
@@ -116,12 +117,12 @@ struct HealthDataView: View {
         do {
             let testWeight = 70.5 // テスト用の体重データ
             try await healthKitManager.saveWeight(testWeight)
-            print("テスト体重データを保存しました: \(testWeight)kg")
+            Logger.debug.debug("テスト体重データを保存しました: \(testWeight, privacy: .public)kg")
             
             // データを再読み込み
             await loadHealthData()
         } catch {
-            print("体重データの保存に失敗: \(error)")
+            Logger.error.error("体重データの保存に失敗: \(error.localizedDescription)")
         }
     }
     
@@ -129,9 +130,9 @@ struct HealthDataView: View {
         do {
             let testCalories = 250.0 // テスト用の消費カロリー
             try await healthKitManager.saveActiveEnergy(testCalories)
-            print("テスト消費カロリーを保存しました: \(testCalories)kcal")
+            Logger.debug.debug("テスト消費カロリーを保存しました: \(testCalories, privacy: .public)kcal")
         } catch {
-            print("消費カロリーの保存に失敗: \(error)")
+            Logger.error.error("消費カロリーの保存に失敗: \(error.localizedDescription)")
         }
     }
     
@@ -139,9 +140,9 @@ struct HealthDataView: View {
         do {
             let testBasalCalories = 1500.0 // テスト用の基礎代謝
             try await healthKitManager.saveBasalEnergy(testBasalCalories)
-            print("テスト基礎代謝を保存しました: \(testBasalCalories)kcal")
+            Logger.debug.debug("テスト基礎代謝を保存しました: \(testBasalCalories, privacy: .public)kcal")
         } catch {
-            print("基礎代謝の保存に失敗: \(error)")
+            Logger.error.error("基礎代謝の保存に失敗: \(error.localizedDescription)")
         }
     }
     
@@ -149,9 +150,9 @@ struct HealthDataView: View {
         do {
             let testHeartRate = 75 // テスト用の心拍数
             try await healthKitManager.saveHeartRate(testHeartRate)
-            print("テスト心拍数を保存しました: \(testHeartRate)bpm")
+            Logger.debug.debug("テスト心拍数を保存しました: \(testHeartRate, privacy: .public)bpm")
         } catch {
-            print("心拍数の保存に失敗: \(error)")
+            Logger.error.error("心拍数の保存に失敗: \(error.localizedDescription)")
         }
     }
 }

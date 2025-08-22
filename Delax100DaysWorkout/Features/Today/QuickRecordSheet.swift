@@ -471,7 +471,7 @@ struct QuickRecordSheet: View {
             }
             
         } catch {
-            print("Error saving details: \(error.localizedDescription)")
+            Logger.error.error("Error saving details: \(error.localizedDescription)")
             
             // Error feedback
             let notificationFeedback = UINotificationFeedbackGenerator()

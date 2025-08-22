@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 // MARK: - Data Management Service
 
@@ -113,6 +114,6 @@ class DataManagementService {
     
     static func generateDemoData(modelContext: ModelContext) {
         // DemoDataManager は簡単化のため無効化
-        print("Demo data generation disabled for simplified build")
+        Logger.debug.debug("Demo data generation disabled for simplified build")
     }
 }

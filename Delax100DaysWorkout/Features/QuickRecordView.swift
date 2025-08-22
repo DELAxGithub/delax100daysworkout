@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct QuickRecordView: View {
     @Environment(\.modelContext) private var modelContext
@@ -120,7 +121,7 @@ struct QuickRecordView: View {
                     dismiss()
                 }
             } else {
-                print("Error creating quick record with task")
+                Logger.error.error("Error creating quick record with task")
             }
         } else {
             // 従来の方法でレコードを作成（後方互換性のため）
@@ -173,7 +174,7 @@ struct QuickRecordView: View {
             }
             
         } catch {
-            print("Error saving record: \(error)")
+            Logger.error.error("Error saving record: \(error.localizedDescription)")
         }
     }
     
