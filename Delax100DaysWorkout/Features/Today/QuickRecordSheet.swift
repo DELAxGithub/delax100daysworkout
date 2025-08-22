@@ -436,6 +436,10 @@ struct QuickRecordSheet: View {
                 targetDetails.targetWeight = weight > 0 ? weight : nil
                 targetDetails.targetSets = sets
                 targetDetails.targetReps = reps
+                // 部位が未設定の場合はタイトルから推定
+                if targetDetails.targetMuscleGroup == nil {
+                    targetDetails.targetMuscleGroup = determineMuscleGroupFromTitle(task.title)
+                }
                 task.targetDetails = targetDetails
             } else {
                 // TargetDetailsが存在しない場合は新規作成
@@ -443,6 +447,7 @@ struct QuickRecordSheet: View {
                 newTargetDetails.targetWeight = weight > 0 ? weight : nil
                 newTargetDetails.targetSets = sets
                 newTargetDetails.targetReps = reps
+                newTargetDetails.targetMuscleGroup = determineMuscleGroupFromTitle(task.title)
                 task.targetDetails = newTargetDetails
             }
             
@@ -504,6 +509,38 @@ struct QuickRecordSheet: View {
                 }
             }
         }
+    }
+    
+    /// タイトルから筋肉部位を推定する
+    private func determineMuscleGroupFromTitle(_ title: String) -> WorkoutMuscleGroup {
+        let lowerTitle = title.lowercased()
+        
+        // Push系（胸・肩・三頭筋）
+        if lowerTitle.contains("push") || lowerTitle.contains("胸") || lowerTitle.contains("肩") || lowerTitle.contains("三頭") {
+            return .chest
+        }
+        // Pull系（背中・二頭筋）
+        else if lowerTitle.contains("pull") || lowerTitle.contains("背中") || lowerTitle.contains("二頭") {
+            return .back
+        }
+        // Legs系（脚・足）
+        else if lowerTitle.contains("leg") || lowerTitle.contains("脚") || lowerTitle.contains("足") || lowerTitle.contains("下半身") {
+            return .legs
+        }
+        // Core系（腹筋・体幹）
+        else if lowerTitle.contains("core") || lowerTitle.contains("腹筋") || lowerTitle.contains("体幹") {
+            return .core
+        }
+        // Arms系（腕）
+        else if lowerTitle.contains("arm") || lowerTitle.contains("腕") {
+            return .arms
+        }
+        // Shoulders系（肩）
+        else if lowerTitle.contains("shoulder") || lowerTitle.contains("肩") {
+            return .shoulders
+        }
+        
+        return .custom
     }
 }
 

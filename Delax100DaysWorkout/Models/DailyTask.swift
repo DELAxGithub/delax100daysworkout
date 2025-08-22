@@ -60,26 +60,13 @@ final class DailyTask {
             return title
             
         case .strength:
-            if let exercises = details.exercises, !exercises.isEmpty {
-                let exerciseName = exercises.first ?? "筋トレ"
-                // 筋群名を抽出（例：「背中トレーニング」→「背中」、「足トレーニング」→「足」）
-                let muscleGroupName = exerciseName.replacingOccurrences(of: "トレーニング", with: "")
-                
-                var components: [String] = [muscleGroupName]
-                
-                // 重量があれば追加
-                if let weight = details.targetWeight, weight > 0 {
-                    components.append("\(Int(weight))kg")
-                }
-                
-                // レップ×セットがあれば追加
-                if let sets = details.targetSets, let reps = details.targetReps {
-                    components.append("\(reps)×\(sets)")
-                }
-                
-                return components.joined(separator: " ")
+            // 部位名を取得（サイクリングのintensityと同様）
+            if let muscleGroup = details.targetMuscleGroup {
+                return muscleGroup.displayName
+            } else {
+                // 部位が設定されていない場合はtitleを使用
+                return title
             }
-            return title
             
         case .flexibility, .pilates, .yoga:
             if let duration = details.targetDuration {
@@ -123,10 +110,6 @@ final class DailyTask {
             
         case .strength:
             var components: [String] = []
-            
-            if let exercises = details.exercises, exercises.count > 1 {
-                components.append("\(exercises.count)種目")
-            }
             
             // 筋群や部位の情報があれば追加（重量情報はタイトルに表示されるため除外）
             if let description = taskDescription, !description.contains("クイック記録") {

@@ -73,7 +73,8 @@ final class WeeklyTemplate: @unchecked Sendable {
             description: "胸・肩・三頭筋",
             targetDetails: {
                 var details = TargetDetails()
-                details.exercises = ["ベンチプレス", "ダンベルプレス", "ショルダープレス"]
+                details.targetMuscleGroup = .chest  // Push筋トレ = 胸
+                details.targetWeight = 20.0  // 初期重量設定
                 details.targetSets = 3
                 details.targetReps = 10
                 return details
@@ -136,7 +137,8 @@ final class WeeklyTemplate: @unchecked Sendable {
             description: "背中・二頭筋・体幹",
             targetDetails: {
                 var details = TargetDetails()
-                details.exercises = ["プルアップ", "ラットプルダウン", "ローイング", "プランク"]
+                details.targetMuscleGroup = .back  // Pull筋トレ = 背中
+                details.targetWeight = 15.0  // 初期重量設定
                 details.targetSets = 3
                 details.targetReps = 10
                 return details
@@ -212,7 +214,8 @@ final class WeeklyTemplate: @unchecked Sendable {
             description: "脚・体幹",
             targetDetails: {
                 var details = TargetDetails()
-                details.exercises = ["スクワット", "ランジ", "デッドリフト", "腹筋"]
+                details.targetMuscleGroup = .legs  // Legs筋トレ = 足
+                details.targetWeight = 25.0  // 初期重量設定
                 details.targetSets = 3
                 details.targetReps = 10
                 return details

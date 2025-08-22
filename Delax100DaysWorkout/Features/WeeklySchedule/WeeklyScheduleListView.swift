@@ -246,9 +246,7 @@ struct WeeklyTaskListRow: View {
         
         switch task.workoutType {
         case .strength:
-            if let details = task.targetDetails, let exercises = details.exercises, !exercises.isEmpty {
-                let exercise = exercises.first?.lowercased() ?? ""
-                let muscleGroup = determineMuscleGroup(from: exercise)
+            if let details = task.targetDetails, let muscleGroup = details.targetMuscleGroup {
                 return WorkoutRecord.countStrengthInPeriod(
                     records: workoutRecords,
                     muscleGroup: muscleGroup,
@@ -291,36 +289,28 @@ struct WeeklyTaskListRow: View {
         return 0
     }
     
-    private func determineMuscleGroup(from exercise: String) -> WorkoutMuscleGroup {
-        let lowerExercise = exercise.lowercased()
+    /// 部位に応じたデフォルト重量を返す
+    private func getDefaultWeight(for muscleGroup: WorkoutMuscleGroup?) -> Double {
+        guard let muscleGroup = muscleGroup else { return 0 }
         
-        // 胸筋群
-        if lowerExercise.contains("胸") || lowerExercise.contains("プッシュアップ") || lowerExercise.contains("ベンチプレス") || lowerExercise.contains("chest") {
-            return .chest
+        switch muscleGroup {
+        case .chest:
+            return 20.0  // Push筋トレ
+        case .back:
+            return 15.0  // Pull筋トレ
+        case .legs:
+            return 25.0  // Legs筋トレ
+        case .shoulders:
+            return 10.0  // 肩
+        case .arms:
+            return 12.0  // 腕
+        case .core:
+            return 0.0   // 体幹は自重
+        case .custom:
+            return 15.0  // カスタムはデフォルト
         }
-        // 脚筋群
-        else if lowerExercise.contains("脚") || lowerExercise.contains("足") || lowerExercise.contains("スクワット") || lowerExercise.contains("ランジ") || lowerExercise.contains("leg") || lowerExercise.contains("太もも") || lowerExercise.contains("ふくらはぎ") {
-            return .legs
-        }
-        // 背筋群
-        else if lowerExercise.contains("背中") || lowerExercise.contains("背筋") || lowerExercise.contains("プルアップ") || lowerExercise.contains("ロー") || lowerExercise.contains("back") || lowerExercise.contains("懸垂") {
-            return .back
-        }
-        // 肩筋群
-        else if lowerExercise.contains("肩") || lowerExercise.contains("ショルダー") || lowerExercise.contains("shoulder") || lowerExercise.contains("三角筋") {
-            return .shoulders
-        }
-        // 腕筋群
-        else if lowerExercise.contains("腕") || lowerExercise.contains("アーム") || lowerExercise.contains("カール") || lowerExercise.contains("arm") || lowerExercise.contains("上腕") || lowerExercise.contains("前腕") {
-            return .arms
-        }
-        // 体幹・腹筋群
-        else if lowerExercise.contains("腹筋") || lowerExercise.contains("プランク") || lowerExercise.contains("コア") || lowerExercise.contains("core") || lowerExercise.contains("体幹") {
-            return .core
-        }
-        
-        return .custom
     }
+    
     
     var body: some View {
         Group {
@@ -382,7 +372,7 @@ struct WeeklyTaskListRow: View {
                 
                 // 重要度の高い補助情報のみ表示
                 if let details = task.targetDetails {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         switch task.workoutType {
                         case .cycling:
                             // パワーがサブタイトルに含まれていない場合のみ表示
@@ -398,8 +388,15 @@ struct WeeklyTaskListRow: View {
                                 CompactDetailLabel(icon: "bolt.heart.fill", text: String(format: "%.2f W/bpm", wattsPerBpm))
                             }
                         case .strength:
-                            // 筋トレの詳細情報はタイトルに統合されたため、追加表示なし
-                            EmptyView()
+                            // 重量情報（未設定の場合はデフォルト値を使用）
+                            let weightToShow = details.targetWeight ?? getDefaultWeight(for: details.targetMuscleGroup)
+                            if weightToShow > 0 {
+                                CompactDetailLabel(icon: "scalemass", text: "\(Int(weightToShow))kg")
+                            }
+                            // レップ×セット情報
+                            if let sets = details.targetSets, let reps = details.targetReps {
+                                CompactDetailLabel(icon: "repeat", text: "\(reps)×\(sets)")
+                            }
                         case .flexibility, .pilates, .yoga:
                             // 時間がタイトルに含まれていない場合のみ表示
                             if let duration = details.targetDuration, !task.displayTitle.contains("\(duration)分") {
@@ -454,6 +451,29 @@ struct WeeklyTaskListRow: View {
                     isPressed = false
                 }
                 viewModel.toggleTaskCompletion(task)
+            }
+        }
+        .onAppear {
+            // デバッグ情報（筋トレタスクのみ）
+            if task.workoutType == .strength, let details = task.targetDetails {
+                print("🔍 筋トレ詳細表示 - タスク: \(task.title)")
+                print("🔍 targetWeight: \(details.targetWeight ?? -1)")
+                print("🔍 targetSets: \(details.targetSets ?? -1)")
+                print("🔍 targetReps: \(details.targetReps ?? -1)")
+                print("🔍 targetMuscleGroup: \(details.targetMuscleGroup?.displayName ?? "nil")")
+                
+                let weightToShow = details.targetWeight ?? getDefaultWeight(for: details.targetMuscleGroup)
+                if weightToShow > 0 {
+                    print("✅ 重量表示: \(Int(weightToShow))kg")
+                } else {
+                    print("❌ 重量表示されない: weight=\(details.targetWeight ?? -1)")
+                }
+                
+                if details.targetSets != nil && details.targetReps != nil {
+                    print("✅ セット表示: \(details.targetReps ?? 0)×\(details.targetSets ?? 0)")
+                } else {
+                    print("❌ セット表示されない")
+                }
             }
         }
         .accessibilityElement(children: .combine)

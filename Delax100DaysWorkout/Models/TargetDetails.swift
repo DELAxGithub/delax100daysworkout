@@ -10,7 +10,7 @@ struct TargetDetails: Codable {
     var wattsPerBpm: Double?      // ワットパー心拍
     
     // 筋トレ用
-    var exercises: [String]?
+    var targetMuscleGroup: WorkoutMuscleGroup?
     var targetSets: Int?
     var targetReps: Int?
     var targetWeight: Double?

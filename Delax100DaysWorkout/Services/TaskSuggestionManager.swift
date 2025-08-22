@@ -234,7 +234,7 @@ class TaskSuggestionManager {
         )
         
         var details = TargetDetails()
-        details.exercises = ["バーピー", "マウンテンクライマー", "プランク"]
+        details.targetMuscleGroup = .core  // 室内トレーニングは体幹中心
         details.targetSets = 3
         details.targetReps = 15
         alternative.targetDetails = details
@@ -295,7 +295,7 @@ class TaskSuggestionManager {
             alternative.targetDetails = details
         case .strength:
             var details = TargetDetails()
-            details.exercises = originalTask.targetDetails?.exercises?.prefix(2).map { $0 } ?? []
+            details.targetMuscleGroup = originalTask.targetDetails?.targetMuscleGroup ?? .custom
             details.targetSets = 2
             details.targetReps = originalTask.targetDetails?.targetReps ?? 10
             alternative.targetDetails = details

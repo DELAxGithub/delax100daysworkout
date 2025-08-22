@@ -292,11 +292,11 @@ struct StrengthDetailsEditView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm.value) {
-            if let exercises = details.exercises, !exercises.isEmpty {
+            if let muscleGroup = details.targetMuscleGroup {
                 HStack {
-                    Image(systemName: "list.bullet")
+                    Image(systemName: "figure.strengthtraining.traditional")
                         .foregroundColor(SemanticColor.secondaryText.color)
-                    Text(exercises.joined(separator: ", "))
+                    Text(muscleGroup.displayName)
                         .font(Typography.captionMedium.font)
                         .foregroundColor(SemanticColor.primaryText.color)
                 }

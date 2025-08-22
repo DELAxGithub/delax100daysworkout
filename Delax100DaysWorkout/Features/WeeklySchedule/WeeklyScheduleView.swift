@@ -287,9 +287,7 @@ struct StrengthDetailsView: View {
         let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
         
         // 主要な筋肉部位を特定
-        if let exercises = details.exercises, !exercises.isEmpty {
-            let exercise = exercises.first?.lowercased() ?? ""
-            let muscleGroup = determineMuscleGroup(from: exercise)
+        if let muscleGroup = details.targetMuscleGroup {
             return WorkoutRecord.countStrengthInPeriod(
                 records: workoutRecords,
                 muscleGroup: muscleGroup,
@@ -332,11 +330,11 @@ struct StrengthDetailsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let exercises = details.exercises, !exercises.isEmpty {
+            if let muscleGroup = details.targetMuscleGroup {
                 HStack {
-                    Image(systemName: "list.bullet")
+                    Image(systemName: "figure.strengthtraining.traditional")
                         .foregroundColor(.secondary)
-                    Text(exercises.joined(separator: ", "))
+                    Text(muscleGroup.displayName)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)

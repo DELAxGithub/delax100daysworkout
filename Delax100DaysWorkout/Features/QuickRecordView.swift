@@ -194,6 +194,11 @@ struct SimpleCyclingInputView: View {
     @State private var power: Int = 0
     @State private var averageHeartRate: Int = 0
     
+    // プリセット管理とピッカー範囲
+    private let presetManager = CyclingPresetManager.shared
+    @State private var powerPickerRange: [Int] = []
+    @State private var heartRatePickerRange: [Int] = []
+    
     let onSave: (SimpleCyclingData) -> Void
     
     // ワットパー心拍の計算
@@ -241,51 +246,71 @@ struct SimpleCyclingInputView: View {
                     }
                 }
                 
-                // Power (optional)
+                // Power - ドラム式ピッカー（前回値±10W）
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("パワー（オプション）")
+                    Text("パワー")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    HStack {
-                        TextField("0", value: $power, format: .number)
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(.roundedBorder)
-                        Text("W")
+                    HStack(spacing: 8) {
+                        VStack(spacing: 2) {
+                            Picker("パワー", selection: $power) {
+                                ForEach(powerPickerRange, id: \.self) { value in
+                                    Text("\(value)").tag(value)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(height: 100)
+                            
+                            Text("W")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("前回: \(presetManager.getPowerPreset(for: selectedZone))W")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("0-300W全範囲")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        
+                        Spacer()
                     }
                 }
                 
-                // Average Heart Rate (optional)
+                // Heart Rate - ドラム式ピッカー（前回値±10bpm）
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("平均心拍数（オプション）")
+                    Text("平均心拍数")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    HStack {
-                        TextField("0", value: $averageHeartRate, format: .number)
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(.roundedBorder)
-                        Text("bpm")
-                    }
-                    
-                    // 心拍数の範囲スライダー（より直感的な入力）
-                    if averageHeartRate == 0 {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("または スライダーで調整")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            HStack {
-                                Slider(value: Binding(
-                                    get: { Double(averageHeartRate) },
-                                    set: { averageHeartRate = Int($0) }
-                                ), in: 50...220, step: 1)
-                                
-                                Text("\(averageHeartRate > 0 ? averageHeartRate : 120) bpm")
-                                    .font(.caption)
-                                    .frame(width: 60)
+                    HStack(spacing: 8) {
+                        VStack(spacing: 2) {
+                            Picker("心拍数", selection: $averageHeartRate) {
+                                ForEach(heartRatePickerRange, id: \.self) { value in
+                                    Text("\(value)").tag(value)
+                                }
                             }
+                            .pickerStyle(.wheel)
+                            .frame(height: 100)
+                            
+                            Text("bpm")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("前回: \(presetManager.getHeartRatePreset(for: selectedZone))bpm")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("100-200bpm全範囲")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        
+                        Spacer()
                     }
                 }
                 
@@ -307,6 +332,13 @@ struct SimpleCyclingInputView: View {
             .cornerRadius(12)
             
             Button(action: {
+                // プリセット値を更新
+                presetManager.savePresets(
+                    zone: selectedZone,
+                    power: power > 0 ? power : nil,
+                    heartRate: averageHeartRate > 0 ? averageHeartRate : nil
+                )
+                
                 let data = SimpleCyclingData(
                     zone: selectedZone,
                     duration: duration,
@@ -325,20 +357,35 @@ struct SimpleCyclingInputView: View {
             }
         }
         .onAppear {
-            duration = selectedZone.defaultDuration
+            loadPresetForZone(selectedZone)
         }
         .onChange(of: selectedZone) { _, newZone in
-            duration = newZone.defaultDuration
+            loadPresetForZone(newZone)
         }
+    }
+    
+    /// ゾーンのプリセット値を読み込む
+    private func loadPresetForZone(_ zone: CyclingZone) {
+        duration = zone.defaultDuration
+        
+        // プリセット値を読み込み
+        power = presetManager.getPowerPreset(for: zone)
+        averageHeartRate = presetManager.getHeartRatePreset(for: zone)
+        
+        // ピッカー範囲を更新
+        powerPickerRange = presetManager.getPowerPickerRange(for: zone)
+        heartRatePickerRange = presetManager.getHeartRatePickerRange(for: zone)
     }
 }
 
 struct SimpleStrengthInputView: View {
     @State private var selectedMuscleGroup: WorkoutMuscleGroup = .chest
     @State private var customName: String = ""
-    @State private var weight: Double = 0
+    @State private var weight: Int = 20  // 整数のみ、初期値20kg
     @State private var reps: Int = 10
     @State private var sets: Int = 3
+    
+    private let presetManager = StrengthPresetManager.shared
     
     let onSave: (SimpleStrengthData) -> Void
     
@@ -376,36 +423,75 @@ struct SimpleStrengthInputView: View {
                     }
                 }
                 
-                // Weight, sets, reps
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading) {
+                // Weight, sets, reps - ドラム式ピッカー
+                HStack(spacing: 8) {
+                    // 重量ピッカー
+                    VStack(spacing: 4) {
                         Text("重量")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        HStack {
-                            TextField("0", value: $weight, format: .number.precision(.fractionLength(1)))
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(.roundedBorder)
+                        
+                        VStack(spacing: 2) {
+                            Picker("重量", selection: $weight) {
+                                ForEach(0...200, id: \.self) { value in
+                                    Text("\(value)").tag(value)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(height: 100)
+                            
                             Text("kg")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(presetManager.getPresetDisplayString(for: selectedMuscleGroup))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     
-                    VStack(alignment: .leading) {
+                    // セットピッカー
+                    VStack(spacing: 4) {
                         Text("セット")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        TextField("3", value: $sets, format: .number)
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(.roundedBorder)
+                        
+                        VStack(spacing: 2) {
+                            Picker("セット", selection: $sets) {
+                                ForEach(1...10, id: \.self) { value in
+                                    Text("\(value)").tag(value)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(height: 100)
+                            
+                            Text("回")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     
-                    VStack(alignment: .leading) {
+                    // レップピッカー
+                    VStack(spacing: 4) {
                         Text("レップ")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        TextField("10", value: $reps, format: .number)
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(.roundedBorder)
+                        
+                        VStack(spacing: 2) {
+                            Picker("レップ", selection: $reps) {
+                                ForEach(1...50, id: \.self) { value in
+                                    Text("\(value)").tag(value)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(height: 100)
+                            
+                            Text("回")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
@@ -414,10 +500,18 @@ struct SimpleStrengthInputView: View {
             .cornerRadius(12)
             
             Button(action: {
+                // プリセット値を更新
+                presetManager.savePresets(
+                    muscleGroup: selectedMuscleGroup,
+                    weight: Double(weight),
+                    sets: sets,
+                    reps: reps
+                )
+                
                 let data = SimpleStrengthData(
                     muscleGroup: selectedMuscleGroup,
                     customName: selectedMuscleGroup == .custom ? customName : nil,
-                    weight: weight,
+                    weight: Double(weight),
                     reps: reps,
                     sets: sets
                 )
@@ -433,6 +527,20 @@ struct SimpleStrengthInputView: View {
             }
             .disabled(weight <= 0 || sets <= 0 || reps <= 0)
         }
+        .onAppear {
+            loadPresetForMuscleGroup(selectedMuscleGroup)
+        }
+        .onChange(of: selectedMuscleGroup) { _, newGroup in
+            loadPresetForMuscleGroup(newGroup)
+        }
+    }
+    
+    /// 部位のプリセット値を読み込む
+    private func loadPresetForMuscleGroup(_ muscleGroup: WorkoutMuscleGroup) {
+        // プリセット値を読み込み
+        weight = Int(presetManager.getWeightPreset(for: muscleGroup))
+        sets = presetManager.getSetsPreset(for: muscleGroup)
+        reps = presetManager.getRepsPreset(for: muscleGroup)
     }
 }
 
@@ -440,6 +548,8 @@ struct SimpleFlexibilityInputView: View {
     @State private var selectedType: FlexibilityType = .general
     @State private var duration: Int = 30
     @State private var measurement: Double = 0
+    
+    private let presetManager = FlexibilityPresetManager.shared
     
     let onSave: (SimpleFlexibilityData) -> Void
     
@@ -471,15 +581,24 @@ struct SimpleFlexibilityInputView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    HStack {
-                        Slider(value: Binding(
-                            get: { Double(duration) },
-                            set: { duration = Int($0) }
-                        ), in: 5...60, step: 5)
+                    VStack(spacing: 8) {
+                        HStack {
+                            Slider(value: Binding(
+                                get: { Double(duration) },
+                                set: { duration = Int($0) }
+                            ), in: 5...60, step: 5)
+                            
+                            Text("\(duration)分")
+                                .font(.subheadline)
+                                .frame(width: 50)
+                        }
                         
-                        Text("\(duration)分")
-                            .font(.subheadline)
-                            .frame(width: 50)
+                        HStack {
+                            Text(presetManager.getPresetDisplayString(for: selectedType))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
                     }
                 }
                 
@@ -490,11 +609,22 @@ struct SimpleFlexibilityInputView: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        HStack {
-                            TextField("0", value: $measurement, format: .number.precision(.fractionLength(1)))
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(.roundedBorder)
-                            Text(selectedType == .forwardBend ? "cm" : "°")
+                        VStack(spacing: 8) {
+                            HStack {
+                                TextField("0", value: $measurement, format: .number.precision(.fractionLength(1)))
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(.roundedBorder)
+                                Text(selectedType == .forwardBend ? "cm" : "°")
+                            }
+                            
+                            if selectedType.hasMeasurement {
+                                HStack {
+                                    Text("前回: \(Int(presetManager.getMeasurementPreset(for: selectedType)))\(selectedType == .forwardBend ? "cm" : "°")")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                }
+                            }
                         }
                     }
                 }
@@ -504,6 +634,13 @@ struct SimpleFlexibilityInputView: View {
             .cornerRadius(12)
             
             Button(action: {
+                // プリセット値を更新
+                presetManager.savePresets(
+                    type: selectedType,
+                    duration: duration,
+                    measurement: selectedType.hasMeasurement ? measurement : nil
+                )
+                
                 let data = SimpleFlexibilityData(
                     type: selectedType,
                     duration: duration,
@@ -520,9 +657,19 @@ struct SimpleFlexibilityInputView: View {
                     .cornerRadius(12)
             }
         }
-        .onChange(of: selectedType) { _, _ in
-            measurement = 0
+        .onAppear {
+            loadPresetForType(selectedType)
         }
+        .onChange(of: selectedType) { _, newType in
+            loadPresetForType(newType)
+        }
+    }
+    
+    /// 種類のプリセット値を読み込む
+    private func loadPresetForType(_ type: FlexibilityType) {
+        // プリセット値を読み込み
+        duration = presetManager.getDurationPreset(for: type)
+        measurement = presetManager.getMeasurementPreset(for: type)
     }
 }
 

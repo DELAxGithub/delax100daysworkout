@@ -430,7 +430,7 @@ class WeeklyScheduleViewModel {
         case .strength:
             details.targetSets = 3
             details.targetReps = 10  // SimpleStrengthInputViewのデフォルト値と一致
-            details.exercises = ["基本トレーニング"]
+            details.targetMuscleGroup = .custom  // デフォルトは custom
             
         case .flexibility, .pilates, .yoga:
             details.targetDuration = 30  // SimpleFlexibilityInputViewのデフォルト値と一致
@@ -499,12 +499,8 @@ class WeeklyScheduleViewModel {
             if let strengthData = inputData as? SimpleStrengthData {
                 details.targetSets = strengthData.sets
                 details.targetReps = strengthData.reps
-                // 筋群に基づいてエクササイズ名を更新
-                if strengthData.muscleGroup == .custom, let customName = strengthData.customName {
-                    details.exercises = [customName]
-                } else {
-                    details.exercises = [strengthData.muscleGroup.displayName + "トレーニング"]
-                }
+                // 筋群を保存
+                details.targetMuscleGroup = strengthData.muscleGroup
             }
         case .flexibility, .pilates, .yoga:
             if let flexibilityData = inputData as? SimpleFlexibilityData {
