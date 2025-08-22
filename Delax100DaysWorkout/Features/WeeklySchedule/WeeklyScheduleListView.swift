@@ -206,6 +206,10 @@ struct WeeklyTaskListRow: View {
     @Environment(\.accessibilityReduceMotion) var reduceMotion
     @State private var isPressed = false
     
+    private var isEditing: Bool {
+        viewModel.isTaskEditing(task)
+    }
+    
     private var workoutIcon: String {
         switch task.workoutType {
         case .cycling:
@@ -245,6 +249,18 @@ struct WeeklyTaskListRow: View {
     }
     
     var body: some View {
+        Group {
+            if isEditing {
+                EditableTaskCard(task: task, viewModel: viewModel)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            } else {
+                regularTaskRow
+            }
+        }
+    }
+    
+    private var regularTaskRow: some View {
         HStack(spacing: Spacing.listItemSpacing.value) {
             // Apple Reminders-style checkbox
             RemindersStyleCheckbox(
@@ -263,41 +279,53 @@ struct WeeklyTaskListRow: View {
             
             // タスク情報
             VStack(alignment: .leading, spacing: 4) {
-                Text(task.title)
+                Text(task.displayTitle)
                     .font(Typography.bodyMedium.font)
                     .fontWeight(.medium)
                     .strikethrough(isCompleted, pattern: .solid, color: SemanticColor.secondaryText.color)
                     .foregroundColor(isCompleted ? SemanticColor.secondaryText.color : SemanticColor.primaryText.color)
                     .animation(animationValue, value: isCompleted)
                 
-                if let description = task.taskDescription, !description.isEmpty {
-                    Text(description)
+                if let subtitle = task.displaySubtitle, !subtitle.isEmpty {
+                    Text(subtitle)
                         .font(Typography.captionMedium.font)
                         .foregroundColor(SemanticColor.secondaryText.color)
                         .lineLimit(2)
                 }
                 
-                // 詳細情報をよりコンパクトに表示
+                // 重要度の高い補助情報のみ表示
                 if let details = task.targetDetails {
                     HStack(spacing: 6) {
                         switch task.workoutType {
                         case .cycling:
-                            if let intensity = details.intensity {
-                                CompactDetailLabel(icon: "bolt.fill", text: intensity.shortDisplayName)
-                            }
-                            if let duration = details.duration {
-                                CompactDetailLabel(icon: "clock.fill", text: "\(duration)分")
-                            }
-                            if let power = details.targetPower {
+                            // パワーがサブタイトルに含まれていない場合のみ表示
+                            if let power = details.targetPower, power > 0, !(task.displaySubtitle?.contains("\(power)W") ?? false) {
                                 CompactDetailLabel(icon: "gauge", text: "\(power)W")
                             }
+                            // 心拍数がサブタイトルに含まれていない場合のみ表示
+                            if let heartRate = details.averageHeartRate, heartRate > 0, !(task.displaySubtitle?.contains("\(heartRate)bpm") ?? false) {
+                                CompactDetailLabel(icon: "heart.fill", text: "\(heartRate)bpm")
+                            }
+                            // ワットパー心拍がサブタイトルに含まれていない場合のみ表示
+                            if let wattsPerBpm = details.wattsPerBpm, !(task.displaySubtitle?.contains("W/bpm") ?? false) {
+                                CompactDetailLabel(icon: "bolt.heart.fill", text: String(format: "%.2f W/bpm", wattsPerBpm))
+                            }
                         case .strength:
-                            if let sets = details.targetSets, let reps = details.targetReps {
+                            // セット×レップがタイトルに含まれていない場合のみ表示
+                            if let sets = details.targetSets, let reps = details.targetReps, !task.displayTitle.contains("\(sets)×\(reps)") {
                                 CompactDetailLabel(icon: "repeat", text: "\(sets)×\(reps)")
                             }
                         case .flexibility, .pilates, .yoga:
-                            if let duration = details.targetDuration {
+                            // 時間がタイトルに含まれていない場合のみ表示
+                            if let duration = details.targetDuration, !task.displayTitle.contains("\(duration)分") {
                                 CompactDetailLabel(icon: "clock.fill", text: "\(duration)分")
+                            }
+                            // 測定値がサブタイトルに含まれていない場合のみ表示
+                            if let forwardBend = details.targetForwardBend, forwardBend > 0, !(task.displaySubtitle?.contains("前屈") ?? false) {
+                                CompactDetailLabel(icon: "arrow.down", text: "\(Int(forwardBend))cm")
+                            }
+                            if let splitAngle = details.targetSplitAngle, splitAngle > 0, !(task.displaySubtitle?.contains("開脚") ?? false) {
+                                CompactDetailLabel(icon: "triangle", text: "\(Int(splitAngle))°")
                             }
                         }
                     }
@@ -360,9 +388,9 @@ struct WeeklyTaskListRow: View {
     }
     
     private var taskAccessibilityLabel: String {
-        var label = task.title
-        if let description = task.taskDescription, !description.isEmpty {
-            label += "、\(description)"
+        var label = task.displayTitle
+        if let subtitle = task.displaySubtitle, !subtitle.isEmpty {
+            label += "、\(subtitle)"
         }
         return label
     }

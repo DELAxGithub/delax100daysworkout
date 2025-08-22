@@ -226,32 +226,61 @@ struct CyclingDetailsEditView: View {
     let isEditing: Bool
     
     var body: some View {
-        HStack(spacing: Spacing.md.value) {
-            if let duration = details.duration {
-                DetailEditItem(
-                    icon: "clock.fill",
-                    label: "時間",
-                    value: "\(duration)分",
-                    isEditing: isEditing
-                )
+        VStack(spacing: Spacing.sm.value) {
+            // 第1行: 時間と強度
+            HStack(spacing: Spacing.md.value) {
+                if let duration = details.duration {
+                    DetailEditItem(
+                        icon: "clock.fill",
+                        label: "時間",
+                        value: "\(duration)分",
+                        isEditing: isEditing
+                    )
+                }
+                
+                if let intensity = details.intensity {
+                    DetailEditItem(
+                        icon: "bolt.fill",
+                        label: "強度",
+                        value: intensity.displayName,
+                        isEditing: isEditing
+                    )
+                }
             }
             
-            if let intensity = details.intensity {
-                DetailEditItem(
-                    icon: "bolt.fill",
-                    label: "強度",
-                    value: intensity.displayName,
-                    isEditing: isEditing
-                )
+            // 第2行: パワーと心拍数
+            HStack(spacing: Spacing.md.value) {
+                if let power = details.targetPower {
+                    DetailEditItem(
+                        icon: "speedometer",
+                        label: "パワー",
+                        value: "\(power)W",
+                        isEditing: isEditing
+                    )
+                }
+                
+                if let heartRate = details.averageHeartRate {
+                    DetailEditItem(
+                        icon: "heart.fill",
+                        label: "心拍",
+                        value: "\(heartRate)bpm",
+                        isEditing: isEditing
+                    )
+                }
             }
             
-            if let power = details.targetPower {
-                DetailEditItem(
-                    icon: "speedometer",
-                    label: "パワー",
-                    value: "\(power)W",
-                    isEditing: isEditing
-                )
+            // 第3行: ワットパー心拍（計算値がある場合のみ）
+            if let wattsPerBpm = details.wattsPerBpm {
+                HStack {
+                    Spacer()
+                    DetailEditItem(
+                        icon: "bolt.heart.fill",
+                        label: "W/bpm",
+                        value: String(format: "%.2f", wattsPerBpm),
+                        isEditing: isEditing
+                    )
+                    Spacer()
+                }
             }
         }
     }

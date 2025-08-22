@@ -5,6 +5,9 @@ struct TargetDetails: Codable {
     var duration: Int?
     var intensity: CyclingZone?
     var targetPower: Int?
+    var targetHeartRate: Int?     // 目標心拍数
+    var averageHeartRate: Int?    // 実測平均心拍数
+    var wattsPerBpm: Double?      // ワットパー心拍
     
     // 筋トレ用
     var exercises: [String]?

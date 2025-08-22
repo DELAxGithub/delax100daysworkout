@@ -255,11 +255,11 @@ struct WeeklyTaskCard: View {
                     .clipShape(Circle())
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(task.title)
+                    Text(task.displayTitle)
                         .font(.headline)
                     
-                    if let description = task.taskDescription, !description.isEmpty {
-                        Text(description)
+                    if let subtitle = task.displaySubtitle, !subtitle.isEmpty {
+                        Text(subtitle)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -340,29 +340,56 @@ struct CyclingDetailsView: View {
     let details: TargetDetails
     
     var body: some View {
-        HStack(spacing: 20) {
-            if let duration = details.duration {
-                DetailItem(
-                    icon: "clock",
-                    label: "時間",
-                    value: "\(duration)分"
-                )
+        VStack(spacing: 12) {
+            // 第1行: 時間と強度
+            HStack(spacing: 20) {
+                if let duration = details.duration {
+                    DetailItem(
+                        icon: "clock",
+                        label: "時間",
+                        value: "\(duration)分"
+                    )
+                }
+                
+                if let intensity = details.intensity {
+                    DetailItem(
+                        icon: "bolt",
+                        label: "強度",
+                        value: intensity.displayName
+                    )
+                }
             }
             
-            if let intensity = details.intensity {
-                DetailItem(
-                    icon: "bolt",
-                    label: "強度",
-                    value: intensity.displayName
-                )
+            // 第2行: パワーと心拍数
+            HStack(spacing: 20) {
+                if let power = details.targetPower, power > 0 {
+                    DetailItem(
+                        icon: "speedometer",
+                        label: "パワー",
+                        value: "\(power)W"
+                    )
+                }
+                
+                if let heartRate = details.averageHeartRate, heartRate > 0 {
+                    DetailItem(
+                        icon: "heart",
+                        label: "平均心拍",
+                        value: "\(heartRate)bpm"
+                    )
+                }
             }
             
-            if let power = details.targetPower {
-                DetailItem(
-                    icon: "speedometer",
-                    label: "パワー",
-                    value: "\(power)W"
-                )
+            // 第3行: ワットパー心拍（計算値がある場合のみ）
+            if let wattsPerBpm = details.wattsPerBpm {
+                HStack {
+                    Spacer()
+                    DetailItem(
+                        icon: "bolt.heart",
+                        label: "W/bpm",
+                        value: String(format: "%.2f", wattsPerBpm)
+                    )
+                    Spacer()
+                }
             }
         }
     }

@@ -189,10 +189,17 @@ struct QuickRecordView: View {
 
 struct SimpleCyclingInputView: View {
     @State private var selectedZone: CyclingZone = .z2
-    @State private var duration: Int = 60
+    @State private var duration: Int = 90  // Z2のdefaultDurationと一致させる
     @State private var power: Int = 0
+    @State private var averageHeartRate: Int = 0
     
     let onSave: (SimpleCyclingData) -> Void
+    
+    // ワットパー心拍の計算
+    private var wattsPerBpm: Double? {
+        guard power > 0 && averageHeartRate > 0 else { return nil }
+        return Double(power) / Double(averageHeartRate)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -246,6 +253,53 @@ struct SimpleCyclingInputView: View {
                         Text("W")
                     }
                 }
+                
+                // Average Heart Rate (optional)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("平均心拍数（オプション）")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    HStack {
+                        TextField("0", value: $averageHeartRate, format: .number)
+                            .keyboardType(.numberPad)
+                            .textFieldStyle(.roundedBorder)
+                        Text("bpm")
+                    }
+                    
+                    // 心拍数の範囲スライダー（より直感的な入力）
+                    if averageHeartRate == 0 {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("または スライダーで調整")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            HStack {
+                                Slider(value: Binding(
+                                    get: { Double(averageHeartRate) },
+                                    set: { averageHeartRate = Int($0) }
+                                ), in: 50...220, step: 1)
+                                
+                                Text("\(averageHeartRate > 0 ? averageHeartRate : 120) bpm")
+                                    .font(.caption)
+                                    .frame(width: 60)
+                            }
+                        }
+                    }
+                }
+                
+                // Watts per BPM display
+                if let wattsPerBpm = wattsPerBpm {
+                    HStack {
+                        Image(systemName: "bolt.heart")
+                            .foregroundColor(.orange)
+                        Text("ワットパー心拍: \(String(format: "%.2f", wattsPerBpm)) W/bpm")
+                            .font(.subheadline)
+                            .foregroundColor(.orange)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.vertical, 8)
+                }
             }
             .padding()
             .background(Color(.systemGray6))
@@ -255,7 +309,8 @@ struct SimpleCyclingInputView: View {
                 let data = SimpleCyclingData(
                     zone: selectedZone,
                     duration: duration,
-                    power: power > 0 ? power : nil
+                    power: power > 0 ? power : nil,
+                    averageHeartRate: averageHeartRate > 0 ? averageHeartRate : nil
                 )
                 onSave(data)
             }) {

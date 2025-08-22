@@ -1,19 +1,12 @@
 import SwiftUI
 import SwiftData
-import Charts
 import OSLog
 
 struct UnifiedHomeDashboardView: View {
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var sstViewModel = SSTDashboardViewModel()
     @EnvironmentObject var healthKitManager: HealthKitManager
-    @State private var todaySteps: Double = 0
-    @State private var progressViewModel: ProgressChartViewModel? = nil
-    @State private var scheduleViewModel: WeeklyScheduleViewModel? = nil
-    @State private var latestWeight: Double? = nil
-    @State private var isHealthKitSyncing = false
-    @State private var userProfile: UserProfile? = nil
     
+    @State private var dataStore: HomeDataStore?
     @State private var showingFTPEntry = false
     @State private var showingDemoDataAlert = false
     @State private var demoDataMessage = ""
@@ -24,96 +17,105 @@ struct UnifiedHomeDashboardView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 20) {
-                    // 1. 最重要: Today's Tasks Widget (最上部に配置)
-                    if let scheduleViewModel = scheduleViewModel {
-                        TodayTasksWidget(scheduleViewModel: scheduleViewModel)
-                    }
-                    
-                    // 2. 重要: 今日の進捗サマリー
-                    TodayProgressSummaryCard(
-                        completedTasks: scheduleViewModel?.getTodaysTasks().filter { scheduleViewModel?.isTaskCompleted($0) ?? false }.count ?? 0,
-                        totalTasks: scheduleViewModel?.getTodaysTasks().count ?? 0,
-                        todaySteps: Int(todaySteps),
-                        currentWeight: latestWeight
-                    )
-                    
-                    // 3. 中程度: 簡潔なサマリーカード
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                        // FTP要約カード
-                        if let currentFTP = sstViewModel.currentFTP {
-                            InteractiveSummaryCard(
-                                configuration: .basic(
-                                    title: "現在のFTP",
-                                    value: "\(currentFTP)W",
-                                    subtitle: "タップで詳細",
-                                    color: .blue,
-                                    icon: "bolt.fill"
-                                ),
-                                onTap: { handleCardTap(.basic(title: "FTP", value: "", subtitle: "", color: .blue, icon: "bolt.fill")) }
-                            )
+            if let dataStore = dataStore {
+                ScrollView {
+                    LazyVStack(spacing: Spacing.lg.value) {
+                        // Error Banner (if any)
+                        if dataStore.hasErrors {
+                            ErrorBanner(errors: dataStore.errors)
                         }
                         
-                        // 進捗要約カード
-                        InteractiveSummaryCard(
-                            configuration: .basic(
-                                title: "今月の進捗",
-                                value: "\(progressViewModel?.currentMonthWorkouts ?? 0)回",
-                                subtitle: "タップで詳細",
-                                color: .green,
-                                icon: "checkmark.circle.fill"
-                            ),
-                            onTap: { handleCardTap(.basic(title: "進捗", value: "", subtitle: "", color: .green, icon: "checkmark.circle.fill")) }
-                        )
-                    }
-                    
-                    // 4. クイックアクション (優先度を上げて配置)
-                    QuickActionsSection(
-                        showingFTPEntry: $showingFTPEntry,
-                        showingWorkoutEntry: $showingWorkoutEntry,
-                        showingMetricsHistory: $showingMetricsHistory,
-                        showingProgressDetails: $showingProgressDetails,
-                        showingHistoryManagement: $showingHistoryManagement
-                    )
-                    
-                    // 5. 詳細情報 (展開可能)
-                    ExpandableDetailsSections(
-                        sstViewModel: sstViewModel,
-                        userProfile: userProfile,
-                        latestWeight: latestWeight,
-                        progressViewModel: progressViewModel
-                    )
-                    
-                    // Debug Demo Data Section (開発時のみ)
-                    #if DEBUG
-                    DemoDataSection(
-                        modelContext: modelContext,
-                        onDemoDataGenerated: {
-                            sstViewModel.refreshData()
-                            progressViewModel?.fetchData()
-                        },
-                        onShowMessage: { message in
-                            demoDataMessage = message
-                            showingDemoDataAlert = true
+                        // Main Content or Empty State
+                        if dataStore.hasData || dataStore.isLoading {
+                            // 1. Today's Progress Summary
+                            ImprovedTodayProgressCard(dataStore: dataStore)
+                            
+                            // 2. Cards Grid
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: Spacing.md.value) {
+                                // FTP Card (only if data exists)
+                                if let ftpValue = dataStore.currentFTP {
+                                    ImprovedFTPCard(value: ftpValue)
+                                        .onTapGesture {
+                                            showingFTPEntry = true
+                                        }
+                                }
+                                
+                                // Monthly Progress Card (always show)
+                                ImprovedMonthlyProgressCard(workouts: dataStore.monthlyWorkouts)
+                                    .onTapGesture {
+                                        showingProgressDetails = true
+                                    }
+                            }
+                            
+                            // 3. Quick Actions
+                            QuickActionsSection(
+                                showingFTPEntry: $showingFTPEntry,
+                                showingWorkoutEntry: $showingWorkoutEntry,
+                                showingMetricsHistory: $showingMetricsHistory,
+                                showingProgressDetails: $showingProgressDetails,
+                                showingHistoryManagement: $showingHistoryManagement
+                            )
+                            
+                            // 4. Demo Data (Debug only)
+                            #if DEBUG
+                            DemoDataSection(
+                                modelContext: modelContext,
+                                onDemoDataGenerated: {
+                                    Task {
+                                        await dataStore.refreshData()
+                                    }
+                                },
+                                onShowMessage: { message in
+                                    demoDataMessage = message
+                                    showingDemoDataAlert = true
+                                }
+                            )
+                            #endif
+                        } else {
+                            // Empty State
+                            EmptyStateView(
+                                title: "ワークアウトを始めましょう",
+                                message: "まずはワークアウトテンプレートを設定して、今日のタスクを確認しましょう。",
+                                icon: "figure.strengthtraining.traditional",
+                                actionTitle: "ワークアウト追加",
+                                action: { showingWorkoutEntry = true }
+                            )
                         }
-                    )
-                    #endif
-                }
-                .padding()
-            }
-            .navigationTitle("ホーム")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("更新", systemImage: "arrow.clockwise") {
-                        refreshAllData()
                     }
-                    .disabled(isHealthKitSyncing)
+                    .padding()
                 }
-            }
-            .refreshable {
-                refreshAllData()
+                .navigationTitle("ホーム")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            Task {
+                                await dataStore.refreshData()
+                            }
+                        }) {
+                            if dataStore.isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                            }
+                        }
+                        .disabled(dataStore.isLoading)
+                    }
+                }
+                .refreshable {
+                    Task {
+                        await dataStore.refreshData()
+                    }
+                }
+            } else {
+                // Loading state
+                VStack {
+                    ProgressView("データを読み込み中...")
+                        .progressViewStyle(CircularProgressViewStyle())
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle("ホーム")
             }
         }
         // Modal presentations remain the same...
@@ -133,20 +135,17 @@ struct UnifiedHomeDashboardView: View {
             isPresented: $showingProgressDetails,
             title: "進捗詳細"
         ) {
-            if let progressViewModel = progressViewModel {
-                ProgressChartView(viewModel: progressViewModel)
-            } else {
-                VStack(spacing: Spacing.md.value) {
-                    ProgressView("進捗データを読み込み中...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                    
-                    Text("ワークアウト履歴を解析しています...")
-                        .font(Typography.bodyMedium.font)
-                        .foregroundColor(SemanticColor.secondaryText)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(SemanticColor.surfaceBackground.color)
+            VStack(spacing: Spacing.md.value) {
+                Text("進捗詳細機能は開発中です")
+                    .font(Typography.bodyMedium.font)
+                    .foregroundColor(SemanticColor.primaryText.color)
+                
+                Text("月次進捗: \(dataStore?.monthlyWorkoutCount ?? 0)回")
+                    .font(Typography.captionMedium.font)
+                    .foregroundColor(SemanticColor.secondaryText.color)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(SemanticColor.surfaceBackground.color)
         }
         .modalNavigation(
             isPresented: $showingHistoryManagement,
@@ -166,166 +165,18 @@ struct UnifiedHomeDashboardView: View {
             Text(demoDataMessage)
         }
         .onAppear {
-            setupViewModels()
-            loadUserProfile()
-            loadAllData()
-            Task {
-                await initializeHealthKit()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .userProfileUpdated)) { _ in
-            loadUserProfile()
+            setupDataStore()
         }
     }
     
     // MARK: - Helper Methods
     
-    private func setupViewModels() {
-        // sstViewModelのみをセットアップ（他は必要に応じて遅延初期化）
-        sstViewModel.setModelContext(modelContext)
-        
-        // 必須のViewModelのみを初期化
-        if progressViewModel == nil {
-            progressViewModel = ProgressChartViewModel(modelContext: modelContext)
-        }
-        
-        if scheduleViewModel == nil {
-            scheduleViewModel = WeeklyScheduleViewModel(modelContext: modelContext)
-        }
-    }
-    
-    private func loadUserProfile() {
-        let descriptor = FetchDescriptor<UserProfile>()
-        do {
-            userProfile = try modelContext.fetch(descriptor).first
-        } catch {
-            Logger.error.error("Failed to fetch UserProfile: \(error.localizedDescription)")
-        }
-    }
-    
-    private func loadAllData() {
-        // 並列でデータを読み込み
-        Task {
-            async let sstData: Void = sstViewModel.loadData()
-            async let progressData: Void = progressViewModel?.fetchData() ?? ()
-            async let userProfileData: Void = loadUserProfile()
+    private func setupDataStore() {
+        if dataStore == nil {
+            dataStore = HomeDataStore(modelContext: modelContext)
             
-            await sstData
-            await progressData
-            await userProfileData
-        }
-    }
-    
-    private func refreshAllData() {
-        // バッチでデータを更新
-        Task {
-            // 同期的な更新（UI関連）
-            await MainActor.run {
-                loadUserProfile()
-                scheduleViewModel?.refreshCompletedTasks()
-            }
-            
-            // 非同期的な更新（データ取得）
-            async let sstRefresh: Void = sstViewModel.refreshData()
-            async let progressRefresh: Void = progressViewModel?.fetchData() ?? ()
-            async let healthKitSync: Void = syncHealthKitData()
-            async let stepsLoad: Void = loadTodaySteps()
-            
-            await sstRefresh
-            await progressRefresh
-            await healthKitSync
-            await stepsLoad
-        }
-    }
-    
-    private func handleCardTap(_ config: SummaryCardConfiguration) {
-        HapticManager.shared.trigger(.impact(.medium))
-        // Handle card tap based on configuration
-    }
-    
-    // MARK: - HealthKit Methods
-    
-    private func initializeHealthKit() async {
-        // HealthKit認証を確認・要求
-        if !healthKitManager.isAuthorized {
-            do {
-                try await healthKitManager.requestPermissions()
-            } catch {
-                Logger.error.error("HealthKit認証エラー: \(error.localizedDescription)")
-                return
-            }
-        }
-        
-        // 認証成功後、データを同期
-        await syncHealthKitData()
-        await loadTodaySteps()
-    }
-    
-    private func syncHealthKitData() async {
-        guard healthKitManager.isAuthorized else { 
-            await loadLatestWeight()
-            return 
-        }
-        
-        await MainActor.run {
-            isHealthKitSyncing = true
-        }
-        
-        do {
-            // 過去7日間のデータを同期
-            let startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-            let _ = try await healthKitManager.syncWeightData(from: startDate, modelContext: modelContext)
-            
-            // 最新体重を取得して表示
-            await loadLatestWeight()
-            
-        } catch {
-            Logger.error.error("HealthKitデータ同期エラー: \(error.localizedDescription)")
-        }
-        
-        await MainActor.run {
-            isHealthKitSyncing = false
-        }
-    }
-    
-    @MainActor
-    private func loadLatestWeight() async {
-        // 最新のDailyMetricから体重データを取得
-        let descriptor = FetchDescriptor<DailyMetric>(
-            sortBy: [SortDescriptor(\.date, order: .reverse)]
-        )
-        
-        do {
-            let metrics = try modelContext.fetch(descriptor)
-            latestWeight = metrics.first?.weightKg
-        } catch {
-            Logger.error.error("体重データ取得エラー: \(error.localizedDescription)")
-        }
-    }
-    
-    // 今日の歩数を取得
-    private func loadTodaySteps() async {
-        guard healthKitManager.isAuthorized else {
-            await MainActor.run {
-                todaySteps = 0
-            }
-            return
-        }
-        
-        do {
-            let calendar = Calendar.current
-            let startOfDay = calendar.startOfDay(for: Date())
-            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? Date()
-            
-            let steps = try await healthKitManager.getStepCount(from: startOfDay, to: endOfDay)
-            
-            await MainActor.run {
-                todaySteps = steps
-            }
-        } catch {
-            Logger.error.error("歩数データ取得エラー: \(error.localizedDescription)")
-            await MainActor.run {
-                todaySteps = 0
+            Task {
+                await dataStore?.loadAllData()
             }
         }
     }

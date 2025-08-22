@@ -55,24 +55,27 @@ class WeeklyScheduleViewModel {
         case .cycling:
             if let targetDetails = task.targetDetails {
                 record.cyclingData = SimpleCyclingData(
-                    zone: .z2,
-                    duration: targetDetails.targetDuration ?? 60,
-                    power: targetDetails.targetPower
+                    zone: targetDetails.intensity ?? .z2,
+                    duration: targetDetails.duration ?? CyclingZone.z2.defaultDuration,
+                    power: targetDetails.targetPower,
+                    averageHeartRate: targetDetails.averageHeartRate
                 )
             }
         case .strength:
-            record.strengthData = SimpleStrengthData(
-                muscleGroup: .chest,
-                customName: nil,
-                weight: 0,
-                reps: 10,
-                sets: 3
-            )
+            if let targetDetails = task.targetDetails {
+                record.strengthData = SimpleStrengthData(
+                    muscleGroup: .chest, // TODO: インテリジェントな筋群選択を実装
+                    customName: nil,
+                    weight: 0, // クイック完了では重量は0とする
+                    reps: targetDetails.targetReps ?? 10,
+                    sets: targetDetails.targetSets ?? 3
+                )
+            }
         case .flexibility:
             if let targetDetails = task.targetDetails {
                 record.flexibilityData = SimpleFlexibilityData(
                     type: .general,
-                    duration: targetDetails.targetDuration ?? 20,
+                    duration: targetDetails.targetDuration ?? 30,
                     measurement: nil
                 )
             }
@@ -353,19 +356,9 @@ class WeeklyScheduleViewModel {
             return (nil, nil)
         }
         
-        // 既存のタスクを検索
-        let existingTasks = activeTemplate.tasksForDay(selectedDay)
-        let matchingTask = existingTasks.first { $0.workoutType == workoutType }
-        
-        let task: DailyTask
-        
-        if let existing = matchingTask {
-            // 既存のタスクを使用
-            task = existing
-        } else {
-            // 新しいタスクを作成
-            task = createNewDailyTask(workoutType: workoutType, day: selectedDay, template: activeTemplate)
-        }
+        // 常に新しいタスクを作成（重複制限を削除）
+        let task = createNewDailyTask(workoutType: workoutType, day: selectedDay, template: activeTemplate)
+        updateTaskTargetDetailsFromInputData(task: task, inputData: recordData)
         
         // WorkoutRecordを作成
         let record = WorkoutRecord.fromDailyTask(task)
@@ -397,10 +390,14 @@ class WeeklyScheduleViewModel {
     
     /// 新しいDailyTaskを作成してテンプレートに追加
     private func createNewDailyTask(workoutType: WorkoutType, day: Int, template: WeeklyTemplate) -> DailyTask {
+        // 既存のタスクをチェックして連番付きのタイトルを生成
+        let existingTasks = template.tasksForDay(day)
+        let sameTypeCount = existingTasks.filter { $0.workoutType == workoutType }.count
+        
         let task = DailyTask(
             dayOfWeek: day,
             workoutType: workoutType,
-            title: generateTaskTitle(for: workoutType),
+            title: generateTaskTitle(for: workoutType, count: sameTypeCount + 1),
             description: "クイック記録から追加",
             isFlexible: false
         )
@@ -409,7 +406,6 @@ class WeeklyScheduleViewModel {
         task.targetDetails = createDefaultTargetDetails(for: workoutType)
         
         // ソート順序を設定（同じ曜日の最大値＋1）
-        let existingTasks = template.tasksForDay(day)
         task.sortOrder = (existingTasks.map { $0.sortOrder }.max() ?? -1) + 1
         
         // テンプレートにタスクを追加
@@ -426,17 +422,18 @@ class WeeklyScheduleViewModel {
         
         switch workoutType {
         case .cycling:
-            details.duration = 60
+            // QuickRecordViewのデフォルト値と同期
             details.intensity = .z2  // デフォルトでZ2（有酸素）
-            details.targetPower = 200
+            details.duration = CyclingZone.z2.defaultDuration  // Z2のデフォルト時間を使用
+            details.targetPower = 0  // パワーはオプションなので0に設定
             
         case .strength:
             details.targetSets = 3
-            details.targetReps = 12
+            details.targetReps = 10  // SimpleStrengthInputViewのデフォルト値と一致
             details.exercises = ["基本トレーニング"]
             
         case .flexibility, .pilates, .yoga:
-            details.targetDuration = 30
+            details.targetDuration = 30  // SimpleFlexibilityInputViewのデフォルト値と一致
             if workoutType == .flexibility {
                 details.targetForwardBend = 0.0
                 details.targetSplitAngle = 90.0
@@ -447,19 +444,23 @@ class WeeklyScheduleViewModel {
     }
     
     /// ワークアウトタイプに基づいてタスクタイトルを生成
-    private func generateTaskTitle(for workoutType: WorkoutType) -> String {
+    private func generateTaskTitle(for workoutType: WorkoutType, count: Int = 1) -> String {
+        let baseTitle: String
         switch workoutType {
         case .cycling:
-            return "サイクリング"
+            baseTitle = "サイクリング"
         case .strength:
-            return "筋トレ"
+            baseTitle = "筋トレ"
         case .flexibility:
-            return "ストレッチ"
+            baseTitle = "ストレッチ"
         case .pilates:
-            return "ピラティス"
+            baseTitle = "ピラティス"
         case .yoga:
-            return "ヨガ"
+            baseTitle = "ヨガ"
         }
+        
+        // 2つ目以降は連番を付ける
+        return count > 1 ? "\(baseTitle) #\(count)" : baseTitle
     }
     
     /// WorkoutRecordにデータを設定
@@ -478,6 +479,51 @@ class WeeklyScheduleViewModel {
                 record.flexibilityData = flexibilityData
             }
         }
+    }
+    
+    /// 入力データからTargetDetailsを作成して既存タスクを更新
+    private func updateTaskTargetDetailsFromInputData(task: DailyTask, inputData: Any) {
+        var details = task.targetDetails ?? TargetDetails()
+        
+        switch task.workoutType {
+        case .cycling:
+            if let cyclingData = inputData as? SimpleCyclingData {
+                // 入力された値でTargetDetailsを更新
+                details.duration = cyclingData.duration
+                details.intensity = cyclingData.zone
+                details.targetPower = cyclingData.power
+                details.averageHeartRate = cyclingData.averageHeartRate
+                details.wattsPerBpm = cyclingData.wattsPerBpm
+            }
+        case .strength:
+            if let strengthData = inputData as? SimpleStrengthData {
+                details.targetSets = strengthData.sets
+                details.targetReps = strengthData.reps
+                // 筋群に基づいてエクササイズ名を更新
+                if strengthData.muscleGroup == .custom, let customName = strengthData.customName {
+                    details.exercises = [customName]
+                } else {
+                    details.exercises = [strengthData.muscleGroup.displayName + "トレーニング"]
+                }
+            }
+        case .flexibility, .pilates, .yoga:
+            if let flexibilityData = inputData as? SimpleFlexibilityData {
+                details.targetDuration = flexibilityData.duration
+                if let measurement = flexibilityData.measurement {
+                    switch flexibilityData.type {
+                    case .forwardBend:
+                        details.targetForwardBend = measurement
+                    case .split:
+                        details.targetSplitAngle = measurement
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+        
+        task.targetDetails = details
+        Logger.general.info("Updated task target details from input data: \(task.title)")
     }
     
     /// QuickRecordView完了後にスケジュールビューを更新

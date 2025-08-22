@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Today Tasks Widget
 
 struct TodayTasksWidget: View {
-    let scheduleViewModel: WeeklyScheduleViewModel
+    @Bindable var dataStore: HomeDataStore
     let maxDisplayCount: Int = 3
     
     var body: some View {
@@ -40,8 +40,8 @@ struct TodayTasksWidget: View {
         ForEach(Array(todaysTasks.prefix(maxDisplayCount)), id: \.id) { task in
             TaskRow(
                 task: task,
-                isCompleted: scheduleViewModel.isTaskCompleted(task),
-                onToggle: { scheduleViewModel.toggleTaskCompletion(task) }
+                isCompleted: dataStore.isTaskCompleted(task),
+                onToggle: { dataStore.toggleTaskCompletion(task) }
             )
         }
         
@@ -79,11 +79,11 @@ struct TodayTasksWidget: View {
     // MARK: - Computed Properties
     
     private var todaysTasks: [DailyTask] {
-        return scheduleViewModel.getTodaysTasks()
+        return dataStore.todayTasks
     }
     
     private var completedTasksCount: Int {
-        return todaysTasks.filter { scheduleViewModel.isTaskCompleted($0) }.count
+        return dataStore.todayCompletedTasks
     }
     
     private var allTasksCompleted: Bool {
@@ -95,8 +95,8 @@ struct TodayTasksWidget: View {
     private func completeAllTasks() {
         HapticManager.shared.trigger(.notification(.success))
         todaysTasks.forEach { task in
-            if !scheduleViewModel.isTaskCompleted(task) {
-                scheduleViewModel.toggleTaskCompletion(task)
+            if !dataStore.isTaskCompleted(task) {
+                dataStore.toggleTaskCompletion(task)
             }
         }
     }

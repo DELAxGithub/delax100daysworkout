@@ -203,11 +203,21 @@ struct SimpleCyclingData: Codable, Equatable {
     let zone: CyclingZone
     let duration: Int  // 分
     let power: Int?    // ワット（オプション）
+    let averageHeartRate: Int?  // 平均心拍数（bpm）
+    let wattsPerBpm: Double?    // ワットパー心拍（自動計算）
     
-    init(zone: CyclingZone, duration: Int? = nil, power: Int? = nil) {
+    init(zone: CyclingZone, duration: Int? = nil, power: Int? = nil, averageHeartRate: Int? = nil) {
         self.zone = zone
         self.duration = duration ?? zone.defaultDuration
         self.power = power
+        self.averageHeartRate = averageHeartRate
+        
+        // ワットパー心拍の自動計算
+        if let power = power, let heartRate = averageHeartRate, power > 0, heartRate > 0 {
+            self.wattsPerBpm = Double(power) / Double(heartRate)
+        } else {
+            self.wattsPerBpm = nil
+        }
     }
 }
 
